@@ -1,0 +1,24 @@
+server:
+  port: 9000
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME} your_db_username
+    password: ${DB_PASSWORD} your_db_password
+    hikari:
+      maximum-pool-size: 20
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    open-in-view: false
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
