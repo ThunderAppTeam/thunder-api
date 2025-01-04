@@ -16,12 +16,13 @@ class MemberController(
 
     @PostMapping("/sms")
     fun postSms(@RequestBody request: PostSmsRequest) {
-        memberService.sendSms(request.mobileNumber)
+        memberService.sendSms(request.mobileNumber, request.mobileCountry)
     }
 
     @PostMapping("/sms/verify")
-    fun postSmsVerify(@RequestBody request: PostSmsVerifyRequest) {
-
+    fun postSmsVerify(@RequestBody request: PostSmsVerifyRequest, servlet: HttpServletRequest): SuccessResponse<Void> {
+        memberService.verifySms(request.mobileNumber, request.verificationCode)
+        return SuccessResponse(message = "Mobile Verification complete.", path = servlet.requestURI)
     }
 
     @PostMapping("/signup")
@@ -31,9 +32,9 @@ class MemberController(
 
     @GetMapping("/nickname/available")
     fun getNicknameAvailable(@RequestParam nickname: String,
-                             servletRequest: HttpServletRequest): SuccessResponse<Void> {
+                             servlet: HttpServletRequest): SuccessResponse<Void> {
         memberService.isAvailableNickName(nickname)
-        return SuccessResponse(message = "The nickname is available.", path = servletRequest.requestURI)
+        return SuccessResponse(message = "The nickname is available.", path = servlet.requestURI)
     }
 
 }
