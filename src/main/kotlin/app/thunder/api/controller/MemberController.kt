@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping(value = ["/v1/member"])
 @RestController
 class MemberController(
-  private val memberService: MemberService
+    private val memberService: MemberService
 ) {
 
     @PostMapping("/sms")
@@ -24,7 +24,7 @@ class MemberController(
 
     @PostMapping("/signup")
     fun postSignup(@RequestBody request: PostSignupRequest) {
-
+        memberService.signup(request)
     }
 
     @GetMapping("/nickname/available")
