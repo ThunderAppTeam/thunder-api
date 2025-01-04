@@ -4,6 +4,8 @@ import app.thunder.api.application.MemberService
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsVerifyRequest
+import app.thunder.api.controller.response.SuccessResponse
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.*
 
 @RequestMapping(value = ["/v1/member"])
@@ -28,8 +30,10 @@ class MemberController(
     }
 
     @GetMapping("/nickname/available")
-    fun getNicknameAvailable(@RequestParam nickname: String) {
-
+    fun getNicknameAvailable(@RequestParam nickname: String,
+                             servletRequest: HttpServletRequest): SuccessResponse<Void> {
+        memberService.isAvailableNickName(nickname)
+        return SuccessResponse(message = "The nickname is available.", path = servletRequest.requestURI)
     }
 
 }

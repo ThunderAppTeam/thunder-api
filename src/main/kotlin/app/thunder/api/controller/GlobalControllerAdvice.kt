@@ -25,7 +25,7 @@ class GlobalControllerAdvice : ResponseBodyAdvice<Any> {
         request: ServerHttpRequest,
         response: ServerHttpResponse
     ): Any? {
-        if (returnType.method?.name == HttpMethod.OPTIONS.name()) {
+        if (body is SuccessResponse<*> || returnType.method?.name == HttpMethod.OPTIONS.name()) {
             return body
         }
 

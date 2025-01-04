@@ -4,8 +4,8 @@ import app.thunder.api.adapter.sms.SmsAdapter
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.domain.member.MemberEntity
 import app.thunder.api.domain.member.MemberRepository
-import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import kotlin.random.Random
 
 @Service
@@ -35,6 +35,11 @@ class MemberService(
                                             request.countryCode,
                                             request.marketingAgreement)
         memberRepository.save(newMember)
+    }
+
+    @Transactional(readOnly = true)
+    fun isAvailableNickName(nickname: String): Boolean {
+        return memberRepository.findByNickname(nickname).isEmpty
     }
 
 }
