@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME} your_db_username
-    password: ${DB_PASSWORD} your_db_password
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 20
 
@@ -17,8 +17,3 @@ spring:
       hibernate:
         format_sql: false
     open-in-view: false
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
