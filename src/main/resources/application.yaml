@@ -18,6 +18,12 @@ spring:
         format_sql: false
     open-in-view: false
 
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    table: thunder_schema_history
+
 aligo:
   user-id: ${ALIGO_USER_ID}
   api-key: ${ALIGO_API_KEY}
