@@ -28,10 +28,8 @@ class MemberService(
     @Transactional
     fun sendSms(mobileNumber: String, mobileCountry: String) {
         val yesterday = LocalDateTime.now().minusDays(1L)
-        val verificationEntities = mobileVerificationRepository.findAllByMobileNumber(mobileNumber)
-            .filter { it.verifiedAt !== null }
-            .filter { it.createdAt.isAfter(yesterday) }
-        if (verificationEntities.size > 5) {
+        val histories = mobileVerificationRepository.findAllByMobileNumberAndCreatedAtAfter(mobileNumber, yesterday)
+        if (histories.size > 5) {
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
@@ -45,11 +43,12 @@ class MemberService(
 
     @Transactional
     fun verifySms(mobileNumber: String, verificationCode: String) {
-        val verification = mobileVerificationRepository.findAllByMobileNumber(mobileNumber)
-            .filter { !it.isExpired() }
-            .maxByOrNull { it.expiredAt }
+        val verification = mobileVerificationRepository.findLastByMobileNumberAndVerifiedAtIsNull(mobileNumber)
             ?: throw ThunderException(NOT_FOUND_MOBILE_VERIFICATION)
 
+        if (verification.isExpired()) {
+            throw ThunderException(EXPIRED_MOBILE_VERIFICATION)
+        }
         if (verification.verificationCode != verificationCode) {
             throw ThunderException(INVALID_MOBILE_VERIFICATION)
         }

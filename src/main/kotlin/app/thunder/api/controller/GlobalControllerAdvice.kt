@@ -2,6 +2,7 @@ package app.thunder.api.controller
 
 import app.thunder.api.controller.response.ErrorResponse
 import app.thunder.api.controller.response.SuccessResponse
+import app.thunder.api.exception.CommonErrors.UNKNOWN_SERVER_ERROR
 import app.thunder.api.exception.ThunderException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.core.MethodParameter
@@ -46,12 +47,24 @@ class GlobalControllerAdvice : ResponseBodyAdvice<Any> {
         request: HttpServletRequest
     ): ResponseEntity<ErrorResponse> {
         val errorResponse = ErrorResponse(
-            errorCode = ex.errorCode.name,
+            errorCode = (ex.errorCode as Enum<*>).name,
             message = ex.errorCode.message,
             path = request.requestURI
         )
-
         return ResponseEntity.status(ex.errorCode.httpStatus).body(errorResponse)
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleException(
+        ex: Exception,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            errorCode = UNKNOWN_SERVER_ERROR.name,
+            message = UNKNOWN_SERVER_ERROR.message,
+            path = request.requestURI
+        )
+        return ResponseEntity.status(UNKNOWN_SERVER_ERROR.httpStatus).body(errorResponse)
     }
 
 }
