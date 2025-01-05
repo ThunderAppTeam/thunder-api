@@ -30,8 +30,10 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.116.Final")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+
     implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.4")
     implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.4")
+    implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.4")
 
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:11.1.0")

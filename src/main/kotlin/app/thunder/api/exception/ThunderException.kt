@@ -1,3 +1,3 @@
 package app.thunder.api.exception
 
-class ThunderException(val errorCode:MemberErrors) : RuntimeException()
+class ThunderException(val errorCode: ErrorCode) : RuntimeException()
