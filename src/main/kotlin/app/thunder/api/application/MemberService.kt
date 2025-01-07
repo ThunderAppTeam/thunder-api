@@ -2,10 +2,7 @@ package app.thunder.api.application
 
 import app.thunder.api.adapter.sms.SmsAdapter
 import app.thunder.api.controller.request.PostSignupRequest
-import app.thunder.api.domain.member.MemberEntity
-import app.thunder.api.domain.member.MemberRepository
-import app.thunder.api.domain.member.MobileVerificationEntity
-import app.thunder.api.domain.member.MobileVerificationRepository
+import app.thunder.api.domain.member.*
 import app.thunder.api.exception.MemberErrors.*
 import app.thunder.api.exception.ThunderException
 import org.springframework.stereotype.Service
@@ -26,24 +23,24 @@ class MemberService(
 
 
     @Transactional
-    fun sendSms(mobileNumber: String, mobileCountry: String) {
+    fun sendSms(deviceId: String, mobileNumber: String, mobileCountry: String) {
         val yesterday = LocalDateTime.now().minusDays(1L)
-        val histories = mobileVerificationRepository.findAllByMobileNumberAndCreatedAtAfter(mobileNumber, yesterday)
-        if (histories.size > 5) {
+        val histories = mobileVerificationRepository.findAllByDeviceIdAndCreatedAtAfter(deviceId, yesterday)
+        if (histories.size >= 5) {
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
         val verificationCode = Random.nextInt(100000, 1000000).toString()
         mobileVerificationRepository.save(
-            MobileVerificationEntity.create(mobileNumber, mobileCountry, verificationCode)
+            MobileVerificationEntity.create(deviceId, mobileNumber, mobileCountry, verificationCode)
         )
 
         smsAdapter.sendSms(mobileNumber, VERIFICATION_MESSAGE + verificationCode)
     }
 
     @Transactional
-    fun verifySms(mobileNumber: String, verificationCode: String) {
-        val verification = mobileVerificationRepository.findLastByMobileNumberAndVerifiedAtIsNull(mobileNumber)
+    fun verifySms(deviceId: String, mobileNumber: String, verificationCode: String) {
+        val verification = mobileVerificationRepository.findLastByDeviceIdAndMobileNumber(deviceId, mobileNumber)
             ?: throw ThunderException(NOT_FOUND_MOBILE_VERIFICATION)
 
         if (verification.isExpired()) {

@@ -5,6 +5,7 @@ import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.exception.CommonErrors.UNKNOWN_SERVER_ERROR
 import app.thunder.api.exception.ThunderException
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
@@ -18,6 +19,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
 
 @RestControllerAdvice
 class GlobalControllerAdvice : ResponseBodyAdvice<Any> {
+
+    private final val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun supports(returnType: MethodParameter, converterType: Class<out HttpMessageConverter<*>>): Boolean {
         return true
@@ -59,6 +62,8 @@ class GlobalControllerAdvice : ResponseBodyAdvice<Any> {
         ex: Exception,
         request: HttpServletRequest
     ): ResponseEntity<ErrorResponse> {
+        logger.error("", ex)
+
         val errorResponse = ErrorResponse(
             errorCode = UNKNOWN_SERVER_ERROR.name,
             message = UNKNOWN_SERVER_ERROR.message,

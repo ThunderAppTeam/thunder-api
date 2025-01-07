@@ -11,6 +11,9 @@ class MobileVerificationEntity private constructor(
     @Column(name = "mobile_verification_id")
     val mobileVerificationId: Long = 0,
 
+    @Column(name = "device_id")
+    val deviceId: String,
+
     @Column(name = "mobile_number")
     val mobileNumber: String,
 
@@ -33,11 +36,13 @@ class MobileVerificationEntity private constructor(
 
     companion object {
         fun create(
+            deviceId: String,
             mobileNumber: String,
             mobileCountry: String,
             verificationCode: String
         ): MobileVerificationEntity {
             return MobileVerificationEntity(
+                deviceId = deviceId,
                 mobileNumber = mobileNumber,
                 mobileCountry = mobileCountry,
                 verificationCode = verificationCode

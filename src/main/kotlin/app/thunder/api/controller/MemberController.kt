@@ -16,12 +16,12 @@ class MemberController(
 
     @PostMapping("/sms")
     fun postSms(@RequestBody request: PostSmsRequest) {
-        memberService.sendSms(request.mobileNumber, request.mobileCountry)
+        memberService.sendSms(request.deviceId, request.mobileNumber, request.mobileCountry)
     }
 
     @PostMapping("/sms/verify")
     fun postSmsVerify(@RequestBody request: PostSmsVerifyRequest, servlet: HttpServletRequest): SuccessResponse<Void> {
-        memberService.verifySms(request.mobileNumber, request.verificationCode)
+        memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
         return SuccessResponse(message = "Mobile Verification complete.", path = servlet.requestURI)
     }
 
