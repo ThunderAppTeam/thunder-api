@@ -15,8 +15,9 @@ class MemberController(
 ) {
 
     @PostMapping("/sms")
-    fun postSms(@RequestBody request: PostSmsRequest) {
+    fun postSms(@RequestBody request: PostSmsRequest, servlet: HttpServletRequest): SuccessResponse<Void> {
         memberService.sendSms(request.deviceId, request.mobileNumber, request.mobileCountry)
+        return SuccessResponse(path = servlet.requestURI)
     }
 
     @PostMapping("/sms/verify")
@@ -26,8 +27,9 @@ class MemberController(
     }
 
     @PostMapping("/signup")
-    fun postSignup(@RequestBody request: PostSignupRequest) {
+    fun postSignup(@RequestBody request: PostSignupRequest, servlet: HttpServletRequest): SuccessResponse<Void> {
         memberService.signup(request)
+        return SuccessResponse(path = servlet.requestURI)
     }
 
     @GetMapping("/nickname/available")
