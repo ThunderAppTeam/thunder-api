@@ -18,7 +18,6 @@ java {
 
 repositories {
     mavenCentral()
-    maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
 }
 
 extra["snippetsDir"] = file("build/generated-snippets")
