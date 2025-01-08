@@ -5,6 +5,7 @@ import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsVerifyRequest
 import app.thunder.api.controller.response.SuccessResponse
+import app.thunder.api.controller.response.TestSendSmsResponse
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.web.bind.annotation.*
 
@@ -15,9 +16,13 @@ class MemberController(
 ) {
 
     @PostMapping("/sms")
-    fun postSms(@RequestBody request: PostSmsRequest, servlet: HttpServletRequest): SuccessResponse<Void> {
-        memberService.sendSms(request.deviceId, request.mobileNumber, request.mobileCountry)
-        return SuccessResponse(path = servlet.requestURI)
+    fun postSms(@RequestBody request: PostSmsRequest, servlet: HttpServletRequest): Any {
+        val verificationCode: String = memberService.sendSms(request)
+        var data: TestSendSmsResponse? = null
+        if (request.isTestMode) {
+            data = TestSendSmsResponse(verificationCode)
+        }
+        return SuccessResponse(path = servlet.requestURI, data = data)
     }
 
     @PostMapping("/sms/verify")

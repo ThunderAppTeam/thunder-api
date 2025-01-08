@@ -4,4 +4,5 @@ data class PostSmsRequest(
     val deviceId: String,
     val mobileNumber: String,
     val mobileCountry: String,
+    val isTestMode: Boolean = false,
 )

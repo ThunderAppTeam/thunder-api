@@ -2,6 +2,7 @@ package app.thunder.api.application
 
 import app.thunder.api.adapter.sms.SmsAdapter
 import app.thunder.api.controller.request.PostSignupRequest
+import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.domain.member.*
 import app.thunder.api.exception.MemberErrors.*
 import app.thunder.api.exception.ThunderException
@@ -23,19 +24,23 @@ class MemberService(
 
 
     @Transactional
-    fun sendSms(deviceId: String, mobileNumber: String, mobileCountry: String) {
+    fun sendSms(request: PostSmsRequest): String {
         val yesterday = LocalDateTime.now().minusDays(1L)
-        val histories = mobileVerificationRepository.findAllByDeviceIdAndCreatedAtAfter(deviceId, yesterday)
+        val histories = mobileVerificationRepository.findAllByDeviceIdAndCreatedAtAfter(request.deviceId, yesterday)
         if (histories.size >= 5) {
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
         val verificationCode = Random.nextInt(100000, 1000000).toString()
         mobileVerificationRepository.save(
-            MobileVerificationEntity.create(deviceId, mobileNumber, mobileCountry, verificationCode)
+            MobileVerificationEntity.create(request.deviceId,
+                                            request.mobileNumber,
+                                            request.mobileCountry,
+                                            verificationCode)
         )
 
-        smsAdapter.sendSms(mobileNumber, VERIFICATION_MESSAGE + verificationCode)
+        smsAdapter.sendSms(request.mobileNumber, VERIFICATION_MESSAGE + verificationCode, request.isTestMode)
+        return verificationCode
     }
 
     @Transactional
