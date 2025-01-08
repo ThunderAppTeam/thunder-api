@@ -27,7 +27,7 @@ class MemberService(
     fun sendSms(request: PostSmsRequest): String {
         val yesterday = LocalDateTime.now().minusDays(1L)
         val histories = mobileVerificationRepository.findAllByDeviceIdAndCreatedAtAfter(request.deviceId, yesterday)
-        if (histories.size >= 5) {
+        if (!request.isTestMode && histories.size >= 5) {
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
