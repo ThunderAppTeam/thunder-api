@@ -2,6 +2,7 @@ package app.thunder.api.controller
 
 import app.thunder.api.controller.response.ErrorResponse
 import app.thunder.api.exception.CommonErrors.UNKNOWN_SERVER_ERROR
+import app.thunder.api.exception.ExternalApiException
 import app.thunder.api.exception.ThunderException
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
@@ -43,6 +44,19 @@ class GlobalControllerAdvice {
     ): ResponseEntity<ErrorResponse> {
         val errorResponse = ErrorResponse(
             errorCode = (ex.errorCode as Enum<*>).name,
+            message = ex.errorCode.message,
+            path = request.requestURI
+        )
+        return ResponseEntity.status(ex.errorCode.httpStatus).body(errorResponse)
+    }
+
+    @ExceptionHandler(ExternalApiException::class)
+    fun handleExternalException(
+        ex: ExternalApiException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorResponse = ErrorResponse(
+            errorCode = ex.errorCode.name,
             message = ex.errorCode.message,
             path = request.requestURI
         )
