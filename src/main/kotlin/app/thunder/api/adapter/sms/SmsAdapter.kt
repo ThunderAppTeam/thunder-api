@@ -15,13 +15,14 @@ class SmsAdapter(
         private val logger = LoggerFactory.getLogger(this::class.java)
     }
 
-    fun sendSms(receiverMobileNumber: String, message: String) {
+    fun sendSms(receiverMobileNumber: String, message: String, isTestMode: Boolean = false) {
         val response = aligoClient.sendSms(
             key = aligoProperties.apiKey,
             userId = aligoProperties.userId,
             sender = aligoProperties.sender,
             receiver = receiverMobileNumber,
             message = message,
+            isTestMode = if (isTestMode) "Y" else "N"
         )
 
         if (response.resultCode < 0) {
