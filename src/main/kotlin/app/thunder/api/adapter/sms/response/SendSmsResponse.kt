@@ -8,5 +8,5 @@ data class SendSmsResponse(
     @JsonProperty("msg_id") val messageId: Int,
     @JsonProperty("success_cnt") val successCnt: Int,
     @JsonProperty("error_cnt") val errorCount: Int,
-    @JsonProperty("msg_type") val messageType: String,
+    @JsonProperty("msg_type") val messageType: String?,
 )
