@@ -7,8 +7,12 @@ import app.thunder.api.controller.request.PostSmsVerifyRequest
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
+@Validated
 @RequestMapping(value = ["/v1/member"])
 @RestController
 class MemberController(
@@ -16,7 +20,8 @@ class MemberController(
 ) {
 
     @PostMapping("/sms")
-    fun postSms(@RequestBody request: PostSmsRequest, servlet: HttpServletRequest): Any {
+    fun postSms(@RequestBody @Valid request: PostSmsRequest,
+                servlet: HttpServletRequest): Any {
         val verificationCode: String = memberService.sendSms(request)
         var data: TestSendSmsResponse? = null
         if (request.isTestMode) {
@@ -26,19 +31,21 @@ class MemberController(
     }
 
     @PostMapping("/sms/verify")
-    fun postSmsVerify(@RequestBody request: PostSmsVerifyRequest, servlet: HttpServletRequest): SuccessResponse<Void> {
+    fun postSmsVerify(@RequestBody @Valid request: PostSmsVerifyRequest,
+                      servlet: HttpServletRequest): SuccessResponse<Void> {
         memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
         return SuccessResponse(message = "Mobile Verification complete.", path = servlet.requestURI)
     }
 
     @PostMapping("/signup")
-    fun postSignup(@RequestBody request: PostSignupRequest, servlet: HttpServletRequest): SuccessResponse<Void> {
+    fun postSignup(@RequestBody @Valid request: PostSignupRequest,
+                   servlet: HttpServletRequest): SuccessResponse<Void> {
         memberService.signup(request)
         return SuccessResponse(path = servlet.requestURI)
     }
 
     @GetMapping("/nickname/available")
-    fun getNicknameAvailable(@RequestParam nickname: String,
+    fun getNicknameAvailable(@RequestParam @NotBlank nickname: String,
                              servlet: HttpServletRequest): SuccessResponse<Void> {
         memberService.isAvailableNickName(nickname)
         return SuccessResponse(message = "The nickname is available.", path = servlet.requestURI)

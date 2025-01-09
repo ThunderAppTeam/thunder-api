@@ -7,6 +7,7 @@ import java.time.ZonedDateTime
 data class ErrorResponse(
     val errorCode: String,
     val message: String,
+    val errorLog: String? = null,
     val path: String,
     val timestamp: ZonedDateTime = ZonedDateTime.now()
 )

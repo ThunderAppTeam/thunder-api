@@ -1,17 +1,21 @@
-package app.thunder.api.controller
+package app.thunder.api.exception
 
 import app.thunder.api.controller.response.ErrorResponse
-import app.thunder.api.exception.CommonErrors.UNKNOWN_SERVER_ERROR
-import app.thunder.api.exception.ExternalApiException
-import app.thunder.api.exception.ThunderException
+import app.thunder.api.exception.CommonErrors.*
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
-class GlobalControllerAdvice {
+class GlobalExceptionHandler {
 
     private final val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -37,6 +41,56 @@ class GlobalControllerAdvice {
 //        )
 //    }
 
+    @ExceptionHandler(exception = [
+        ConstraintViolationException::class,
+        MissingServletRequestParameterException::class,
+        MethodArgumentNotValidException::class
+    ])
+    fun handleInvalidParameterException(
+        ex: Exception,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+
+        val errorMessage = when (ex) {
+            is MethodArgumentNotValidException -> ex.bindingResult.fieldErrors
+                .joinToString(", ")
+                { "[${it.field}]: ${it.defaultMessage}" }
+
+            is ConstraintViolationException -> ex.constraintViolations
+                .joinToString(", ")
+                { "[${it.propertyPath.last()}]: ${it.message}" }
+
+            is MissingServletRequestParameterException -> ex.body.detail.toString()
+
+            else -> INVALID_PARAMETER_VALUE.message
+        }
+
+        val errorResponse = ErrorResponse(
+            errorCode = INVALID_PARAMETER_VALUE.name,
+            message = errorMessage,
+            path = request.requestURI
+        )
+        return ResponseEntity.status(BAD_REQUEST).body(errorResponse)
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleMissingParameterException(
+        ex: HttpMessageNotReadableException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        val errorMessage = (ex.cause as MismatchedInputException).path
+            .firstOrNull()
+            ?.let { "Required parameter '${it.fieldName}' is not present." }
+            ?: MISSING_REQUIRED_PARAMETER.message
+
+        val errorResponse = ErrorResponse(
+            errorCode = MISSING_REQUIRED_PARAMETER.name,
+            message = errorMessage,
+            path = request.requestURI
+        )
+        return ResponseEntity.status(BAD_REQUEST).body(errorResponse)
+    }
+
     @ExceptionHandler(ThunderException::class)
     fun handleThunderException(
         ex: ThunderException,
@@ -45,7 +99,7 @@ class GlobalControllerAdvice {
         val errorResponse = ErrorResponse(
             errorCode = (ex.errorCode as Enum<*>).name,
             message = ex.errorCode.message,
-            path = request.requestURI
+            path = request.requestURI,
         )
         return ResponseEntity.status(ex.errorCode.httpStatus).body(errorResponse)
     }
@@ -63,7 +117,7 @@ class GlobalControllerAdvice {
         return ResponseEntity.status(ex.errorCode.httpStatus).body(errorResponse)
     }
 
-    @ExceptionHandler(RuntimeException::class)
+    @ExceptionHandler(Exception::class)
     fun handleException(
         ex: Exception,
         request: HttpServletRequest
@@ -73,6 +127,7 @@ class GlobalControllerAdvice {
         val errorResponse = ErrorResponse(
             errorCode = UNKNOWN_SERVER_ERROR.name,
             message = UNKNOWN_SERVER_ERROR.message,
+            errorLog = ex.localizedMessage,
             path = request.requestURI
         )
         return ResponseEntity.status(UNKNOWN_SERVER_ERROR.httpStatus).body(errorResponse)
