@@ -29,7 +29,7 @@ class MobileVerificationEntity private constructor(
     val verificationCode: String = verificationCode
 
     @Column(name = "created_at")
-    final val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now()
 
     @Column(name = "expired_at")
     val expiredAt: LocalDateTime = createdAt.plusMinutes(3)

@@ -1,4 +1,4 @@
-package app.thunder.api.adapter.image
+package app.thunder.api.adapter.storage
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

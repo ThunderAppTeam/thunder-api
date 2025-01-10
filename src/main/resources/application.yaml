@@ -34,7 +34,6 @@ spring:
       region:
         static: ${AWS_REGION}
 
-
 aligo:
   user-id: ${ALIGO_USER_ID}
   api-key: ${ALIGO_API_KEY}
