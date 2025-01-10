@@ -6,33 +6,38 @@ import java.time.LocalDateTime
 @Table(name = "mobile_verification")
 @Entity
 class MobileVerificationEntity private constructor(
+    deviceId: String,
+    mobileNumber: String,
+    mobileCountry: String,
+    verificationCode: String,
+) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "mobile_verification_id")
-    val mobileVerificationId: Long = 0,
+    val mobileVerificationId: Long = 0
 
     @Column(name = "device_id")
-    val deviceId: String,
+    val deviceId: String = deviceId
 
     @Column(name = "mobile_number")
-    val mobileNumber: String,
+    val mobileNumber: String = mobileNumber
 
     @Column(name = "mobile_country")
-    val mobileCountry: String,
+    val mobileCountry: String = mobileCountry
 
     @Column(name = "verification_code")
-    val verificationCode: String,
+    val verificationCode: String = verificationCode
 
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    final val createdAt: LocalDateTime = LocalDateTime.now()
 
     @Column(name = "expired_at")
     val expiredAt: LocalDateTime = createdAt.plusMinutes(3)
-) {
 
     @Column(name = "verified_at")
     var verifiedAt: LocalDateTime? = null
         protected set
+
 
     companion object {
         fun create(
@@ -48,6 +53,8 @@ class MobileVerificationEntity private constructor(
                 verificationCode = verificationCode
             )
         }
+
+        private val RESET_DATE_TIME = LocalDateTime.of(1, 1, 1, 0, 0)
     }
 
     fun isExpired(): Boolean {
@@ -56,6 +63,10 @@ class MobileVerificationEntity private constructor(
 
     fun verified() {
         this.verifiedAt = LocalDateTime.now()
+    }
+
+    fun reset() {
+        this.verifiedAt = RESET_DATE_TIME
     }
 
 }

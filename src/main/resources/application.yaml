@@ -24,6 +24,17 @@ spring:
     baseline-version: 0
     table: thunder_schema_history
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      s3:
+        bucket: ${AWS_S3_BUCKET}
+      region:
+        static: ${AWS_REGION}
+
+
 aligo:
   user-id: ${ALIGO_USER_ID}
   api-key: ${ALIGO_API_KEY}

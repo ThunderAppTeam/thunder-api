@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 @Table(name = "member")
 @Entity
-class MemberEntity(
+class MemberEntity private constructor(
     nickname: String,
     mobileNumber: String,
     mobileCountry: String,
@@ -50,8 +50,7 @@ class MemberEntity(
         protected set
 
     @Column(name = "created_at")
-    var createdAt: LocalDateTime = LocalDateTime.now()
-        protected set
+    val createdAt: LocalDateTime = LocalDateTime.now()
 
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null
@@ -60,6 +59,7 @@ class MemberEntity(
     @Column(name = "updated_by")
     var updatedBy: Long? = null
         protected set
+
 
     companion object {
         fun create(
