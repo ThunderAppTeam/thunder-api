@@ -6,8 +6,10 @@ RUN ./gradlew build --no-daemon
 FROM openjdk:21-jdk-slim-buster
 WORKDIR /app
 
-COPY --from=builder /app/build/libs/thunder-api-0.0.1.jar /app/thunder-api-0.0.1.jar
-COPY .env.production /app/.env
+ARG ENV_FILE_PATH=.env.production
+
+COPY --from=builder /app/build/libs/thunder-api*.jar /app/thunder-api.jar
+COPY ${ENV_FILE_PATH} /app/.env
 
 EXPOSE 9000
-ENTRYPOINT ["/bin/sh", "-c", "set -a && . /app/.env && exec java -jar /app/thunder-api-0.0.1.jar"]
+ENTRYPOINT ["/bin/sh", "-c", "set -a && . /app/.env && exec java -jar /app/thunder-api.jar"]
