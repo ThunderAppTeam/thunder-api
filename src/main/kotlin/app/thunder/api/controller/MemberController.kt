@@ -21,7 +21,7 @@ class MemberController(
 
     @PostMapping("/sms")
     fun postSms(@RequestBody @Valid request: PostSmsRequest,
-                servlet: HttpServletRequest): Any {
+                servlet: HttpServletRequest): SuccessResponse<TestSendSmsResponse> {
         val verificationCode: String = memberService.sendSms(request)
         var data: TestSendSmsResponse? = null
         if (request.isTestMode) {

@@ -27,5 +27,4 @@ class ClientConfig {
         return factory.createClient(AligoClient::class.java)
     }
 
-
 }
