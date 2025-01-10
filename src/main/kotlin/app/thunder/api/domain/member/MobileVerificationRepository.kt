@@ -6,10 +6,36 @@ import java.time.LocalDateTime
 
 interface MobileVerificationRepository : JpaRepository<MobileVerificationEntity, Long>, KotlinJdslJpqlExecutor
 
+fun MobileVerificationRepository.findAllByMobileNumber(mobileNumber: String): List<MobileVerificationEntity> {
+    return this.findAll {
+        select(
+            entity(MobileVerificationEntity::class)
+        ).from(
+            entity(MobileVerificationEntity::class)
+        ).whereAnd(
+            path(MobileVerificationEntity::mobileNumber).eq(mobileNumber),
+            path(MobileVerificationEntity::verifiedAt).isNull(),
+        )
+    }.filterNotNull()
+}
+
+fun MobileVerificationRepository.findAllByDeviceIdAndNotVerify(deviceId: String): List<MobileVerificationEntity> {
+    return this.findAll {
+        select(
+            entity(MobileVerificationEntity::class)
+        ).from(
+            entity(MobileVerificationEntity::class)
+        ).whereAnd(
+            path(MobileVerificationEntity::deviceId).eq(deviceId),
+            path(MobileVerificationEntity::verifiedAt).isNull(),
+        )
+    }.filterNotNull()
+}
+
 fun MobileVerificationRepository.findAllByDeviceIdAndCreatedAtAfter(
     deviceId: String,
     createdAt: LocalDateTime
-): List<MobileVerificationEntity?> {
+): List<MobileVerificationEntity> {
     return this.findAll(limit = 5) {
         select(
             entity(MobileVerificationEntity::class)
@@ -18,8 +44,9 @@ fun MobileVerificationRepository.findAllByDeviceIdAndCreatedAtAfter(
         ).whereAnd(
             path(MobileVerificationEntity::deviceId).eq(deviceId),
             path(MobileVerificationEntity::createdAt).ge(createdAt),
+            path(MobileVerificationEntity::verifiedAt).isNull(),
         )
-    }
+    }.filterNotNull()
 }
 
 fun MobileVerificationRepository.findLastByDeviceIdAndMobileNumber(deviceId: String,

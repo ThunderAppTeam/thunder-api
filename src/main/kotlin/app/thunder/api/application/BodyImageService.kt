@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile
 
 @Service
 class BodyImageService(
-    private val bodyImageRepository: BodyImageRepository,
+//    private val bodyImageRepository: BodyImageRepository,
     private val imageAdapter: ImageAdapter,
 ) {
 

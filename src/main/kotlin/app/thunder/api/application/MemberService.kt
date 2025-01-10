@@ -3,7 +3,9 @@ package app.thunder.api.application
 import app.thunder.api.adapter.sms.SmsAdapter
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
+import app.thunder.api.controller.request.PostSmsResetRequest
 import app.thunder.api.domain.member.*
+import app.thunder.api.exception.CommonErrors.MISSING_REQUIRED_PARAMETER
 import app.thunder.api.exception.MemberErrors.*
 import app.thunder.api.exception.ThunderException
 import org.springframework.stereotype.Service
@@ -17,11 +19,9 @@ class MemberService(
     private val memberRepository: MemberRepository,
     private val mobileVerificationRepository: MobileVerificationRepository
 ) {
-
     companion object {
         private const val VERIFICATION_MESSAGE = "[THUNDER]앱에서 인증번호를 입력해주세요: "
     }
-
 
     @Transactional
     fun sendSms(request: PostSmsRequest): String {
@@ -58,7 +58,16 @@ class MemberService(
     }
 
     @Transactional
-    fun signup(request: PostSignupRequest) {
+    fun resetSendLimit(request: PostSmsResetRequest) {
+        when {
+            request.deviceId != null -> mobileVerificationRepository.findAllByDeviceIdAndNotVerify(request.deviceId)
+            request.mobileNumber != null -> mobileVerificationRepository.findAllByMobileNumber(request.mobileNumber)
+            else -> throw ThunderException(MISSING_REQUIRED_PARAMETER)
+        }.forEach { it.reset() }
+    }
+
+    @Transactional
+    fun signup(request: PostSignupRequest): MemberEntity {
         memberRepository.findByNickname(request.nickname)
             .ifPresent { throw ThunderException(NICKNAME_DUPLICATED) }
         val newMember = MemberEntity.create(request.nickname,
@@ -68,12 +77,15 @@ class MemberService(
                                             request.birthDay,
                                             request.countryCode,
                                             request.marketingAgreement)
-        memberRepository.save(newMember)
+        return memberRepository.save(newMember)
     }
 
     @Transactional(readOnly = true)
-    fun isAvailableNickName(nickname: String): Boolean {
-        return memberRepository.findByNickname(nickname).isEmpty
+    fun isAvailableNickName(nickname: String) {
+        val isPresent = memberRepository.findByNickname(nickname).isPresent
+        if (isPresent) {
+            throw ThunderException(NICKNAME_DUPLICATED)
+        }
     }
 
 }

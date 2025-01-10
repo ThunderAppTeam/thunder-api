@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Table(name = "body_image")
-@Entity
+//@Entity
 class BodyImageEntity private constructor(
     memberId: Long,
     imageUrl: String,
