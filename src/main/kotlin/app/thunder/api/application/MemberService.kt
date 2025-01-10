@@ -19,9 +19,6 @@ class MemberService(
     private val memberRepository: MemberRepository,
     private val mobileVerificationRepository: MobileVerificationRepository
 ) {
-    companion object {
-        private const val VERIFICATION_MESSAGE = "[THUNDER]앱에서 인증번호를 입력해주세요: "
-    }
 
     @Transactional
     fun sendSms(request: PostSmsRequest): String {
@@ -39,7 +36,7 @@ class MemberService(
                                             verificationCode)
         )
 
-        smsAdapter.sendSms(request.mobileNumber, VERIFICATION_MESSAGE + verificationCode, request.isTestMode)
+        smsAdapter.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", request.isTestMode)
         return verificationCode
     }
 
