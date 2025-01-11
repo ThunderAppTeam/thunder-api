@@ -17,7 +17,7 @@ import kotlin.random.Random
 class MemberService(
     private val smsAdapter: SmsAdapter,
     private val memberRepository: MemberRepository,
-    private val mobileVerificationRepository: MobileVerificationRepository
+    private val mobileVerificationRepository: MobileVerificationRepository,
 ) {
 
     @Transactional

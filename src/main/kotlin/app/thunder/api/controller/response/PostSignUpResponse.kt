@@ -6,4 +6,5 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class PostSignUpResponse(
     val memberId: Long?,
     val accessToken: String? = null,
+    val refreshToken: String? = null,
 )

@@ -21,10 +21,9 @@ class BodyController(
     @PostMapping("/photo")
     fun postBodyImage(
         @RequestParam("file") file: MultipartFile,
-        @RequestParam("memberId") memberId: Long,
         servlet: HttpServletRequest
     ): SuccessResponse<PostBodyPhotoResponse> {
-        val imageUrl = bodyService.upload(file, memberId)
+        val imageUrl = bodyService.upload(file)
         val response = PostBodyPhotoResponse(imageUrl)
         return SuccessResponse(data = response, path = servlet.requestURI)
     }

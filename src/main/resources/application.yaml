@@ -34,6 +34,11 @@ spring:
       region:
         static: ${AWS_REGION}
 
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+
 aligo:
   user-id: ${ALIGO_USER_ID}
   api-key: ${ALIGO_API_KEY}
