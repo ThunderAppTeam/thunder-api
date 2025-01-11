@@ -14,7 +14,10 @@ enum class MemberErrors(
     TOO_MANY_MOBILE_VERIFICATION(TOO_MANY_REQUESTS, "Mobile verification can only be requested 5 times per day."),
     NICKNAME_DUPLICATED(CONFLICT, "Nickname already exists."),
 
-    NOT_FOUND_MEMBER(NOT_FOUND, "Member not found")
+    NOT_FOUND_MEMBER(NOT_FOUND, "Member not found"),
+    EXPIRED_TOKEN(UNAUTHORIZED, "The token has expired."),
+    INVALID_TOKEN(UNAUTHORIZED, "The token is invalid."),
+    INVALID_AUTHORIZATION_HEADER(BAD_REQUEST, "Authorization header must include Bearer prefix."),
     ;
 
 }

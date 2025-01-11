@@ -25,6 +25,7 @@ extra["snippetsDir"] = file("build/generated-snippets")
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
@@ -33,6 +34,10 @@ dependencies {
     implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.4")
     implementation("com.linecorp.kotlin-jdsl:jpql-render:3.5.4")
     implementation("com.linecorp.kotlin-jdsl:spring-data-jpa-support:3.5.4")
+
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:11.1.0")

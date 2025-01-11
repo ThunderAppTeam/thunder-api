@@ -1,6 +1,7 @@
 package app.thunder.api.controller
 
 import app.thunder.api.application.MemberService
+import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
@@ -18,7 +19,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping(value = ["/v1/member"])
 @RestController
 class MemberController(
-    private val memberService: MemberService
+    private val memberService: MemberService,
+    private val tokenManager: TokenManager
 ) {
 
     @PostMapping("/sms")
@@ -58,7 +60,9 @@ class MemberController(
         servlet: HttpServletRequest
     ): SuccessResponse<PostSignUpResponse> {
         val memberEntity = memberService.signup(request)
-        return SuccessResponse(data = PostSignUpResponse(memberEntity.memberId), path = servlet.requestURI)
+        val accessToken = tokenManager.generateAccessToken(memberEntity.memberId)
+        val response = PostSignUpResponse(memberId = memberEntity.memberId, accessToken = accessToken)
+        return SuccessResponse(data = response, path = servlet.requestURI)
     }
 
     @GetMapping("/nickname/available")

@@ -10,10 +10,7 @@ class SmsAdapter(
     private val aligoClient: AligoClient,
     private val aligoProperties: AligoProperties,
 ) {
-
-    companion object {
-        private val logger = LoggerFactory.getLogger(this::class.java)
-    }
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     fun sendSms(receiverMobileNumber: String, message: String, isTestMode: Boolean = false) {
         val response = aligoClient.sendSms(

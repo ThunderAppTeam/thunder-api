@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
-
-    private final val logger = LoggerFactory.getLogger(this.javaClass)
+    private final val logger = LoggerFactory.getLogger(javaClass)
 
 //    override fun supports(returnType: MethodParameter, converterType: Class<out HttpMessageConverter<*>>): Boolean {
 //        return true
