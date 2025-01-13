@@ -1,6 +1,7 @@
 package app.thunder.api.application
 
 import app.thunder.api.adapter.sms.SmsAdapter
+import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
@@ -18,6 +19,7 @@ class MemberService(
     private val smsAdapter: SmsAdapter,
     private val memberRepository: MemberRepository,
     private val mobileVerificationRepository: MobileVerificationRepository,
+    private val tokenManager: TokenManager,
 ) {
 
     @Transactional
@@ -41,7 +43,7 @@ class MemberService(
     }
 
     @Transactional
-    fun verifySms(deviceId: String, mobileNumber: String, verificationCode: String) {
+    fun verifySms(deviceId: String, mobileNumber: String, verificationCode: String): String? {
         val verification = mobileVerificationRepository.findLastByDeviceIdAndMobileNumber(deviceId, mobileNumber)
             ?: throw ThunderException(NOT_FOUND_MOBILE_VERIFICATION)
 
@@ -52,6 +54,10 @@ class MemberService(
             throw ThunderException(INVALID_MOBILE_VERIFICATION)
         }
         verification.verified()
+
+        return memberRepository.findByMobileNumber(mobileNumber)
+            .map { tokenManager.generateAccessToken(it.memberId) }
+            .orElse(null)
     }
 
     @Transactional
@@ -64,7 +70,7 @@ class MemberService(
     }
 
     @Transactional
-    fun signup(request: PostSignupRequest): MemberEntity {
+    fun signup(request: PostSignupRequest): Member {
         memberRepository.findByNickname(request.nickname)
             .ifPresent { throw ThunderException(NICKNAME_DUPLICATED) }
         val newMember = MemberEntity.create(request.nickname,
@@ -74,7 +80,8 @@ class MemberService(
                                             request.birthDay,
                                             request.countryCode,
                                             request.marketingAgreement)
-        return memberRepository.save(newMember)
+        memberRepository.save(newMember)
+        return Member.from(newMember)
     }
 
     @Transactional(readOnly = true)
