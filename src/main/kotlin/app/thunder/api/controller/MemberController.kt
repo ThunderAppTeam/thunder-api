@@ -2,10 +2,7 @@ package app.thunder.api.controller
 
 import app.thunder.api.application.MemberService
 import app.thunder.api.auth.TokenManager
-import app.thunder.api.controller.request.PostSignupRequest
-import app.thunder.api.controller.request.PostSmsRequest
-import app.thunder.api.controller.request.PostSmsResetRequest
-import app.thunder.api.controller.request.PostSmsVerifyRequest
+import app.thunder.api.controller.request.*
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
@@ -40,9 +37,12 @@ class MemberController(
     fun postSmsVerify(
         @RequestBody @Valid request: PostSmsVerifyRequest,
         servlet: HttpServletRequest
-    ): SuccessResponse<Void> {
-        memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
-        return SuccessResponse(message = "Mobile Verification complete.", path = servlet.requestURI)
+    ): SuccessResponse<PostLoginResponse> {
+        val accessToken = memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
+        val loginResponse = accessToken?.let { PostLoginResponse(accessToken) }
+        return SuccessResponse(message = "Mobile Verification complete.",
+                               data = loginResponse,
+                               path = servlet.requestURI)
     }
 
     @PostMapping("/sms/reset")
@@ -59,9 +59,9 @@ class MemberController(
         @RequestBody @Valid request: PostSignupRequest,
         servlet: HttpServletRequest
     ): SuccessResponse<PostSignUpResponse> {
-        val memberEntity = memberService.signup(request)
-        val accessToken = tokenManager.generateAccessToken(memberEntity.memberId)
-        val response = PostSignUpResponse(memberId = memberEntity.memberId, accessToken = accessToken)
+        val member = memberService.signup(request)
+        val accessToken = tokenManager.generateAccessToken(member.memberId)
+        val response = PostSignUpResponse(memberId = member.memberId, accessToken = accessToken)
         return SuccessResponse(data = response, path = servlet.requestURI)
     }
 
