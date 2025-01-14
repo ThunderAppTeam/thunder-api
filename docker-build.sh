@@ -27,13 +27,14 @@ cleanup_container ${CONTAINER_NAME}
 docker rmi ${DOCKER_IMAGE_NAME}
 docker build --force-rm \
   --platform=linux/amd64 \
-  --build-arg ENV_FILE=${ENV_FILE} \
+  --build-arg ENV_FILE_PATH=${ENV_FILE_PATH} \
   -t ${DOCKER_IMAGE_NAME} .
 docker run -d \
   -p 9000:9000 \
   --name ${CONTAINER_NAME} \
   ${DOCKER_IMAGE_NAME}
 
-docker builder prune -f
+docker image prune -a -f
+docker volume prune -f
 
 echo "Successfully started ${CONTAINER_NAME}"

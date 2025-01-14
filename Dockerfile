@@ -6,7 +6,7 @@ RUN ./gradlew build --no-daemon
 FROM openjdk:21-jdk-slim-buster
 WORKDIR /app
 
-ARG ENV_FILE_PATH=.env.production
+ARG ENV_FILE_PATH
 
 COPY --from=builder /app/build/libs/thunder-api*.jar /app/thunder-api.jar
 COPY ${ENV_FILE_PATH} /app/.env
