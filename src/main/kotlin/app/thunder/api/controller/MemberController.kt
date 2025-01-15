@@ -26,11 +26,10 @@ class MemberController(
         servlet: HttpServletRequest
     ): SuccessResponse<TestSendSmsResponse> {
         val verificationCode: String = memberService.sendSms(request)
-        var data: TestSendSmsResponse? = null
-        if (request.isTestMode) {
-            data = TestSendSmsResponse(verificationCode)
-        }
-        return SuccessResponse(path = servlet.requestURI, data = data)
+        val response = TestSendSmsResponse(
+            verificationCode.takeIf { request.isTestMode }
+        )
+        return SuccessResponse(path = servlet.requestURI, data = response)
     }
 
     @PostMapping("/sms/verify")
@@ -39,9 +38,8 @@ class MemberController(
         servlet: HttpServletRequest
     ): SuccessResponse<PostLoginResponse> {
         val accessToken = memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
-        val loginResponse = accessToken?.let { PostLoginResponse(accessToken) }
         return SuccessResponse(message = "Mobile Verification complete.",
-                               data = loginResponse,
+                               data = PostLoginResponse(accessToken),
                                path = servlet.requestURI)
     }
 
