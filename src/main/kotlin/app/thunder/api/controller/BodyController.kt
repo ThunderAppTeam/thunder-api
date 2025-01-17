@@ -5,6 +5,7 @@ import app.thunder.api.controller.request.PostBodyReviewRequest
 import app.thunder.api.controller.response.PostBodyPhotoResponse
 import app.thunder.api.controller.response.SuccessResponse
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.PostMapping
@@ -34,7 +35,7 @@ class BodyController(
 
     @PostMapping("/review")
     fun postBodyReview(
-        @RequestBody request: PostBodyReviewRequest,
+        @RequestBody @Valid request: PostBodyReviewRequest,
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest
     ): SuccessResponse<PostBodyPhotoResponse> {
