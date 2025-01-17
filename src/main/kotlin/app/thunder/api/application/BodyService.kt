@@ -7,11 +7,11 @@ import app.thunder.api.domain.body.BodyReviewAdapter
 import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.ThunderException
+import java.util.UUID
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
-import java.util.*
 
 @Service
 class BodyService(
@@ -35,7 +35,7 @@ class BodyService(
 
         val member = memberAdapter.getByMemberId(memberId)
         val fileName = "${UUID.randomUUID()}_${imageFile.originalFilename}"
-        val filePath = "${member.mobileNumber}/$BODY_PHOTO_PATH/$fileName"
+        val filePath = "${member.nickname}/$BODY_PHOTO_PATH/$fileName"
         val imageUrl = storageAdapter.upload(imageFile, filePath)
 
         val bodyPhotoEntity = BodyPhotoEntity.create(memberId, imageUrl)
