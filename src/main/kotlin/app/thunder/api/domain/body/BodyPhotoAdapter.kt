@@ -7,13 +7,20 @@ import org.springframework.transaction.annotation.Transactional
 
 @Component
 class BodyPhotoAdapter(
-    val bodyPhotoRepository: BodyPhotoRepository
+    val bodyPhotoRepository: BodyPhotoRepository,
 ) {
 
+    @Transactional(readOnly = true)
     fun getById(bodyPhotoId: Long): BodyPhoto {
         val entity = bodyPhotoRepository.findById(bodyPhotoId)
             .orElseThrow { ThunderException(BodyErrors.NOT_FOUND_BODY_PHOTO) }
         return BodyPhoto.from(entity)
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllById(bodyPhotoIds: Collection<Long>): List<BodyPhoto> {
+        return bodyPhotoRepository.findAllById(bodyPhotoIds)
+            .map { BodyPhoto.from(it) }
     }
 
     @Transactional

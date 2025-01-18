@@ -11,10 +11,16 @@ class MemberAdapter(
 ) {
 
     @Transactional(readOnly = true)
-    fun getByMemberId(memberId: Long): Member {
+    fun getById(memberId: Long): Member {
         val memberEntity = memberRepository.findById(memberId)
             .orElseThrow { ThunderException(NOT_FOUND_MEMBER) }
         return Member.from(memberEntity)
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllById(memberIds: Collection<Long>): List<Member> {
+        return memberRepository.findAllById(memberIds)
+            .map { Member.from(it) }
     }
 
 }
