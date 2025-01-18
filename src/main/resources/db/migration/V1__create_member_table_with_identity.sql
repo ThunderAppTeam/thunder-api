@@ -1,4 +1,4 @@
-CREATE TABLE member
+CREATE TABLE IF NOT EXISTS member
 (
     member_id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nickname            TEXT UNIQUE NOT NULL,

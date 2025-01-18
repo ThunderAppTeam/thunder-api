@@ -1,6 +1,11 @@
 package app.thunder.api.domain.body
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Table(name = "body_photo")
@@ -20,8 +25,16 @@ class BodyPhotoEntity private constructor(
     @Column(name = "image_url")
     val imageUrl: String = imageUrl
 
+    @Column(name = "is_review_completed")
+    var isReviewCompleted: Boolean = false
+        protected set
+
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
+
+    @Column(name = "updated_at")
+    var updatedAt: LocalDateTime? = null
+        protected set
 
 
     companion object {
@@ -34,6 +47,11 @@ class BodyPhotoEntity private constructor(
                 imageUrl = imageUrl,
             )
         }
+    }
+
+    fun update(isReviewCompleted: Boolean, updatedAt: LocalDateTime?) {
+        this.isReviewCompleted = isReviewCompleted
+        this.updatedAt = updatedAt
     }
 
 }
