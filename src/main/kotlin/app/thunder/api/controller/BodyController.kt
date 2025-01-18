@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,14 +23,19 @@ class BodyController(
     private val bodyService: BodyService
 ) {
 
+    @GetMapping("/review")
+    fun getBodyReview(@AuthenticationPrincipal memberId: Long) {
+
+    }
+
     @PostMapping("/photo")
     fun postBodyImage(
         @RequestPart("file") file: MultipartFile,
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest
     ): SuccessResponse<PostBodyPhotoResponse> {
-        val imageUrl = bodyService.upload(file, memberId)
-        val response = PostBodyPhotoResponse(imageUrl)
+        val bodyPhoto = bodyService.upload(file, memberId)
+        val response = PostBodyPhotoResponse(bodyPhoto.bodyPhotoId, bodyPhoto.imageUrl)
         return SuccessResponse(data = response, path = servlet.requestURI)
     }
 

@@ -9,6 +9,7 @@ enum class BodyErrors(
 ) : ErrorCode {
 
     UNSUPPORTED_IMAGE_FORMAT(BAD_REQUEST, "Only JPG and PNG formats are allowed for image."),
+    NOT_FOUND_BODY_PHOTO(NOT_FOUND, "Body Photo not found."),
     ;
 
 }

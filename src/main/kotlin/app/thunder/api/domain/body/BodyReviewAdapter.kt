@@ -15,4 +15,8 @@ class BodyReviewAdapter(
         return BodyReview.from(entity)
     }
 
+    fun getCountByBodyPhotoId(bodyPhotoId: Long): Long {
+        return bodyReviewRepository.countByBodyPhotoId(bodyPhotoId)
+    }
+
 }
