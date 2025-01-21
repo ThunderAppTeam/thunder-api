@@ -7,6 +7,7 @@ import app.thunder.api.domain.body.BodyPhotoAdapter
 import app.thunder.api.domain.body.BodyReviewAdapter
 import app.thunder.api.domain.body.ReviewRotationAdapter
 import app.thunder.api.domain.member.MemberAdapter
+import app.thunder.api.exception.BodyErrors
 import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
@@ -45,31 +46,37 @@ class BodyService(
         val imageUrl = storageAdapter.upload(imageFile, filePath)
 
         val bodyPhoto = bodyPhotoAdapter.create(memberId, imageUrl)
-        reviewRotationAdapter.create(bodyPhoto.bodyPhotoId)
+        reviewRotationAdapter.create(bodyPhoto.bodyPhotoId, memberId)
         return bodyPhoto
     }
 
     @Transactional
     fun refreshReview(memberId: Long, refreshCount: Int): List<PostReviewRefreshResponse> {
-        val bodyPhotoIdSet = hashSetOf<Long>()
+        val bodyPhotoIdSet = linkedSetOf<Long>()
         val fetchSize = 5
         var reviewRotationId = 0L
         while (bodyPhotoIdSet.size < refreshCount) {
-            val reviewRotations = reviewRotationAdapter.getByAtLeastId(reviewRotationId, fetchSize)
+            val reviewRotations = reviewRotationAdapter
+                .getAllByIdGteAndMemberIdNot(reviewRotationId, memberId, fetchSize)
             if (reviewRotations.isEmpty()) {
                 break
             }
             reviewRotations.asSequence()
                 .filter { !it.reviewedMemberIds.contains(memberId) }
-                .mapTo(bodyPhotoIdSet) { it.bodyPhotoId }
+                .take(refreshCount - bodyPhotoIdSet.size)
+                .forEach { bodyPhotoIdSet.add(it.bodyPhotoId) }
 
             reviewRotationId += fetchSize
         }
         reviewRotationAdapter.refresh(bodyPhotoIdSet)
-        val bodyPhotos = bodyPhotoAdapter.getAllById(bodyPhotoIdSet)
-        val memberMap = memberAdapter.getAllById(bodyPhotos.map { it.memberId })
+
+        val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet)
+            .associateBy { it.bodyPhotoId }
+        val memberIdSet = bodyPhotoMap.values.map { it.memberId }.toSet()
+        val memberMap = memberAdapter.getAllById(memberIdSet)
             .associateBy { it.memberId }
-        return bodyPhotos.map { bodyPhoto ->
+        return bodyPhotoIdSet.map { bodyPhotoId ->
+            val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: throw ThunderException(BodyErrors.NOT_FOUND_BODY_PHOTO)
             val member = memberMap[bodyPhoto.memberId] ?: throw ThunderException(NOT_FOUND_MEMBER)
             PostReviewRefreshResponse(bodyPhoto.bodyPhotoId,
                                       bodyPhoto.imageUrl,

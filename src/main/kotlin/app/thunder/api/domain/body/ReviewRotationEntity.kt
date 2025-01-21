@@ -14,6 +14,7 @@ import org.hibernate.type.SqlTypes
 @Entity
 class ReviewRotationEntity private constructor(
     bodyPhotoId: Long,
+    memberId: Long,
     reviewMemberIds: Set<Long>
 ) {
     @Id
@@ -23,6 +24,9 @@ class ReviewRotationEntity private constructor(
 
     @Column(name = "body_photo_id")
     val bodyPhotoId: Long = bodyPhotoId
+
+    @Column(name = "member_id")
+    val memberId: Long = memberId
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "reviewed_member_ids", columnDefinition = "JSONB")
@@ -34,12 +38,12 @@ class ReviewRotationEntity private constructor(
 
 
     companion object {
-        fun create(bodyPhotoId: Long): ReviewRotationEntity {
-            return ReviewRotationEntity(bodyPhotoId, emptySet())
+        fun create(bodyPhotoId: Long, memberId: Long): ReviewRotationEntity {
+            return ReviewRotationEntity(bodyPhotoId, memberId, emptySet())
         }
 
         fun copy(source: ReviewRotationEntity): ReviewRotationEntity {
-            return ReviewRotationEntity(source.bodyPhotoId, source.reviewedMemberIds)
+            return ReviewRotationEntity(source.bodyPhotoId, source.memberId, source.reviewedMemberIds)
         }
     }
 
