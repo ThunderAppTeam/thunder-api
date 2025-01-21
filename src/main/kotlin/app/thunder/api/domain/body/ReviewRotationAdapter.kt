@@ -20,14 +20,14 @@ class ReviewRotationAdapter(
     }
 
     @Transactional(readOnly = true)
-    fun getByAtLeastId(reviewRotationId: Long, fetchSize: Int): List<ReviewRotation> {
-        return reviewRotationQueueRepository.getAllByIdCursor(reviewRotationId, fetchSize)
+    fun getAllByIdGteAndMemberIdNot(reviewRotationId: Long, memberId: Long, fetchSize: Int): List<ReviewRotation> {
+        return reviewRotationQueueRepository.getAllByIdGteAndMemberIdNot(reviewRotationId, memberId, fetchSize)
             .map { ReviewRotation.from(it) }
     }
 
     @Transactional
-    fun create(bodyPhotoId: Long): ReviewRotation {
-        val entity = ReviewRotationEntity.create(bodyPhotoId)
+    fun create(bodyPhotoId: Long, memberId: Long): ReviewRotation {
+        val entity = ReviewRotationEntity.create(bodyPhotoId, memberId)
         reviewRotationQueueRepository.save(entity)
         return ReviewRotation.from(entity)
     }
