@@ -1,7 +1,9 @@
 package app.thunder.api.controller
 
+import app.thunder.api.application.BodyCheckService
 import app.thunder.api.application.BodyService
 import app.thunder.api.controller.request.PostBodyReviewRequest
+import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.PostBodyPhotoResponse
 import app.thunder.api.controller.response.PostReviewRefreshResponse
 import app.thunder.api.controller.response.SuccessResponse
@@ -10,6 +12,8 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -22,8 +26,19 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping(value = ["/v1/body"])
 @RestController
 class BodyController(
-    private val bodyService: BodyService
+    private val bodyService: BodyService,
+    private val bodyCheckService: BodyCheckService
 ) {
+
+    @GetMapping("/photo/{bodyPhotoId}")
+    fun getBodyPhoto(
+        @PathVariable @Positive bodyPhotoId: Long,
+        @AuthenticationPrincipal memberId: Long,
+        servlet: HttpServletRequest,
+    ): SuccessResponse<GetBodyPhotoResponse> {
+        val bodyPhotoResult = bodyCheckService.get(bodyPhotoId, memberId)
+        return SuccessResponse(data = bodyPhotoResult, path = servlet.requestURI)
+    }
 
     @PostMapping("/review/refresh")
     fun getBodyReview(

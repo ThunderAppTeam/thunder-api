@@ -1,5 +1,6 @@
 package app.thunder.api.domain.body
 
+import app.thunder.api.domain.member.Gender
 import app.thunder.api.exception.BodyErrors
 import app.thunder.api.exception.ThunderException
 import org.springframework.stereotype.Component
@@ -20,7 +21,13 @@ class BodyPhotoAdapter(
     @Transactional(readOnly = true)
     fun getAllById(bodyPhotoIds: Collection<Long>): List<BodyPhoto> {
         return bodyPhotoRepository.findAllById(bodyPhotoIds)
-            .map { BodyPhoto.from(it) }
+            .map(BodyPhoto::from)
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllByGender(gender: Gender): List<BodyPhoto> {
+        return bodyPhotoRepository.findAllByGender(gender)
+            .map(BodyPhoto::from)
     }
 
     @Transactional

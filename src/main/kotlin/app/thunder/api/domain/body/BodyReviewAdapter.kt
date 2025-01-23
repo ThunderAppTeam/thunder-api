@@ -9,8 +9,9 @@ class BodyReviewAdapter(
 ) {
 
     @Transactional(readOnly = true)
-    fun getCountByBodyPhotoId(bodyPhotoId: Long): Long {
-        return bodyReviewRepository.countByBodyPhotoId(bodyPhotoId)
+    fun getAllByBodyPhotoId(bodyPhotoId: Long): List<BodyReview> {
+        return bodyReviewRepository.findAllByBodyPhotoIdIn(listOf(bodyPhotoId))
+            .map(BodyReview::from)
     }
 
     @Transactional(readOnly = true)

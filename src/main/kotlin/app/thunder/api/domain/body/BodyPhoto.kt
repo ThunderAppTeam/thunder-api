@@ -7,10 +7,13 @@ class BodyPhoto private constructor(
     val memberId: Long,
     val imageUrl: String,
     isReviewCompleted: Boolean,
+    reviewScore: Double,
     val createdAt: LocalDateTime,
     updatedAt: LocalDateTime?,
 ) {
     var isReviewCompleted: Boolean = isReviewCompleted
+        private set
+    var reviewScore: Double = reviewScore
         private set
     var updatedAt: LocalDateTime? = updatedAt
         private set
@@ -22,6 +25,7 @@ class BodyPhoto private constructor(
                 entity.memberId,
                 entity.imageUrl,
                 entity.isReviewCompleted,
+                entity.reviewScore,
                 entity.createdAt,
                 entity.updatedAt,
             )
@@ -31,6 +35,10 @@ class BodyPhoto private constructor(
     fun completeReview() {
         this.isReviewCompleted = true
         this.updatedAt = LocalDateTime.now()
+    }
+
+    fun updateReviewScore(reviewScore:Double) {
+        this.reviewScore = reviewScore
     }
 
 }
