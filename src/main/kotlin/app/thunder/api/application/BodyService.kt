@@ -93,11 +93,18 @@ class BodyService(
             throw ThunderException(ALREADY_REVIEWED)
         }
 
-        val reviewCount = bodyReviewAdapter.getCountByBodyPhotoId(bodyPhotoId)
-        if (reviewCount >= REVIEW_COMPLETE_COUNT - 1) {
+        val bodyReviews = bodyReviewAdapter.getAllByBodyPhotoId(bodyPhotoId)
+        if (bodyReviews.size >= REVIEW_COMPLETE_COUNT - 1) {
             bodyPhoto.completeReview()
             bodyPhotoAdapter.update(bodyPhoto)
         }
+
+        val total = bodyReviews.sumOf { it.score }
+        val newReviewScore =
+            if (total == 0) 0.0
+            else total.toDouble() / bodyReviews.count() * 2
+        bodyPhoto.updateReviewScore(newReviewScore)
+        bodyPhotoAdapter.update(bodyPhoto)
 
         val member = memberAdapter.getById(memberId)
         bodyReviewAdapter.create(bodyPhotoId, member.memberId, score)

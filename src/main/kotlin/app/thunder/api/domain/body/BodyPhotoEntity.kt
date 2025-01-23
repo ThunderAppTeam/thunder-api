@@ -29,6 +29,10 @@ class BodyPhotoEntity private constructor(
     var isReviewCompleted: Boolean = false
         protected set
 
+    @Column(name = "review_score")
+    var reviewScore: Double = 0.0
+        protected set
+
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 
