@@ -68,13 +68,14 @@ class BodyService(
 
             reviewRotationId += fetchSize
         }
-        reviewRotationAdapter.refresh(bodyPhotoIdSet)
+        reviewRotationAdapter.refresh(bodyPhotoIdSet, memberId)
 
         val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet)
             .associateBy { it.bodyPhotoId }
         val memberIdSet = bodyPhotoMap.values.map { it.memberId }.toSet()
         val memberMap = memberAdapter.getAllById(memberIdSet)
             .associateBy { it.memberId }
+
         return bodyPhotoIdSet.map { bodyPhotoId ->
             val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: throw ThunderException(BodyErrors.NOT_FOUND_BODY_PHOTO)
             val member = memberMap[bodyPhoto.memberId] ?: throw ThunderException(NOT_FOUND_MEMBER)
@@ -108,10 +109,6 @@ class BodyService(
 
         val member = memberAdapter.getById(memberId)
         bodyReviewAdapter.create(bodyPhotoId, member.memberId, score)
-
-        val reviewRotation = reviewRotationAdapter.getByBodyPhotoId(bodyPhotoId)
-        reviewRotation.addReviewedMember(memberId)
-        reviewRotationAdapter.update(reviewRotation)
     }
 
 }

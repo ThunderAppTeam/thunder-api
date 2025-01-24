@@ -6,8 +6,20 @@ import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpql
 import java.time.LocalDateTime
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface BodyPhotoRepository : JpaRepository<BodyPhotoEntity, Long>, KotlinJdslJpqlExecutor {
-    fun findAllByMemberId(id: Long): List<BodyPhotoEntity>
+interface BodyPhotoRepository : JpaRepository<BodyPhotoEntity, Long>, KotlinJdslJpqlExecutor
+
+fun BodyPhotoRepository.findAllByMemberId(memberId: Long): List<BodyPhotoEntity> {
+    return this.findAll {
+        select(
+            entity(BodyPhotoEntity::class)
+        ).from(
+            entity(BodyPhotoEntity::class),
+        ).whereAnd(
+            path(BodyPhotoEntity::memberId).eq(memberId),
+        ).orderBy(
+            path(BodyPhotoEntity::bodyPhotoId).desc()
+        )
+    }.filterNotNull()
 }
 
 fun BodyPhotoRepository.findAllByGender(gender: Gender): List<BodyPhotoEntity> {
