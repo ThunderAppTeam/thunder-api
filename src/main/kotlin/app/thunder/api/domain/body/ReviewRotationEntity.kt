@@ -42,8 +42,8 @@ class ReviewRotationEntity private constructor(
             return ReviewRotationEntity(bodyPhotoId, memberId, emptySet())
         }
 
-        fun copy(source: ReviewRotationEntity): ReviewRotationEntity {
-            return ReviewRotationEntity(source.bodyPhotoId, source.memberId, source.reviewedMemberIds)
+        fun create(bodyPhotoId: Long, memberId: Long, reviewedMemberIds: Set<Long>): ReviewRotationEntity {
+            return ReviewRotationEntity(bodyPhotoId, memberId, reviewedMemberIds)
         }
     }
 

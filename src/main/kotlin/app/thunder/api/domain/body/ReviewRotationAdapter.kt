@@ -33,9 +33,15 @@ class ReviewRotationAdapter(
     }
 
     @Transactional
-    fun refresh(bodyPhotoIds: Collection<Long>) {
+    fun refresh(bodyPhotoIds: Collection<Long>, memberId: Long) {
         val entities = reviewRotationQueueRepository.findAllByBodyPhotoIdIn(bodyPhotoIds)
-        val copies = entities.map { ReviewRotationEntity.copy(it) }
+        val copies = entities.map {
+            ReviewRotationEntity.create(
+                bodyPhotoId = it.bodyPhotoId,
+                memberId = it.memberId,
+                reviewedMemberIds = it.reviewedMemberIds + memberId
+            )
+        }
         reviewRotationQueueRepository.deleteAll(entities)
         entityManager.flush()
         reviewRotationQueueRepository.saveAll(copies)
