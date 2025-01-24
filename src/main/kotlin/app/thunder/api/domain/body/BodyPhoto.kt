@@ -39,6 +39,7 @@ class BodyPhoto private constructor(
 
     fun updateReviewScore(reviewScore:Double) {
         this.reviewScore = reviewScore
+        this.updatedAt = LocalDateTime.now()
     }
 
 }

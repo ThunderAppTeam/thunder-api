@@ -53,8 +53,9 @@ class BodyPhotoEntity private constructor(
         }
     }
 
-    fun update(isReviewCompleted: Boolean, updatedAt: LocalDateTime?) {
+    fun update(isReviewCompleted: Boolean, reviewScore: Double, updatedAt: LocalDateTime?) {
         this.isReviewCompleted = isReviewCompleted
+        this.reviewScore = reviewScore
         this.updatedAt = updatedAt
     }
 
