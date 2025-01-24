@@ -1,6 +1,7 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.response.GetBodyPhotoResponse
+import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.domain.body.BodyPhotoAdapter
 import app.thunder.api.domain.body.BodyReviewAdapter
 import app.thunder.api.domain.member.MemberAdapter
@@ -17,7 +18,20 @@ class BodyCheckService(
 ) {
 
     @Transactional(readOnly = true)
-    fun get(bodyPhotoId: Long, memberId: Long): GetBodyPhotoResponse {
+    fun getAllByMemberId(memberId: Long): List<GetBodyPhotoResponse> {
+        return bodyPhotoAdapter.getAllByMemberId(memberId).map {
+            GetBodyPhotoResponse(
+                bodyPhotoId = it.bodyPhotoId,
+                imageUrl = it.imageUrl,
+                isReviewCompleted = it.isReviewCompleted,
+                reviewScore = it.reviewScore,
+                createdAt = it.createdAt.toKoreaZonedDateTime()
+            )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    fun getByBodyPhotoId(bodyPhotoId: Long, memberId: Long): GetBodyPhotoResultResponse {
         val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
 
         val member = memberAdapter.getById(memberId)
@@ -31,7 +45,7 @@ class BodyCheckService(
         val topPercent = ranking / bodyPhotos.size * 100
         val reviewCount = bodyReviewAdapter.getAllByBodyPhotoId(bodyPhotoId).count()
 
-        return GetBodyPhotoResponse(
+        return GetBodyPhotoResultResponse(
             bodyPhotoId = bodyPhoto.bodyPhotoId,
             imageUrl = bodyPhoto.imageUrl,
             isReviewCompleted = bodyPhoto.isReviewCompleted,

@@ -6,7 +6,9 @@ import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpql
 import java.time.LocalDateTime
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface BodyPhotoRepository : JpaRepository<BodyPhotoEntity, Long>, KotlinJdslJpqlExecutor
+interface BodyPhotoRepository : JpaRepository<BodyPhotoEntity, Long>, KotlinJdslJpqlExecutor {
+    fun findAllByMemberId(id: Long): List<BodyPhotoEntity>
+}
 
 fun BodyPhotoRepository.findAllByGender(gender: Gender): List<BodyPhotoEntity> {
     val before30Days = LocalDateTime.now().minusDays(30)

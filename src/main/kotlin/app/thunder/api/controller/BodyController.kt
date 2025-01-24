@@ -4,6 +4,7 @@ import app.thunder.api.application.BodyCheckService
 import app.thunder.api.application.BodyService
 import app.thunder.api.controller.request.PostBodyReviewRequest
 import app.thunder.api.controller.response.GetBodyPhotoResponse
+import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.controller.response.PostBodyPhotoResponse
 import app.thunder.api.controller.response.PostReviewRefreshResponse
 import app.thunder.api.controller.response.SuccessResponse
@@ -30,13 +31,22 @@ class BodyController(
     private val bodyCheckService: BodyCheckService
 ) {
 
-    @GetMapping("/photo/{bodyPhotoId}")
+    @GetMapping("/photo")
     fun getBodyPhoto(
+        @AuthenticationPrincipal memberId: Long,
+        servlet: HttpServletRequest,
+    ): SuccessResponse<List<GetBodyPhotoResponse>> {
+        val bodyPhotoList = bodyCheckService.getAllByMemberId(memberId)
+        return SuccessResponse(data = bodyPhotoList, path = servlet.requestURI)
+    }
+
+    @GetMapping("/photo/{bodyPhotoId}")
+    fun getBodyPhotoDetail(
         @PathVariable @Positive bodyPhotoId: Long,
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest,
-    ): SuccessResponse<GetBodyPhotoResponse> {
-        val bodyPhotoResult = bodyCheckService.get(bodyPhotoId, memberId)
+    ): SuccessResponse<GetBodyPhotoResultResponse> {
+        val bodyPhotoResult = bodyCheckService.getByBodyPhotoId(bodyPhotoId, memberId)
         return SuccessResponse(data = bodyPhotoResult, path = servlet.requestURI)
     }
 

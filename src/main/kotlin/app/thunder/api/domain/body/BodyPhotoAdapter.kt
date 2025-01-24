@@ -19,6 +19,12 @@ class BodyPhotoAdapter(
     }
 
     @Transactional(readOnly = true)
+    fun getAllByMemberId(memberId: Long): List<BodyPhoto> {
+        return bodyPhotoRepository.findAllByMemberId(memberId)
+            .map(BodyPhoto::from)
+    }
+
+    @Transactional(readOnly = true)
     fun getAllById(bodyPhotoIds: Collection<Long>): List<BodyPhoto> {
         return bodyPhotoRepository.findAllById(bodyPhotoIds)
             .map(BodyPhoto::from)
