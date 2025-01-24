@@ -95,15 +95,13 @@ class BodyService(
         }
 
         val bodyReviews = bodyReviewAdapter.getAllByBodyPhotoId(bodyPhotoId)
-        if (bodyReviews.size >= REVIEW_COMPLETE_COUNT - 1) {
+        val reviewCount = bodyReviews.size + 1
+        if (reviewCount >= REVIEW_COMPLETE_COUNT) {
             bodyPhoto.completeReview()
-            bodyPhotoAdapter.update(bodyPhoto)
         }
 
-        val total = bodyReviews.sumOf { it.score }
-        val newReviewScore =
-            if (total == 0) 0.0
-            else total.toDouble() / bodyReviews.count() * 2
+        val totalScore = bodyReviews.sumOf { it.score }.toDouble() + score
+        val newReviewScore = totalScore / (bodyReviews.size + 1) * 2
         bodyPhoto.updateReviewScore(newReviewScore)
         bodyPhotoAdapter.update(bodyPhoto)
 
