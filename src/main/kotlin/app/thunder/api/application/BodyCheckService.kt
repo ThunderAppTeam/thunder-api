@@ -23,7 +23,7 @@ class BodyCheckService(
             GetBodyPhotoResponse(
                 bodyPhotoId = it.bodyPhotoId,
                 imageUrl = it.imageUrl,
-                isReviewCompleted = it.isReviewCompleted,
+                reviewCount = if (it.reviewScore == 0.0) 0 else 1,
                 reviewScore = it.reviewScore,
                 createdAt = it.createdAt.toKoreaZonedDateTime()
             )
@@ -49,10 +49,10 @@ class BodyCheckService(
             bodyPhotoId = bodyPhoto.bodyPhotoId,
             imageUrl = bodyPhoto.imageUrl,
             isReviewCompleted = bodyPhoto.isReviewCompleted,
-            progressRate = reviewCount * 5.0,
+            reviewCount = reviewCount,
+            progressRate = reviewCount / 20 * 100.0,
             gender = member.gender,
-            totalScore = round(bodyPhoto.reviewScore * 10) / 10,
-            genderTopPercent = round(topPercent),
+            reviewScore = round(bodyPhoto.reviewScore * 10) / 10,
             genderTopRate = round(topPercent),
             createdAt = bodyPhoto.createdAt.toKoreaZonedDateTime(),
         )

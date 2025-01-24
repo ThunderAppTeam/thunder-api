@@ -7,10 +7,10 @@ data class GetBodyPhotoResultResponse(
     val bodyPhotoId: Long,
     val imageUrl: String,
     val isReviewCompleted: Boolean,
+    val reviewCount: Int,
     val progressRate: Double,
     val gender: Gender,
-    val totalScore: Double,
-    val genderTopPercent: Double,
+    val reviewScore: Double,
     val genderTopRate: Double,
     val createdAt: ZonedDateTime,
 )
