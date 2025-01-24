@@ -2,6 +2,7 @@ package app.thunder.api.application
 
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.domain.body.BodyPhotoAdapter
+import app.thunder.api.domain.body.BodyReviewAdapter
 import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.func.toKoreaZonedDateTime
 import kotlin.math.round
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 class BodyCheckService(
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val memberAdapter: MemberAdapter,
+    private val bodyReviewAdapter: BodyReviewAdapter,
 ) {
 
     @Transactional(readOnly = true)
@@ -26,16 +28,19 @@ class BodyCheckService(
                 ranking += 1
             }
         }
-
         val topPercent = ranking / bodyPhotos.size * 100
+        val reviewCount = bodyReviewAdapter.getAllByBodyPhotoId(bodyPhotoId).count()
 
         return GetBodyPhotoResponse(
-            bodyPhoto.bodyPhotoId,
-            bodyPhoto.imageUrl,
-            bodyPhoto.isReviewCompleted,
-            round(bodyPhoto.reviewScore * 10) / 10,
-            round(topPercent),
-            bodyPhoto.createdAt.toKoreaZonedDateTime(),
+            bodyPhotoId = bodyPhoto.bodyPhotoId,
+            imageUrl = bodyPhoto.imageUrl,
+            isReviewCompleted = bodyPhoto.isReviewCompleted,
+            progressRate = reviewCount * 5.0,
+            gender = member.gender,
+            totalScore = round(bodyPhoto.reviewScore * 10) / 10,
+            genderTopPercent = round(topPercent),
+            genderTopRate = round(topPercent),
+            createdAt = bodyPhoto.createdAt.toKoreaZonedDateTime(),
         )
     }
 
