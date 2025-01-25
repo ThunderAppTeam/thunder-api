@@ -1,22 +1,16 @@
 package app.thunder.api.application
 
-import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.PostReviewRefreshResponse
-import app.thunder.api.domain.body.BodyPhoto
 import app.thunder.api.domain.body.BodyPhotoAdapter
 import app.thunder.api.domain.body.BodyReviewAdapter
 import app.thunder.api.domain.body.ReviewRotationAdapter
 import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.exception.BodyErrors
 import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
-import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
-import java.util.UUID
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.multipart.MultipartFile
 
 @Service
 class BodyService(
@@ -24,31 +18,7 @@ class BodyService(
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val bodyReviewAdapter: BodyReviewAdapter,
     private val reviewRotationAdapter: ReviewRotationAdapter,
-    private val storageAdapter: StorageAdapter,
 ) {
-
-    companion object {
-        private const val BODY_PHOTO_PATH = "body_photo"
-        private const val REVIEW_COMPLETE_COUNT = 20L
-    }
-
-    @Transactional
-    fun upload(imageFile: MultipartFile, memberId: Long): BodyPhoto {
-        val isNotAllowImage = !setOf(MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE)
-            .contains(imageFile.contentType)
-        if (isNotAllowImage) {
-            throw ThunderException(UNSUPPORTED_IMAGE_FORMAT)
-        }
-
-        val member = memberAdapter.getById(memberId)
-        val fileName = "${UUID.randomUUID()}_${imageFile.originalFilename}"
-        val filePath = "${member.nickname}/$BODY_PHOTO_PATH/$fileName"
-        val imageUrl = storageAdapter.upload(imageFile, filePath)
-
-        val bodyPhoto = bodyPhotoAdapter.create(memberId, imageUrl)
-        reviewRotationAdapter.create(bodyPhoto.bodyPhotoId, memberId)
-        return bodyPhoto
-    }
 
     @Transactional
     fun refreshReview(memberId: Long, refreshCount: Int): List<PostReviewRefreshResponse> {
@@ -107,6 +77,10 @@ class BodyService(
 
         val member = memberAdapter.getById(memberId)
         bodyReviewAdapter.create(bodyPhotoId, member.memberId, score)
+    }
+
+    companion object {
+        private const val REVIEW_COMPLETE_COUNT = 20L
     }
 
 }

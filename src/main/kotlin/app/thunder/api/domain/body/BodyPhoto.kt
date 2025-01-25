@@ -37,9 +37,13 @@ class BodyPhoto private constructor(
         this.updatedAt = LocalDateTime.now()
     }
 
-    fun updateReviewScore(reviewScore:Double) {
+    fun updateReviewScore(reviewScore: Double) {
         this.reviewScore = reviewScore
         this.updatedAt = LocalDateTime.now()
+    }
+
+    fun isUploader(memberId: Long): Boolean {
+        return this.memberId == memberId
     }
 
 }

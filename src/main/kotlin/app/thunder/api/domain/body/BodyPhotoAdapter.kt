@@ -50,4 +50,9 @@ class BodyPhotoAdapter(
         bodyPhotoEntity.update(bodyPhoto.isReviewCompleted, bodyPhoto.reviewScore, bodyPhoto.updatedAt)
     }
 
+    @Transactional
+    fun deleteById(bodyPhotoId: Long) {
+        bodyPhotoRepository.deleteById(bodyPhotoId)
+    }
+
 }
