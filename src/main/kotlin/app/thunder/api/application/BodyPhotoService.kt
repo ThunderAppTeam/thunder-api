@@ -12,6 +12,7 @@ import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.math.round
 import org.springframework.http.MediaType
@@ -31,9 +32,11 @@ class BodyPhotoService(
     @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<GetBodyPhotoResponse> {
         return bodyPhotoAdapter.getAllByMemberId(memberId).map {
+            val is24HoursLater = it.createdAt.plusHours(24).isBefore(LocalDateTime.now())
             GetBodyPhotoResponse(
                 bodyPhotoId = it.bodyPhotoId,
                 imageUrl = it.imageUrl,
+                isReviewCompleted = it.isReviewCompleted || is24HoursLater,
                 reviewCount = if (it.reviewScore == 0.0) 0 else 1,
                 reviewScore = it.reviewScore,
                 createdAt = it.createdAt.toKoreaZonedDateTime()
@@ -55,11 +58,12 @@ class BodyPhotoService(
         }
         val topPercent = ranking / bodyPhotos.size * 100
         val reviewCount = bodyReviewAdapter.getAllByBodyPhotoId(bodyPhotoId).count()
+        val is24HoursLater = bodyPhoto.createdAt.plusHours(24).isBefore(LocalDateTime.now())
 
         return GetBodyPhotoResultResponse(
             bodyPhotoId = bodyPhoto.bodyPhotoId,
             imageUrl = bodyPhoto.imageUrl,
-            isReviewCompleted = bodyPhoto.isReviewCompleted,
+            isReviewCompleted = bodyPhoto.isReviewCompleted || is24HoursLater,
             reviewCount = reviewCount,
             progressRate = reviewCount / 20 * 100.0,
             gender = member.gender,
