@@ -42,8 +42,8 @@ class BodyPhoto private constructor(
         this.updatedAt = LocalDateTime.now()
     }
 
-    fun isUploader(memberId: Long): Boolean {
-        return this.memberId == memberId
+    fun isNotUploader(memberId: Long): Boolean {
+        return this.memberId != memberId
     }
 
 }
