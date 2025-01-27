@@ -47,8 +47,4 @@ class ReviewRotationEntity private constructor(
         }
     }
 
-    fun update(reviewedMemberIds: Set<Long>) {
-        this.reviewedMemberIds = reviewedMemberIds
-    }
-
 }

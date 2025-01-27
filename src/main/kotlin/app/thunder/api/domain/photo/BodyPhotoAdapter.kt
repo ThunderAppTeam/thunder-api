@@ -1,4 +1,4 @@
-package app.thunder.api.domain.body
+package app.thunder.api.domain.photo
 
 import app.thunder.api.domain.member.Gender
 import app.thunder.api.exception.BodyErrors
@@ -21,19 +21,19 @@ class BodyPhotoAdapter(
     @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<BodyPhoto> {
         return bodyPhotoRepository.findAllByMemberId(memberId)
-            .map(BodyPhoto::from)
+            .map(BodyPhoto.Companion::from)
     }
 
     @Transactional(readOnly = true)
     fun getAllById(bodyPhotoIds: Collection<Long>): List<BodyPhoto> {
         return bodyPhotoRepository.findAllById(bodyPhotoIds)
-            .map(BodyPhoto::from)
+            .map(BodyPhoto.Companion::from)
     }
 
     @Transactional(readOnly = true)
     fun getAllByGender(gender: Gender): List<BodyPhoto> {
         return bodyPhotoRepository.findAllByGender(gender)
-            .map(BodyPhoto::from)
+            .map(BodyPhoto.Companion::from)
     }
 
     @Transactional

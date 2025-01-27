@@ -1,4 +1,4 @@
-package app.thunder.api.domain.body
+package app.thunder.api.domain.review
 
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

@@ -1,11 +1,9 @@
 package app.thunder.api.domain.body
 
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
-import java.util.Optional
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ReviewRotationQueueRepository : JpaRepository<ReviewRotationEntity, Long>, KotlinJdslJpqlExecutor {
-    fun findByBodyPhotoId(bodyPhotoId: Long): Optional<ReviewRotationEntity>
     fun findAllByBodyPhotoIdIn(bodyPhotoIds: Collection<Long>): List<ReviewRotationEntity>
 }
 
