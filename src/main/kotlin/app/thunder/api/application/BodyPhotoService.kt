@@ -94,7 +94,7 @@ class BodyPhotoService(
     @Transactional
     fun deleteByBodyPhotoId(bodyPhotoId: Long, memberId: Long) {
         val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
-        if (bodyPhoto.isUploader(memberId)) {
+        if (bodyPhoto.isNotUploader(memberId)) {
             throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
         }
         bodyPhotoAdapter.deleteById(bodyPhotoId)

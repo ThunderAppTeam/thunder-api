@@ -1,6 +1,6 @@
 package app.thunder.api.controller
 
-import app.thunder.api.application.BodyService
+import app.thunder.api.application.BodyReviewService
 import app.thunder.api.controller.request.PostBodyReviewRequest
 import app.thunder.api.controller.response.PostBodyPhotoResponse
 import app.thunder.api.controller.response.PostReviewRefreshResponse
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(value = ["/v1/body/review"])
 @RestController
 class BodyReviewController(
-    private val bodyService: BodyService,
+    private val bodyReviewService: BodyReviewService,
 ) {
 
     @PostMapping("/refresh")
@@ -29,7 +29,7 @@ class BodyReviewController(
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest,
     ): SuccessResponse<List<PostReviewRefreshResponse>> {
-        val response = bodyService.refreshReview(memberId, refreshCount)
+        val response = bodyReviewService.refreshReview(memberId, refreshCount)
         return SuccessResponse(data = response, path = servlet.requestURI)
     }
 
@@ -39,7 +39,7 @@ class BodyReviewController(
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest
     ): SuccessResponse<PostBodyPhotoResponse> {
-        bodyService.review(request.bodyPhotoId, memberId, request.score)
+        bodyReviewService.review(request.bodyPhotoId, memberId, request.score)
         return SuccessResponse(path = servlet.requestURI)
     }
 

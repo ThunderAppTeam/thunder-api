@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class BodyService(
+class BodyReviewService(
     private val memberAdapter: MemberAdapter,
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val bodyReviewAdapter: BodyReviewAdapter,
