@@ -1,8 +1,8 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.response.PostReviewRefreshResponse
-import app.thunder.api.domain.body.BodyPhotoAdapter
-import app.thunder.api.domain.body.BodyReviewAdapter
+import app.thunder.api.domain.photo.BodyPhotoAdapter
+import app.thunder.api.domain.review.BodyReviewAdapter
 import app.thunder.api.domain.body.ReviewRotationAdapter
 import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.exception.BodyErrors
