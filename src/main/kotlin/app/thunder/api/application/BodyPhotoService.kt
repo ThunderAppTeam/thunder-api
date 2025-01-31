@@ -3,11 +3,11 @@ package app.thunder.api.application
 import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
+import app.thunder.api.domain.body.ReviewRotationAdapter
+import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhoto
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.BodyReviewAdapter
-import app.thunder.api.domain.body.ReviewRotationAdapter
-import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.ThunderException
@@ -98,6 +98,7 @@ class BodyPhotoService(
             throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
         }
         bodyPhotoAdapter.deleteById(bodyPhotoId)
+        reviewRotationAdapter.deleteByBodyPhotoId(bodyPhotoId)
     }
 
     companion object {
