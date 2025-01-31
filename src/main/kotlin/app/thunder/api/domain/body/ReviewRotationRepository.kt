@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface ReviewRotationQueueRepository : JpaRepository<ReviewRotationEntity, Long>, KotlinJdslJpqlExecutor {
     fun findAllByBodyPhotoIdIn(bodyPhotoIds: Collection<Long>): List<ReviewRotationEntity>
+    fun deleteByBodyPhotoId(bodyPhotoId: Long)
 }
 
 fun ReviewRotationQueueRepository.getAllByIdGteAndMemberIdNot(

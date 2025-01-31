@@ -38,4 +38,9 @@ class ReviewRotationAdapter(
         reviewRotationQueueRepository.saveAll(copies)
     }
 
+    @Transactional
+    fun deleteByBodyPhotoId(bodyPhotoId: Long) {
+        reviewRotationQueueRepository.deleteByBodyPhotoId(bodyPhotoId)
+    }
+
 }
