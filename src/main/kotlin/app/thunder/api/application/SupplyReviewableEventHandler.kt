@@ -23,14 +23,15 @@ class SupplyReviewableEventHandler(
 
         val reviewedBodyPhotoIdSet = bodyReviewAdapter.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
-        val filteredBodyPhotoList = bodyPhotoAdapter.getAllByReviewNotCompleted()
+        val filteredBodyPhotoList = bodyPhotoAdapter.getAll()
             .asSequence()
+            .filter { !it.isReviewCompleted() }
             .filter { it.memberId != reviewMemberId }
             .filter { !reviewedBodyPhotoIdSet.contains(it.bodyPhotoId) }
             // TODO: filter not blocked user
             // TODO: filter not flagged body Photo
-            // TODO: sorted by reviewCount asc
             .shuffled()
+            .sortedBy { it.reviewScore }
             .take(supplySize)
             .toList()
 

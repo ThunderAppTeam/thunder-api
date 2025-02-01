@@ -25,8 +25,8 @@ class BodyPhotoEntity private constructor(
     @Column(name = "image_url")
     val imageUrl: String = imageUrl
 
-    @Column(name = "is_review_completed")
-    var isReviewCompleted: Boolean = false
+    @Column(name = "review_count")
+    var reviewCount: Int = 0
         protected set
 
     @Column(name = "review_score")
@@ -53,8 +53,8 @@ class BodyPhotoEntity private constructor(
         }
     }
 
-    fun update(isReviewCompleted: Boolean, reviewScore: Double, updatedAt: LocalDateTime?) {
-        this.isReviewCompleted = isReviewCompleted
+    fun update(reviewCount: Int, reviewScore: Double, updatedAt: LocalDateTime?) {
+        this.reviewCount = reviewCount
         this.reviewScore = reviewScore
         this.updatedAt = updatedAt
     }

@@ -19,6 +19,11 @@ class BodyPhotoAdapter(
     }
 
     @Transactional(readOnly = true)
+    fun getAll(): List<BodyPhoto> {
+        return bodyPhotoRepository.findAll().map(BodyPhoto::from)
+    }
+
+    @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<BodyPhoto> {
         return bodyPhotoRepository.findAllByMemberId(memberId)
             .map(BodyPhoto::from)
@@ -36,12 +41,6 @@ class BodyPhotoAdapter(
             .map(BodyPhoto::from)
     }
 
-    @Transactional(readOnly = true)
-    fun getAllByReviewNotCompleted(): List<BodyPhoto> {
-        return bodyPhotoRepository.findAllByReviewNotCompleted()
-            .map(BodyPhoto::from)
-    }
-
     @Transactional
     fun create(memberId: Long, imageUrl: String): BodyPhoto {
         val entity = BodyPhotoEntity.create(memberId, imageUrl)
@@ -53,7 +52,9 @@ class BodyPhotoAdapter(
     fun update(bodyPhoto: BodyPhoto) {
         val bodyPhotoEntity = bodyPhotoRepository.findById(bodyPhoto.bodyPhotoId)
             .orElseThrow { ThunderException(BodyErrors.NOT_FOUND_BODY_PHOTO) }
-        bodyPhotoEntity.update(bodyPhoto.isReviewCompleted, bodyPhoto.reviewScore, bodyPhoto.updatedAt)
+        bodyPhotoEntity.update(reviewCount = bodyPhoto.reviewCount,
+                               reviewScore = bodyPhoto.reviewScore,
+                               updatedAt = bodyPhoto.updatedAt)
     }
 
     @Transactional

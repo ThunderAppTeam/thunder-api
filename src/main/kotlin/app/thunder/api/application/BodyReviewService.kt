@@ -91,15 +91,7 @@ class BodyReviewService(
             throw ThunderException(ALREADY_REVIEWED)
         }
 
-        val bodyReviews = bodyReviewAdapter.getAllByBodyPhotoId(bodyPhotoId)
-        val reviewCount = bodyReviews.size + 1
-        if (reviewCount >= REVIEW_COMPLETE_COUNT) {
-            bodyPhoto.completeReview()
-        }
-
-        val totalScore = bodyReviews.sumOf { it.score }.toDouble() + score
-        val newReviewScore = totalScore / (bodyReviews.size + 1) * 2
-        bodyPhoto.updateReviewScore(newReviewScore)
+        bodyPhoto.addReview(score)
         bodyPhotoAdapter.update(bodyPhoto)
 
         val member = memberAdapter.getById(memberId)
@@ -110,10 +102,6 @@ class BodyReviewService(
         if (reviewableQueue.size <= REVIEWABLE_QUEUE_MINIMUM_SIZE) {
             applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
         }
-    }
-
-    companion object {
-        private const val REVIEW_COMPLETE_COUNT = 20L
     }
 
 }
