@@ -7,12 +7,10 @@ import app.thunder.api.domain.body.ReviewRotationAdapter
 import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhoto
 import app.thunder.api.domain.photo.BodyPhotoAdapter
-import app.thunder.api.domain.review.BodyReviewAdapter
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
-import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.math.round
 import org.springframework.http.MediaType
@@ -24,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile
 class BodyPhotoService(
     private val memberAdapter: MemberAdapter,
     private val bodyPhotoAdapter: BodyPhotoAdapter,
-    private val bodyReviewAdapter: BodyReviewAdapter,
     private val storageAdapter: StorageAdapter,
     private val reviewRotationAdapter: ReviewRotationAdapter,
 ) {
@@ -32,12 +29,11 @@ class BodyPhotoService(
     @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<GetBodyPhotoResponse> {
         return bodyPhotoAdapter.getAllByMemberId(memberId).map {
-            val is24HoursLater = it.createdAt.plusHours(24).isBefore(LocalDateTime.now())
             GetBodyPhotoResponse(
                 bodyPhotoId = it.bodyPhotoId,
                 imageUrl = it.imageUrl,
-                isReviewCompleted = it.isReviewCompleted || is24HoursLater,
-                reviewCount = if (it.reviewScore == 0.0) 0 else 1,
+                isReviewCompleted = it.isReviewCompleted(),
+                reviewCount = it.reviewCount,
                 reviewScore = it.reviewScore,
                 createdAt = it.createdAt.toKoreaZonedDateTime()
             )
@@ -56,19 +52,17 @@ class BodyPhotoService(
                 ranking += 1
             }
         }
-        val topPercent = ranking / bodyPhotos.size * 100
-        val reviewCount = bodyReviewAdapter.getAllByBodyPhotoId(bodyPhotoId).count()
-        val is24HoursLater = bodyPhoto.createdAt.plusHours(24).isBefore(LocalDateTime.now())
+        val genderTopPercent = ranking / bodyPhotos.size * 100
 
         return GetBodyPhotoResultResponse(
             bodyPhotoId = bodyPhoto.bodyPhotoId,
             imageUrl = bodyPhoto.imageUrl,
-            isReviewCompleted = bodyPhoto.isReviewCompleted || is24HoursLater,
-            reviewCount = reviewCount,
-            progressRate = reviewCount / 20 * 100.0,
+            isReviewCompleted = bodyPhoto.isReviewCompleted(),
+            reviewCount = bodyPhoto.reviewCount,
+            progressRate = bodyPhoto.progressRate(),
             gender = member.gender,
-            reviewScore = round(bodyPhoto.reviewScore * 10) / 10,
-            genderTopRate = round(topPercent),
+            reviewScore = bodyPhoto.reviewScore,
+            genderTopRate = round(genderTopPercent),
             createdAt = bodyPhoto.createdAt.toKoreaZonedDateTime(),
         )
     }

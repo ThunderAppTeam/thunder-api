@@ -13,8 +13,8 @@ enum class BodyErrors(
 
     UNSUPPORTED_IMAGE_FORMAT(BAD_REQUEST, "Only JPG and PNG formats are allowed for image."),
     NOT_FOUND_BODY_PHOTO(NOT_FOUND, "Body Photo not found."),
-    NOT_FOUND_REVIEW_ROTATION(NOT_FOUND, "Review Rotation not found."),
-    ALREADY_REVIEWED(CONFLICT, "Body Photo has already been reviewed by the member."),
+    ALREADY_REVIEWED(CONFLICT, "Body Photo has already been reviewed by same member."),
+    ALREADY_FLAGGED(CONFLICT, "Body Photo has already been flagged by same member."),
     UPLOADER_OR_ADMIN_ONLY_ACCESS(FORBIDDEN, "Only uploader or admin has permission for this request."),
     ;
 

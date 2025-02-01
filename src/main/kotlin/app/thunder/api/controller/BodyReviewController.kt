@@ -10,6 +10,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -23,6 +24,17 @@ class BodyReviewController(
     private val bodyReviewService: BodyReviewService,
 ) {
 
+    @GetMapping
+    fun getBodyReview(
+        @RequestParam(defaultValue = "5") size: Int = 5,
+        @AuthenticationPrincipal memberId: Long,
+        servlet: HttpServletRequest,
+    ): SuccessResponse<List<PostReviewRefreshResponse>> {
+        val response = bodyReviewService.getReviewableBodyPhotoList(memberId, size)
+        return SuccessResponse(data = response, path = servlet.requestURI)
+    }
+
+    @Deprecated("replaced by getBodyReview()")
     @PostMapping("/refresh")
     fun getBodyReviewRefresh(
         @RequestParam @Positive refreshCount: Int,
