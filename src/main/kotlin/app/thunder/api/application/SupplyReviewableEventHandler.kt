@@ -2,6 +2,7 @@ package app.thunder.api.application
 
 import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.flag.FlagHistoryAdapter
+import app.thunder.api.domain.member.MemberBlockRelationAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.BodyReviewAdapter
 import org.springframework.context.event.EventListener
@@ -14,6 +15,7 @@ class SupplyReviewableEventHandler(
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val bodyReviewAdapter: BodyReviewAdapter,
     private val flagHistoryAdapter: FlagHistoryAdapter,
+    private val memberBlockRelationAdapter: MemberBlockRelationAdapter,
 ) {
 
     @Async
@@ -28,6 +30,8 @@ class SupplyReviewableEventHandler(
             .map { it.bodyPhotoId }.toSet()
         val flaggedBodyPhotoIdSet = flagHistoryAdapter.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
+        val blockedMemberIdSet = memberBlockRelationAdapter.getByMemberId(reviewMemberId)
+            .map { it.blockedMemberId }.toSet()
 
         val filteredBodyPhotoList = bodyPhotoAdapter.getAll()
             .asSequence()
@@ -36,7 +40,7 @@ class SupplyReviewableEventHandler(
             .filter { !suppliedBodyPhotoIdSet.contains(it.bodyPhotoId) }
             .filter { !reviewedBodyPhotoIdSet.contains(it.bodyPhotoId) }
             .filter { !flaggedBodyPhotoIdSet.contains(it.bodyPhotoId) }
-            // TODO: filter not blocked user
+            .filter { !blockedMemberIdSet.contains(it.memberId) }
             .shuffled()
             .sortedBy { it.reviewScore }
             .take(supplySize)
