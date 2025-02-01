@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import kotlin.random.Random
+import org.springframework.context.ApplicationEventPublisher
 
 @Service
 class MemberService(
@@ -20,6 +21,7 @@ class MemberService(
     private val memberRepository: MemberRepository,
     private val mobileVerificationRepository: MobileVerificationRepository,
     private val tokenManager: TokenManager,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     @Transactional
@@ -81,6 +83,7 @@ class MemberService(
                                             request.countryCode,
                                             request.marketingAgreement)
         memberRepository.save(newMember)
+        applicationEventPublisher.publishEvent(SupplyReviewableEvent(newMember.memberId))
         return Member.from(newMember)
     }
 

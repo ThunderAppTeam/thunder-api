@@ -40,3 +40,18 @@ fun BodyPhotoRepository.findAllByGender(gender: Gender): List<BodyPhotoEntity> {
         )
     }.filterNotNull()
 }
+
+fun BodyPhotoRepository.findAllByReviewNotCompleted(): List<BodyPhotoEntity> {
+    val before1Day = LocalDateTime.now().minusDays(1)
+
+    return this.findAll {
+        select(
+            entity(BodyPhotoEntity::class)
+        ).from(
+            entity(BodyPhotoEntity::class),
+        ).whereAnd(
+            path(BodyPhotoEntity::createdAt).ge(before1Day),
+            path(BodyPhotoEntity::isReviewCompleted).eq(false)
+        )
+    }.filterNotNull()
+}

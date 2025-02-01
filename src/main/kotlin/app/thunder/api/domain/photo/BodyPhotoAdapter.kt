@@ -21,19 +21,25 @@ class BodyPhotoAdapter(
     @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<BodyPhoto> {
         return bodyPhotoRepository.findAllByMemberId(memberId)
-            .map(BodyPhoto.Companion::from)
+            .map(BodyPhoto::from)
     }
 
     @Transactional(readOnly = true)
     fun getAllById(bodyPhotoIds: Collection<Long>): List<BodyPhoto> {
         return bodyPhotoRepository.findAllById(bodyPhotoIds)
-            .map(BodyPhoto.Companion::from)
+            .map(BodyPhoto::from)
     }
 
     @Transactional(readOnly = true)
     fun getAllByGender(gender: Gender): List<BodyPhoto> {
         return bodyPhotoRepository.findAllByGender(gender)
-            .map(BodyPhoto.Companion::from)
+            .map(BodyPhoto::from)
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllByReviewNotCompleted(): List<BodyPhoto> {
+        return bodyPhotoRepository.findAllByReviewNotCompleted()
+            .map(BodyPhoto::from)
     }
 
     @Transactional

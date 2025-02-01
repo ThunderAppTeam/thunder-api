@@ -15,6 +15,12 @@ class BodyReviewAdapter(
     }
 
     @Transactional(readOnly = true)
+    fun getAllByMemberId(memberId: Long): List<BodyReview> {
+        return bodyReviewRepository.findAllByMemberId(memberId)
+            .map(BodyReview::from)
+    }
+
+    @Transactional(readOnly = true)
     fun existsByBodyPhotoIdAndMemberId(bodyPhotoId: Long, memberId: Long): Boolean {
         return bodyReviewRepository.existsByBodyPhotoIdAndMemberId(bodyPhotoId, memberId)
     }
