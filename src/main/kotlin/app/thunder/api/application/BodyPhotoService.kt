@@ -34,7 +34,7 @@ class BodyPhotoService(
                 imageUrl = it.imageUrl,
                 isReviewCompleted = it.isReviewCompleted(),
                 reviewCount = it.reviewCount,
-                reviewScore = it.reviewScore,
+                reviewScore = it.getResultReviewScore(),
                 createdAt = it.createdAt.toKoreaZonedDateTime()
             )
         }
@@ -48,7 +48,7 @@ class BodyPhotoService(
         val bodyPhotos = bodyPhotoAdapter.getAllByGender(member.gender)
         var ranking = 1.0
         for (other in bodyPhotos) {
-            if (other.reviewScore > bodyPhoto.reviewScore) {
+            if (other.getResultReviewScore() > bodyPhoto.getResultReviewScore()) {
                 ranking += 1
             }
         }
@@ -61,7 +61,7 @@ class BodyPhotoService(
             reviewCount = bodyPhoto.reviewCount,
             progressRate = bodyPhoto.progressRate(),
             gender = member.gender,
-            reviewScore = bodyPhoto.reviewScore,
+            reviewScore = bodyPhoto.getResultReviewScore(),
             genderTopRate = round(genderTopPercent),
             createdAt = bodyPhoto.createdAt.toKoreaZonedDateTime(),
         )

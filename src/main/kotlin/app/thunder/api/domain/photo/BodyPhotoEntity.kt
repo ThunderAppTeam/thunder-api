@@ -29,8 +29,8 @@ class BodyPhotoEntity private constructor(
     var reviewCount: Int = 0
         protected set
 
-    @Column(name = "review_score")
-    var reviewScore: Double = 0.0
+    @Column(name = "total_review_score")
+    var totalReviewScore: Double = 0.0
         protected set
 
     @Column(name = "created_at")
@@ -53,9 +53,9 @@ class BodyPhotoEntity private constructor(
         }
     }
 
-    fun update(reviewCount: Int, reviewScore: Double, updatedAt: LocalDateTime?) {
+    fun update(reviewCount: Int, totalReviewScore: Double, updatedAt: LocalDateTime?) {
         this.reviewCount = reviewCount
-        this.reviewScore = reviewScore
+        this.totalReviewScore = totalReviewScore
         this.updatedAt = updatedAt
     }
 
