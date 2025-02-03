@@ -1,6 +1,6 @@
 package app.thunder.api.controller.response
 
-data class PostReviewRefreshResponse(
+data class GetReviewResponse(
     val bodyPhotoId: Long,
     val imageUrl: String,
     val memberId: Long,

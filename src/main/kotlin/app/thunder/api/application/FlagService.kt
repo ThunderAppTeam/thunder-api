@@ -1,5 +1,6 @@
 package app.thunder.api.application
 
+import app.thunder.api.controller.response.GetFlagReasonResponse
 import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.flag.FlagHistoryAdapter
 import app.thunder.api.domain.flag.FlagReason
@@ -11,6 +12,15 @@ class FlagService(
     private val flagHistoryAdapter: FlagHistoryAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
 ) {
+
+    fun getAllByCountryCode(countryCode: String): List<GetFlagReasonResponse> {
+        return FlagReason.entries.map {
+            when (countryCode) {
+                "KR" -> GetFlagReasonResponse(it.name, it.descriptionKR)
+                else -> GetFlagReasonResponse(it.name, it.descriptionKR)
+            }
+        }
+    }
 
     @Transactional
     fun flagBodyPhoto(
