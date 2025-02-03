@@ -1,5 +1,6 @@
 package app.thunder.api.application
 
+import app.thunder.api.domain.body.ReviewRotationQueueRepository
 import app.thunder.api.domain.flag.FlagHistoryRepository
 import app.thunder.api.domain.member.MemberBlockRelationRepository
 import app.thunder.api.domain.member.MemberRepository
@@ -21,6 +22,7 @@ class AdminService(
     private val bodyPhotoRepository: BodyPhotoRepository,
     private val flagHistoryRepository: FlagHistoryRepository,
     private val memberBlockRelationRepository: MemberBlockRelationRepository,
+    private val reviewRotationQueueRepository: ReviewRotationQueueRepository,
 ) {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -41,6 +43,11 @@ class AdminService(
                 bodyPhotoRepository.findAllByMemberId(memberId)
                     .forEach { bodyPhotoEntity ->
                         bodyPhotoEntity.update(0, 0.0, bodyPhotoEntity.updatedAt)
+                    }
+
+                reviewRotationQueueRepository.findAll()
+                    .forEach { reviewRotationEntity ->
+                        reviewRotationEntity.removeMemberId(memberId)
                     }
             }
 
