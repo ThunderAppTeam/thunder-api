@@ -18,9 +18,9 @@ class AdminController(
     @PostMapping("/reset")
     fun postReset(
         @RequestParam(required = true) target: String,
-        @RequestParam(required = true) phoneNumber: String,
+        @RequestParam(required = true) mobileNumber: String,
     ): SuccessResponse<Void> {
-        adminService.reset(target, phoneNumber)
+        adminService.reset(target, mobileNumber)
         return SuccessResponse(path = "/v1/admin/reset")
     }
 
