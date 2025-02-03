@@ -1,9 +1,8 @@
 package app.thunder.api.application
 
 import app.thunder.api.application.SupplyReviewableEventHandler.Companion.REVIEWABLE_QUEUE_MINIMUM_SIZE
-import app.thunder.api.controller.response.GetReviewResponse
+import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.domain.body.ReviewRotationAdapter
-import app.thunder.api.domain.body.ReviewableBodyPhoto
 import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.member.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
@@ -27,7 +26,7 @@ class BodyReviewService(
 ) {
 
     @Transactional
-    fun getReviewableBodyPhotoList(memberId: Long, size: Int): List<GetReviewResponse> {
+    fun getReviewableBodyPhotoList(memberId: Long, size: Int): List<GetReviewableResponse> {
         val reviewableBodyPhotoList = reviewableBodyPhotoAdapter.getAllByMemberId(memberId)
         val bodyPhotoIds = reviewableBodyPhotoList.take(size).map { it.bodyPhotoId }
         val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIds)
@@ -39,17 +38,17 @@ class BodyReviewService(
         return bodyPhotoIds.map { bodyPhotoId ->
             val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
             val member = memberMap[bodyPhoto.memberId] ?: throw ThunderException(NOT_FOUND_MEMBER)
-            GetReviewResponse(bodyPhoto.bodyPhotoId,
-                              bodyPhoto.imageUrl,
-                              member.memberId,
-                              member.nickname,
-                              member.age)
+            GetReviewableResponse(bodyPhoto.bodyPhotoId,
+                                  bodyPhoto.imageUrl,
+                                  member.memberId,
+                                  member.nickname,
+                                  member.age)
         }
     }
 
     @Deprecated("replaced by getReviewableBodyPhotoList()")
     @Transactional
-    fun refreshReview(memberId: Long, refreshCount: Int): List<GetReviewResponse> {
+    fun refreshReview(memberId: Long, refreshCount: Int): List<GetReviewableResponse> {
         val bodyPhotoIdSet = linkedSetOf<Long>()
         val fetchSize = 5
         var reviewRotationId = 0L
@@ -77,16 +76,16 @@ class BodyReviewService(
         return bodyPhotoIdSet.map { bodyPhotoId ->
             val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
             val member = memberMap[bodyPhoto.memberId] ?: throw ThunderException(NOT_FOUND_MEMBER)
-            GetReviewResponse(bodyPhoto.bodyPhotoId,
-                              bodyPhoto.imageUrl,
-                              member.memberId,
-                              member.nickname,
-                              member.age)
+            GetReviewableResponse(bodyPhoto.bodyPhotoId,
+                                  bodyPhoto.imageUrl,
+                                  member.memberId,
+                                  member.nickname,
+                                  member.age)
         }
     }
 
     @Transactional
-    fun review(bodyPhotoId: Long, memberId: Long, score: Int): ReviewableBodyPhoto? {
+    fun review(bodyPhotoId: Long, memberId: Long, score: Int): GetReviewableResponse? {
         val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
         if (bodyReviewAdapter.existsByBodyPhotoIdAndMemberId(bodyPhotoId, memberId)) {
             throw ThunderException(ALREADY_REVIEWED)
@@ -103,7 +102,18 @@ class BodyReviewService(
         if (reviewableQueue.size <= REVIEWABLE_QUEUE_MINIMUM_SIZE) {
             applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
         }
+
         return reviewableQueue.firstOrNull()
+            ?.let { nextReviewable ->
+                val nextBodyPhoto = bodyPhotoAdapter.getById(nextReviewable.bodyPhotoId)
+                val nextMember = memberAdapter.getById(nextReviewable.bodyPhotoMemberId)
+
+                GetReviewableResponse(nextBodyPhoto.bodyPhotoId,
+                                      nextBodyPhoto.imageUrl,
+                                      nextMember.memberId,
+                                      nextMember.nickname,
+                                      nextMember.age)
+            }
     }
 
 }

@@ -6,6 +6,7 @@ import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
+import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.member.Member
 import app.thunder.api.domain.member.MemberAdapter
@@ -18,6 +19,7 @@ import app.thunder.api.domain.member.findAllByDeviceIdAndCreatedAtAfter
 import app.thunder.api.domain.member.findAllByDeviceIdAndNotVerify
 import app.thunder.api.domain.member.findAllByMobileNumber
 import app.thunder.api.domain.member.findLastByDeviceIdAndMobileNumber
+import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.exception.CommonErrors.MISSING_REQUIRED_PARAMETER
 import app.thunder.api.exception.MemberErrors.EXPIRED_MOBILE_VERIFICATION
 import app.thunder.api.exception.MemberErrors.INVALID_MOBILE_VERIFICATION
@@ -43,6 +45,7 @@ class MemberService(
     private val memberAdapter: MemberAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
     private val transactionTemplate: TransactionTemplate,
+    private val bodyPhotoAdapter: BodyPhotoAdapter,
 ) {
 
     @Transactional
@@ -116,7 +119,7 @@ class MemberService(
         }
     }
 
-    fun block(requestMemberId: Long, blockedMemberId: Long) {
+    fun block(requestMemberId: Long, blockedMemberId: Long): GetReviewableResponse? {
         transactionTemplate.execute { status ->
             memberAdapter.getById(blockedMemberId)
             memberBlockRelationAdapter.create(memberId = blockedMemberId,
@@ -139,12 +142,27 @@ class MemberService(
             }
         }
 
+        var nextReviewable: GetReviewableResponse? = null
         transactionTemplate.execute { status ->
             deleteAllBlockedMemberBodyPhotoInQueue(blockedMemberId, requestMemberId)
             deleteAllBlockedMemberBodyPhotoInQueue(requestMemberId, blockedMemberId)
+            nextReviewable = reviewableBodyPhotoAdapter.getAllByMemberId(requestMemberId, 1)
+                .firstOrNull()
+                ?.let { nextReviewable ->
+                    val nextBodyPhoto = bodyPhotoAdapter.getById(nextReviewable.bodyPhotoId)
+                    val nextMember = memberAdapter.getById(nextReviewable.bodyPhotoMemberId)
+
+                    GetReviewableResponse(nextBodyPhoto.bodyPhotoId,
+                                          nextBodyPhoto.imageUrl,
+                                          nextMember.memberId,
+                                          nextMember.nickname,
+                                          nextMember.age)
+                }
+
             status.flush()
             true
         }
+        return nextReviewable
     }
 
 }

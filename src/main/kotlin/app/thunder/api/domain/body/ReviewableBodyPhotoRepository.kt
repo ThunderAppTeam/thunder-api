@@ -8,8 +8,11 @@ interface ReviewableBodyPhotoRepository : JpaRepository<ReviewableBodyPhotoEntit
     fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long)
 }
 
-fun ReviewableBodyPhotoRepository.findAllByMemberId(memberId: Long): List<ReviewableBodyPhotoEntity> {
-    return this.findAll {
+fun ReviewableBodyPhotoRepository.findAllByMemberId(
+    memberId: Long,
+    limit: Int? = null,
+): List<ReviewableBodyPhotoEntity> {
+    return this.findAll(limit = limit) {
         select(
             entity(ReviewableBodyPhotoEntity::class)
         ).from(

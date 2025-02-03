@@ -8,6 +8,7 @@ import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
 import app.thunder.api.controller.request.PostSmsVerifyRequest
+import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
@@ -88,9 +89,9 @@ class MemberController(
         @RequestBody @Valid request: PostMemberBlockRequest,
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest
-    ): SuccessResponse<Void> {
-        memberService.block(memberId, request.blockedMemberId)
-        return SuccessResponse(path = servlet.requestURI)
+    ): SuccessResponse<GetReviewableResponse> {
+        val response = memberService.block(memberId, request.blockedMemberId)
+        return SuccessResponse(data = response, path = servlet.requestURI)
     }
 
 }

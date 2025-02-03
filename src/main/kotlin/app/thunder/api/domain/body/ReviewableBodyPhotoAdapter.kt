@@ -9,8 +9,8 @@ class ReviewableBodyPhotoAdapter(
 ) {
 
     @Transactional(readOnly = true)
-    fun getAllByMemberId(memberId: Long): List<ReviewableBodyPhoto> {
-        return reviewableBodyPhotoRepository.findAllByMemberId(memberId)
+    fun getAllByMemberId(memberId: Long, limit: Int? = null): List<ReviewableBodyPhoto> {
+        return reviewableBodyPhotoRepository.findAllByMemberId(memberId, limit)
             .map(ReviewableBodyPhoto::from)
     }
 
