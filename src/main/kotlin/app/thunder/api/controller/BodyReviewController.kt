@@ -2,9 +2,8 @@ package app.thunder.api.controller
 
 import app.thunder.api.application.BodyReviewService
 import app.thunder.api.controller.request.PostBodyReviewRequest
-import app.thunder.api.controller.response.GetReviewResponse
+import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.controller.response.SuccessResponse
-import app.thunder.api.domain.body.ReviewableBodyPhoto
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
@@ -29,7 +28,7 @@ class BodyReviewController(
         @RequestParam(defaultValue = "5") size: Int = 5,
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest,
-    ): SuccessResponse<List<GetReviewResponse>> {
+    ): SuccessResponse<List<GetReviewableResponse>> {
         val response = bodyReviewService.getReviewableBodyPhotoList(memberId, size)
         return SuccessResponse(data = response, path = servlet.requestURI)
     }
@@ -40,7 +39,7 @@ class BodyReviewController(
         @RequestParam @Positive refreshCount: Int,
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest,
-    ): SuccessResponse<List<GetReviewResponse>> {
+    ): SuccessResponse<List<GetReviewableResponse>> {
         val response = bodyReviewService.refreshReview(memberId, refreshCount)
         return SuccessResponse(data = response, path = servlet.requestURI)
     }
@@ -50,9 +49,9 @@ class BodyReviewController(
         @RequestBody @Valid request: PostBodyReviewRequest,
         @AuthenticationPrincipal memberId: Long,
         servlet: HttpServletRequest
-    ): SuccessResponse<ReviewableBodyPhoto> {
-        val reviewable = bodyReviewService.review(request.bodyPhotoId, memberId, request.score)
-        return SuccessResponse(data = reviewable, path = servlet.requestURI)
+    ): SuccessResponse<GetReviewableResponse> {
+        val response = bodyReviewService.review(request.bodyPhotoId, memberId, request.score)
+        return SuccessResponse(data = response, path = servlet.requestURI)
     }
 
 }
