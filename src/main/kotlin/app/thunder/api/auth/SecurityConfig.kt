@@ -25,6 +25,7 @@ class SecurityConfig {
             .httpBasic { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/v1/member/**").permitAll()
+                    .requestMatchers("/v1/admin/**").permitAll()
                     .requestMatchers("/health").permitAll()
                     .anyRequest().authenticated()
             }
