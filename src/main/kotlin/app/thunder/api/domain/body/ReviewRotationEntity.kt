@@ -47,4 +47,9 @@ class ReviewRotationEntity private constructor(
         }
     }
 
+    fun removeMemberId(memberId:Long) {
+        val newReviewedMemberIds = this.reviewedMemberIds.filter { it != memberId }.toSet()
+        this.reviewedMemberIds = newReviewedMemberIds
+    }
+
 }
