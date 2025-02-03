@@ -36,7 +36,7 @@ fun BodyPhotoRepository.findAllByGender(gender: Gender): List<BodyPhotoEntity> {
             path(BodyPhotoEntity::createdAt).ge(before30Days),
             path(MemberEntity::gender).eq(gender),
         ).orderBy(
-            path(BodyPhotoEntity::reviewScore).desc()
+            path(BodyPhotoEntity::totalReviewScore).desc()
         )
     }.filterNotNull()
 }

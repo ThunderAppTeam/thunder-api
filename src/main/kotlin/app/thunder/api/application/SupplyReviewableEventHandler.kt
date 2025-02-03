@@ -42,7 +42,7 @@ class SupplyReviewableEventHandler(
             .filter { !flaggedBodyPhotoIdSet.contains(it.bodyPhotoId) }
             .filter { !blockedMemberIdSet.contains(it.memberId) }
             .shuffled()
-            .sortedBy { it.reviewScore }
+            .sortedBy { it.reviewCount }
             .take(supplySize)
             .toList()
 

@@ -8,14 +8,13 @@ class BodyPhoto private constructor(
     val memberId: Long,
     val imageUrl: String,
     reviewCount: Int,
-    reviewScore: Double,
+    totalReviewScore: Double,
     val createdAt: LocalDateTime,
     updatedAt: LocalDateTime?,
 ) {
     var reviewCount: Int = reviewCount
         private set
-    var reviewScore: Double = reviewScore
-        get() = round(field * 10) / 10
+    var totalReviewScore: Double = totalReviewScore
         private set
     var updatedAt: LocalDateTime? = updatedAt
         private set
@@ -27,13 +26,15 @@ class BodyPhoto private constructor(
                 entity.memberId,
                 entity.imageUrl,
                 entity.reviewCount,
-                entity.reviewScore,
+                entity.totalReviewScore,
                 entity.createdAt,
                 entity.updatedAt,
             )
         }
 
         private const val REVIEW_COMPLETE_COUNT: Int = 20
+        private const val RESULT_MAX_SCORE: Double = 10.0
+        private const val REVIEW_MAX_SCORE: Double = 5.0
     }
 
     fun isReviewCompleted(): Boolean {
@@ -50,10 +51,18 @@ class BodyPhoto private constructor(
     }
 
     fun addReview(score: Int) {
-        val totalScore = (this.reviewScore * this.reviewCount) + (score * 2)
         this.reviewCount += 1
-        this.reviewScore = (totalScore / (this.reviewCount)) * 2
+        this.totalReviewScore += score
         this.updatedAt = LocalDateTime.now()
+    }
+
+    fun getResultReviewScore(): Double {
+        if (this.reviewCount <= 0) {
+            return 0.0
+        }
+        val averageScore = this.totalReviewScore / this.reviewCount
+        val resultScore = averageScore * RESULT_MAX_SCORE / REVIEW_MAX_SCORE
+        return round(resultScore * 10) / 10
     }
 
 }

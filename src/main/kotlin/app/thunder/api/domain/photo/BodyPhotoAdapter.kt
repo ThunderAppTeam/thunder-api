@@ -53,7 +53,7 @@ class BodyPhotoAdapter(
         val bodyPhotoEntity = bodyPhotoRepository.findById(bodyPhoto.bodyPhotoId)
             .orElseThrow { ThunderException(BodyErrors.NOT_FOUND_BODY_PHOTO) }
         bodyPhotoEntity.update(reviewCount = bodyPhoto.reviewCount,
-                               reviewScore = bodyPhoto.reviewScore,
+                               totalReviewScore = bodyPhoto.totalReviewScore,
                                updatedAt = bodyPhoto.updatedAt)
     }
 
