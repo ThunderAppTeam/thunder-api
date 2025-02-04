@@ -3,8 +3,6 @@ package app.thunder.api.controller
 import app.thunder.api.application.BodyReviewService
 import app.thunder.api.controller.request.PostBodyReviewRequest
 import app.thunder.api.controller.response.GetReviewableResponse
-import app.thunder.api.controller.response.SuccessResponse
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -27,10 +25,8 @@ class BodyReviewController(
     fun getBodyReview(
         @RequestParam(defaultValue = "5") size: Int = 5,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest,
-    ): SuccessResponse<List<GetReviewableResponse>> {
-        val response = bodyReviewService.getReviewableBodyPhotoList(memberId, size)
-        return SuccessResponse(data = response, path = servlet.requestURI)
+    ): List<GetReviewableResponse> {
+        return bodyReviewService.getReviewableBodyPhotoList(memberId, size)
     }
 
     @Deprecated("replaced by getBodyReview()")
@@ -38,20 +34,16 @@ class BodyReviewController(
     fun getBodyReviewRefresh(
         @RequestParam @Positive refreshCount: Int,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest,
-    ): SuccessResponse<List<GetReviewableResponse>> {
-        val response = bodyReviewService.refreshReview(memberId, refreshCount)
-        return SuccessResponse(data = response, path = servlet.requestURI)
+    ): List<GetReviewableResponse> {
+        return bodyReviewService.refreshReview(memberId, refreshCount)
     }
 
     @PostMapping
     fun postBodyReview(
         @RequestBody @Valid request: PostBodyReviewRequest,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest
-    ): SuccessResponse<GetReviewableResponse> {
-        val response = bodyReviewService.review(request.bodyPhotoId, memberId, request.score)
-        return SuccessResponse(data = response, path = servlet.requestURI)
+    ): GetReviewableResponse? {
+        return bodyReviewService.review(request.bodyPhotoId, memberId, request.score)
     }
 
 }

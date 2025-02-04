@@ -19,8 +19,9 @@ class BodyPhotoAdapter(
     }
 
     @Transactional(readOnly = true)
-    fun getAll(): List<BodyPhoto> {
-        return bodyPhotoRepository.findAll().map(BodyPhoto::from)
+    fun getAllNotReviewCompleted(): List<BodyPhoto> {
+        return bodyPhotoRepository.findAllNotReviewCompleted()
+            .map(BodyPhoto::from)
     }
 
     @Transactional(readOnly = true)

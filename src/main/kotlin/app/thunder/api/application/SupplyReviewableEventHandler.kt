@@ -26,20 +26,27 @@ class SupplyReviewableEventHandler(
             .map { it.bodyPhotoId }.toSet()
         val supplySize = REVIEWABLE_QUEUE_MAXIMUM_SIZE - suppliedBodyPhotoIdSet.size
 
+        val flagCountMap = hashMapOf<Long, Int>()
+        val flaggedBodyPhotoIdSet = hashSetOf<Long>()
+        flagHistoryAdapter.getAll().forEach { flagHistory ->
+            flagCountMap.merge(flagHistory.bodyPhotoId, 1, Int::plus)
+            if (flagHistory.memberId == reviewMemberId) {
+                flaggedBodyPhotoIdSet.add(flagHistory.bodyPhotoId)
+            }
+        }
+
         val reviewedBodyPhotoIdSet = bodyReviewAdapter.getAllByMemberId(reviewMemberId)
-            .map { it.bodyPhotoId }.toSet()
-        val flaggedBodyPhotoIdSet = flagHistoryAdapter.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
         val blockedMemberIdSet = memberBlockRelationAdapter.getByMemberId(reviewMemberId)
             .map { it.blockedMemberId }.toSet()
 
-        val filteredBodyPhotoList = bodyPhotoAdapter.getAll()
+        val filteredBodyPhotoList = bodyPhotoAdapter.getAllNotReviewCompleted()
             .asSequence()
-            .filter { !it.isReviewCompleted() }
             .filter { it.memberId != reviewMemberId }
             .filter { !suppliedBodyPhotoIdSet.contains(it.bodyPhotoId) }
             .filter { !reviewedBodyPhotoIdSet.contains(it.bodyPhotoId) }
             .filter { !flaggedBodyPhotoIdSet.contains(it.bodyPhotoId) }
+            .filter { (flagCountMap[it.bodyPhotoId] ?: 0) < 3 }
             .filter { !blockedMemberIdSet.contains(it.memberId) }
             .shuffled()
             .sortedBy { it.reviewCount }

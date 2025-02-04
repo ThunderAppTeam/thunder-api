@@ -1,44 +1,52 @@
 package app.thunder.api.exception
 
 import app.thunder.api.controller.response.ErrorResponse
+import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.exception.CommonErrors.*
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
+import org.springframework.core.MethodParameter
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageConverter
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.http.server.ServerHttpRequest
+import org.springframework.http.server.ServerHttpResponse
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
 
 @RestControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler: ResponseBodyAdvice<Any> {
     private final val logger = LoggerFactory.getLogger(javaClass)
 
-//    override fun supports(returnType: MethodParameter, converterType: Class<out HttpMessageConverter<*>>): Boolean {
-//        return true
-//    }
-//
-//    override fun beforeBodyWrite(
-//        body: Any?,
-//        returnType: MethodParameter,
-//        mediaType: MediaType,
-//        selectedConverterType: Class<out HttpMessageConverter<*>>,
-//        request: ServerHttpRequest,
-//        response: ServerHttpResponse
-//    ): Any? {
-//        if (body is SuccessResponse<*> || body is ErrorResponse || returnType.method?.name == HttpMethod.OPTIONS.name()) {
-//            return body
-//        }
-//
-//        return SuccessResponse(
-//            data = body,
-//            path = request.uri.path
-//        )
-//    }
+    override fun supports(returnType: MethodParameter, converterType: Class<out HttpMessageConverter<*>>): Boolean {
+        return true
+    }
+
+    override fun beforeBodyWrite(
+        body: Any?,
+        returnType: MethodParameter,
+        mediaType: MediaType,
+        selectedConverterType: Class<out HttpMessageConverter<*>>,
+        request: ServerHttpRequest,
+        response: ServerHttpResponse
+    ): Any? {
+        if (body is SuccessResponse<*> || body is ErrorResponse || returnType.method?.name == HttpMethod.OPTIONS.name()) {
+            return body
+        }
+
+        return SuccessResponse(
+            data = body,
+            path = request.uri.path
+        )
+    }
 
     @ExceptionHandler(exception = [
         ConstraintViolationException::class,

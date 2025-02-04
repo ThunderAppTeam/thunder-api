@@ -4,8 +4,6 @@ import app.thunder.api.application.BodyPhotoService
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.controller.response.PostBodyPhotoResponse
-import app.thunder.api.controller.response.SuccessResponse
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.constraints.Positive
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
@@ -28,41 +26,33 @@ class BodyPhotoController(
     @GetMapping
     fun getBodyPhoto(
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest,
-    ): SuccessResponse<List<GetBodyPhotoResponse>> {
-        val bodyPhotoList = bodyPhotoService.getAllByMemberId(memberId)
-        return SuccessResponse(data = bodyPhotoList, path = servlet.requestURI)
+    ): List<GetBodyPhotoResponse> {
+        return bodyPhotoService.getAllByMemberId(memberId)
     }
 
     @GetMapping("/{bodyPhotoId}")
     fun getBodyPhotoDetail(
         @PathVariable @Positive bodyPhotoId: Long,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest,
-    ): SuccessResponse<GetBodyPhotoResultResponse> {
-        val bodyPhotoResult = bodyPhotoService.getByBodyPhotoId(bodyPhotoId, memberId)
-        return SuccessResponse(data = bodyPhotoResult, path = servlet.requestURI)
+    ): GetBodyPhotoResultResponse {
+        return bodyPhotoService.getByBodyPhotoId(bodyPhotoId, memberId)
     }
 
     @PostMapping
     fun postBodyPhoto(
         @RequestPart("file") file: MultipartFile,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest
-    ): SuccessResponse<PostBodyPhotoResponse> {
+    ): PostBodyPhotoResponse {
         val bodyPhoto = bodyPhotoService.upload(file, memberId)
-        val response = PostBodyPhotoResponse(bodyPhoto.bodyPhotoId, bodyPhoto.imageUrl)
-        return SuccessResponse(data = response, path = servlet.requestURI)
+        return PostBodyPhotoResponse(bodyPhoto.bodyPhotoId, bodyPhoto.imageUrl)
     }
 
     @DeleteMapping("/{bodyPhotoId}")
     fun deleteBodyPhoto(
         @PathVariable bodyPhotoId: Long,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest
-    ): SuccessResponse<Void> {
+    ) {
         bodyPhotoService.deleteByBodyPhotoId(bodyPhotoId, memberId)
-        return SuccessResponse(path = servlet.requestURI)
     }
 
 }

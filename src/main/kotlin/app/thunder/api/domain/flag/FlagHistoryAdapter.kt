@@ -11,6 +11,11 @@ class FlagHistoryAdapter(
 ) {
 
     @Transactional(readOnly = true)
+    fun getAll(): List<FlagHistoryEntity> {
+        return flagHistoryRepository.findAll()
+    }
+
+    @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<FlagHistory> {
         return flagHistoryRepository.findAllByMemberId(memberId)
             .map(FlagHistory::from)

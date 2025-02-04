@@ -32,13 +32,14 @@ class BodyPhoto private constructor(
             )
         }
 
-        private const val REVIEW_COMPLETE_COUNT: Int = 20
+        const val REVIEW_COMPLETE_DAY: Long = 1
+        const val REVIEW_COMPLETE_COUNT: Int = 20
         private const val RESULT_MAX_SCORE: Double = 10.0
         private const val REVIEW_MAX_SCORE: Double = 5.0
     }
 
     fun isReviewCompleted(): Boolean {
-        val before1Day = LocalDateTime.now().minusDays(1)
+        val before1Day = LocalDateTime.now().minusDays(REVIEW_COMPLETE_DAY)
         return this.reviewCount >= REVIEW_COMPLETE_COUNT || this.createdAt.isBefore(before1Day)
     }
 

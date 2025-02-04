@@ -2,6 +2,8 @@ package app.thunder.api.domain.photo
 
 import app.thunder.api.domain.member.Gender
 import app.thunder.api.domain.member.MemberEntity
+import app.thunder.api.domain.photo.BodyPhoto.Companion.REVIEW_COMPLETE_COUNT
+import app.thunder.api.domain.photo.BodyPhoto.Companion.REVIEW_COMPLETE_DAY
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import java.time.LocalDateTime
 import org.springframework.data.jpa.repository.JpaRepository
@@ -16,6 +18,22 @@ fun BodyPhotoRepository.findAllByMemberId(memberId: Long): List<BodyPhotoEntity>
             entity(BodyPhotoEntity::class),
         ).whereAnd(
             path(BodyPhotoEntity::memberId).eq(memberId),
+        ).orderBy(
+            path(BodyPhotoEntity::bodyPhotoId).desc()
+        )
+    }.filterNotNull()
+}
+
+fun BodyPhotoRepository.findAllNotReviewCompleted(): List<BodyPhotoEntity> {
+    val before1Day = LocalDateTime.now().minusDays(REVIEW_COMPLETE_DAY)
+    return this.findAll {
+        select(
+            entity(BodyPhotoEntity::class)
+        ).from(
+            entity(BodyPhotoEntity::class),
+        ).whereAnd(
+            path(BodyPhotoEntity::createdAt).ge(before1Day),
+            path(BodyPhotoEntity::reviewCount).lt(REVIEW_COMPLETE_COUNT),
         ).orderBy(
             path(BodyPhotoEntity::bodyPhotoId).desc()
         )

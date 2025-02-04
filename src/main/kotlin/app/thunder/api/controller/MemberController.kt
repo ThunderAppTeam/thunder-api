@@ -35,13 +35,11 @@ class MemberController(
     @PostMapping("/sms")
     fun postSms(
         @RequestBody @Valid request: PostSmsRequest,
-        servlet: HttpServletRequest
-    ): SuccessResponse<TestSendSmsResponse> {
+    ): TestSendSmsResponse {
         val verificationCode: String = memberService.sendSms(request)
-        val response = TestSendSmsResponse(
+        return TestSendSmsResponse(
             verificationCode.takeIf { request.isTestMode }
         )
-        return SuccessResponse(path = servlet.requestURI, data = response)
     }
 
     @PostMapping("/sms/verify")
@@ -58,21 +56,17 @@ class MemberController(
     @PostMapping("/sms/reset")
     fun postSmsReset(
         @RequestBody @Valid request: PostSmsResetRequest,
-        servlet: HttpServletRequest
-    ): SuccessResponse<Void> {
+    ) {
         memberService.resetSendLimit(request)
-        return SuccessResponse(path = servlet.requestURI)
     }
 
     @PostMapping("/signup")
     fun postSignup(
         @RequestBody @Valid request: PostSignupRequest,
-        servlet: HttpServletRequest
-    ): SuccessResponse<PostSignUpResponse> {
+    ): PostSignUpResponse {
         val member = memberService.signup(request)
         val accessToken = tokenManager.generateAccessToken(member.memberId)
-        val response = PostSignUpResponse(memberId = member.memberId, accessToken = accessToken)
-        return SuccessResponse(data = response, path = servlet.requestURI)
+        return PostSignUpResponse(memberId = member.memberId, accessToken = accessToken)
     }
 
     @GetMapping("/nickname/available")
@@ -88,10 +82,8 @@ class MemberController(
     fun postBlockMember(
         @RequestBody @Valid request: PostMemberBlockRequest,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest
-    ): SuccessResponse<GetReviewableResponse> {
-        val response = memberService.block(memberId, request.blockedMemberId)
-        return SuccessResponse(data = response, path = servlet.requestURI)
+    ): GetReviewableResponse? {
+        return memberService.block(memberId, request.blockedMemberId)
     }
 
 }

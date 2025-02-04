@@ -3,8 +3,6 @@ package app.thunder.api.controller
 import app.thunder.api.application.FlagService
 import app.thunder.api.controller.request.PostFlagRequest
 import app.thunder.api.controller.response.GetFlagReasonResponse
-import app.thunder.api.controller.response.SuccessResponse
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
@@ -25,21 +23,16 @@ class FlagController(
     @GetMapping
     fun getBodyReviewFlag(
         @RequestParam(defaultValue = "KR") countryCode: String,
-        @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest,
-    ): SuccessResponse<List<GetFlagReasonResponse>> {
-        val flagList = flagService.getAllByCountryCode(countryCode)
-        return SuccessResponse(data = flagList, path = servlet.requestURI)
+    ): List<GetFlagReasonResponse> {
+        return flagService.getAllByCountryCode(countryCode)
     }
 
     @PostMapping
     fun postBodyReviewFlag(
         @RequestBody @Valid request: PostFlagRequest,
         @AuthenticationPrincipal memberId: Long,
-        servlet: HttpServletRequest,
-    ): SuccessResponse<List<GetFlagReasonResponse>> {
-        flagService.flagBodyPhoto(memberId, request.bodyPhotoId, request.flagReason, request.otherReason)
-        return SuccessResponse(path = servlet.requestURI)
+    ) {
+        return flagService.flagBodyPhoto(memberId, request.bodyPhotoId, request.flagReason, request.otherReason)
     }
 
 }
