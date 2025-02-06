@@ -3,6 +3,7 @@ package app.thunder.api.domain.member
 import jakarta.persistence.*
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Table(name = "member")
 @Entity
@@ -48,6 +49,9 @@ class MemberEntity private constructor(
     @Column(name = "marketing_agreement")
     var marketingAgreement: Boolean = marketingAgreement
         protected set
+
+    @Column(name = "member_uuid", unique = true)
+    val memberUuid: UUID = UUID.randomUUID()
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()

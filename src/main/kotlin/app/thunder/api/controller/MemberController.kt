@@ -8,10 +8,12 @@ import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
 import app.thunder.api.controller.request.PostSmsVerifyRequest
+import app.thunder.api.controller.response.GetMemberInfoResponse
 import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
+import app.thunder.api.func.toKoreaZonedDateTime
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -47,9 +49,9 @@ class MemberController(
         @RequestBody @Valid request: PostSmsVerifyRequest,
         servlet: HttpServletRequest
     ): SuccessResponse<PostLoginResponse> {
-        val accessToken = memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
+        val response = memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
         return SuccessResponse(message = "Mobile Verification complete.",
-                               data = PostLoginResponse(accessToken),
+                               data = response,
                                path = servlet.requestURI)
     }
 
@@ -76,6 +78,17 @@ class MemberController(
     ): SuccessResponse<Void> {
         memberService.isAvailableNickName(nickname)
         return SuccessResponse(message = "The nickname is available.", path = servlet.requestURI)
+    }
+
+    @GetMapping("/info")
+    fun getMember(
+        @AuthenticationPrincipal memberId: Long
+    ): GetMemberInfoResponse {
+        val member = memberService.getById(memberId)
+        return GetMemberInfoResponse(memberUuid = member.memberUuid,
+                                     nickname = member.nickname,
+                                     mobileNumber = member.mobileNumber,
+                                     registeredAt = member.createdAt.toKoreaZonedDateTime())
     }
 
     @PostMapping("/block")
