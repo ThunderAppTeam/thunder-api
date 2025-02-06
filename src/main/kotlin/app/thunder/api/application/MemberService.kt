@@ -93,7 +93,9 @@ class MemberService(
                     memberId = it.memberId,
                     accessToken = tokenManager.generateAccessToken(it.memberId)
                 )
-            }.orElse(null)
+            }.orElse(
+                PostLoginResponse(memberId = null, accessToken = null)
+            )
     }
 
     @Transactional
