@@ -3,6 +3,7 @@ package app.thunder.api.domain.member
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
+import java.util.UUID
 
 data class Member private constructor(
     val memberId: Long,
@@ -14,6 +15,7 @@ data class Member private constructor(
     val age: Int,
     val countryCode: String,
     val marketingAgreement: Boolean,
+    val memberUuid: UUID,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime?,
     val updatedBy: Long?
@@ -31,6 +33,7 @@ data class Member private constructor(
                 Period.between(entity.birthDay, LocalDate.now()).years,
                 entity.countryCode,
                 entity.marketingAgreement,
+                entity.memberUuid,
                 entity.createdAt,
                 entity.updatedAt,
                 entity.updatedBy

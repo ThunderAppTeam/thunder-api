@@ -3,6 +3,7 @@ package app.thunder.api.application
 import app.thunder.api.adapter.sms.SmsAdapter
 import app.thunder.api.application.SupplyReviewableEventHandler.Companion.REVIEWABLE_QUEUE_MINIMUM_SIZE
 import app.thunder.api.auth.TokenManager
+import app.thunder.api.controller.request.PostLoginResponse
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
@@ -48,6 +49,11 @@ class MemberService(
     private val bodyPhotoAdapter: BodyPhotoAdapter,
 ) {
 
+    @Transactional(readOnly = true)
+    fun getById(memberId: Long): Member {
+        return memberAdapter.getById(memberId)
+    }
+
     @Transactional
     fun sendSms(request: PostSmsRequest): String {
         val yesterday = LocalDateTime.now().minusDays(1L)
@@ -69,7 +75,7 @@ class MemberService(
     }
 
     @Transactional
-    fun verifySms(deviceId: String, mobileNumber: String, verificationCode: String): String? {
+    fun verifySms(deviceId: String, mobileNumber: String, verificationCode: String): PostLoginResponse? {
         val verification = mobileVerificationRepository.findLastByDeviceIdAndMobileNumber(deviceId, mobileNumber)
             ?: throw ThunderException(NOT_FOUND_MOBILE_VERIFICATION)
 
@@ -82,8 +88,12 @@ class MemberService(
         verification.verified()
 
         return memberRepository.findByMobileNumber(mobileNumber)
-            .map { tokenManager.generateAccessToken(it.memberId) }
-            .orElse(null)
+            .map {
+                PostLoginResponse(
+                    memberId = it.memberId,
+                    accessToken = tokenManager.generateAccessToken(it.memberId)
+                )
+            }.orElse(null)
     }
 
     @Transactional

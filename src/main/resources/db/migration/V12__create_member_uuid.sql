@@ -1,0 +1,5 @@
+ALTER TABLE member
+ADD COLUMN IF NOT EXISTS member_uuid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL;
+
+ALTER TABLE member
+ALTER COLUMN member_uuid DROP DEFAULT;

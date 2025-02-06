@@ -24,7 +24,9 @@ class SecurityConfig {
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/v1/member/**").permitAll()
+                auth.requestMatchers("/v1/member/sms/**").permitAll()
+                    .requestMatchers("/v1/member/signup").permitAll()
+                    .requestMatchers("/v1/member/nickname/**").permitAll()
                     .requestMatchers("/v1/admin/**").permitAll()
                     .requestMatchers("/health").permitAll()
                     .anyRequest().authenticated()
