@@ -1,7 +1,7 @@
 package app.thunder.api.controller
 
+import app.thunder.api.application.AuthService
 import app.thunder.api.application.MemberService
-import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostLoginResponse
 import app.thunder.api.controller.request.PostMemberBlockRequest
 import app.thunder.api.controller.request.PostSignupRequest
@@ -9,7 +9,6 @@ import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
 import app.thunder.api.controller.request.PostSmsVerifyRequest
 import app.thunder.api.controller.response.GetMemberInfoResponse
-import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
@@ -30,15 +29,15 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(value = ["/v1/member"])
 @RestController
 class MemberController(
+    private val authService: AuthService,
     private val memberService: MemberService,
-    private val tokenManager: TokenManager
 ) {
 
     @PostMapping("/sms")
     fun postSms(
         @RequestBody @Valid request: PostSmsRequest,
     ): TestSendSmsResponse {
-        val verificationCode: String = memberService.sendSms(request)
+        val verificationCode: String = authService.sendSms(request)
         return TestSendSmsResponse(
             verificationCode.takeIf { request.isTestMode }
         )
@@ -49,7 +48,12 @@ class MemberController(
         @RequestBody @Valid request: PostSmsVerifyRequest,
         servlet: HttpServletRequest
     ): SuccessResponse<PostLoginResponse> {
-        val response = memberService.verifySms(request.deviceId, request.mobileNumber, request.verificationCode)
+        val memberAccessToken = authService.verifySms(request.deviceId,
+                                                      request.mobileNumber,
+                                                      request.verificationCode)
+
+        val response = PostLoginResponse(memberId = memberAccessToken.memberId,
+                                         accessToken = memberAccessToken.accessToken)
         return SuccessResponse(message = "Mobile Verification complete.",
                                data = response,
                                path = servlet.requestURI)
@@ -59,16 +63,16 @@ class MemberController(
     fun postSmsReset(
         @RequestBody @Valid request: PostSmsResetRequest,
     ) {
-        memberService.resetSendLimit(request)
+        authService.resetSendLimit(request)
     }
 
     @PostMapping("/signup")
     fun postSignup(
         @RequestBody @Valid request: PostSignupRequest,
     ): PostSignUpResponse {
-        val member = memberService.signup(request)
-        val accessToken = tokenManager.generateAccessToken(member.memberId)
-        return PostSignUpResponse(memberId = member.memberId, accessToken = accessToken)
+        val memberAccessToken = authService.signup(request)
+        return PostSignUpResponse(memberId = memberAccessToken.memberId,
+                                  accessToken = memberAccessToken.accessToken)
     }
 
     @GetMapping("/nickname/available")
@@ -76,7 +80,7 @@ class MemberController(
         @RequestParam @NotBlank nickname: String,
         servlet: HttpServletRequest
     ): SuccessResponse<Void> {
-        memberService.isAvailableNickName(nickname)
+        authService.isAvailableNickName(nickname)
         return SuccessResponse(message = "The nickname is available.", path = servlet.requestURI)
     }
 
@@ -95,8 +99,8 @@ class MemberController(
     fun postBlockMember(
         @RequestBody @Valid request: PostMemberBlockRequest,
         @AuthenticationPrincipal memberId: Long,
-    ): GetReviewableResponse? {
-        return memberService.block(memberId, request.blockedMemberId)
+    ) {
+        memberService.block(memberId, request.blockedMemberId)
     }
 
 }

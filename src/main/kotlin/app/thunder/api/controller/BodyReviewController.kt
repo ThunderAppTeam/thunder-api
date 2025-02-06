@@ -4,7 +4,6 @@ import app.thunder.api.application.BodyReviewService
 import app.thunder.api.controller.request.PostBodyReviewRequest
 import app.thunder.api.controller.response.GetReviewableResponse
 import jakarta.validation.Valid
-import jakarta.validation.constraints.Positive
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
@@ -29,21 +28,12 @@ class BodyReviewController(
         return bodyReviewService.getReviewableBodyPhotoList(memberId, size)
     }
 
-    @Deprecated("replaced by getBodyReview()")
-    @PostMapping("/refresh")
-    fun getBodyReviewRefresh(
-        @RequestParam @Positive refreshCount: Int,
-        @AuthenticationPrincipal memberId: Long,
-    ): List<GetReviewableResponse> {
-        return bodyReviewService.refreshReview(memberId, refreshCount)
-    }
-
     @PostMapping
     fun postBodyReview(
         @RequestBody @Valid request: PostBodyReviewRequest,
         @AuthenticationPrincipal memberId: Long,
-    ): GetReviewableResponse? {
-        return bodyReviewService.review(request.bodyPhotoId, memberId, request.score)
+    ) {
+        bodyReviewService.review(request.bodyPhotoId, memberId, request.score)
     }
 
 }

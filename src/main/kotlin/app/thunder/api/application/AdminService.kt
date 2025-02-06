@@ -16,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AdminService(
-    private val memberRepository: MemberRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val memberRepository: MemberRepository,
     private val bodyReviewRepository: BodyReviewRepository,
     private val bodyPhotoRepository: BodyPhotoRepository,
     private val flagHistoryRepository: FlagHistoryRepository,
@@ -34,7 +34,7 @@ class AdminService(
     @Transactional
     fun resetTarget(target: String, mobileNumber: String): Long {
         val member = memberRepository.findByMobileNumber(mobileNumber)
-            .orElseThrow { ThunderException(NOT_FOUND_MEMBER) }
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
         val memberId = member.memberId
 
         when (target) {
