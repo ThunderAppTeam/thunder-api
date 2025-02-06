@@ -8,10 +8,12 @@ import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
 import app.thunder.api.controller.request.PostSmsVerifyRequest
+import app.thunder.api.controller.response.GetMemberDeletionReasonResponse
 import app.thunder.api.controller.response.GetMemberInfoResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
+import app.thunder.api.domain.member.MemberDeleteReason
 import app.thunder.api.func.toKoreaZonedDateTime
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -101,6 +103,18 @@ class MemberController(
         @AuthenticationPrincipal memberId: Long,
     ) {
         memberService.block(memberId, request.blockedMemberId)
+    }
+
+    @GetMapping("/deletion-reason")
+    fun getMemberDeletionReasons(
+        @RequestParam(defaultValue = "KR") countryCode: String,
+    ): List<GetMemberDeletionReasonResponse> {
+        return MemberDeleteReason.entries.map {
+            when (countryCode) {
+                "KR" -> GetMemberDeletionReasonResponse(it.name, it.descriptionKR)
+                else -> GetMemberDeletionReasonResponse(it.name, it.descriptionKR)
+            }
+        }
     }
 
 }
