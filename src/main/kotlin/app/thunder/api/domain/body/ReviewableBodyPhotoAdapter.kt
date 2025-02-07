@@ -21,6 +21,11 @@ class ReviewableBodyPhotoAdapter(
     }
 
     @Transactional
+    fun deleteByBodyPhotoId(bodyPhotoId: Long) {
+        reviewableBodyPhotoRepository.deleteByBodyPhotoId(bodyPhotoId)
+    }
+
+    @Transactional
     fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long) {
         reviewableBodyPhotoRepository.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
     }

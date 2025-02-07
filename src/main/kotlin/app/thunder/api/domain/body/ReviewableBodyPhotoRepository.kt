@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface ReviewableBodyPhotoRepository : JpaRepository<ReviewableBodyPhotoEntity, ReviewableBodyPhotoId>,
                                           KotlinJdslJpqlExecutor {
+    fun deleteByBodyPhotoId(bodyPhotoId: Long)
     fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long)
 }
 
