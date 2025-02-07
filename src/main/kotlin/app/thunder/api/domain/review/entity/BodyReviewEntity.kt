@@ -1,4 +1,4 @@
-package app.thunder.api.domain.review
+package app.thunder.api.domain.review.entity
 
 import jakarta.persistence.*
 import java.time.LocalDateTime

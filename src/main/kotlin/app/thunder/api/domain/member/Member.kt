@@ -1,11 +1,12 @@
 package app.thunder.api.domain.member
 
+import app.thunder.api.domain.member.entity.MemberEntity
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
 import java.util.UUID
 
-data class Member private constructor(
+class Member private constructor(
     val memberId: Long,
     val nickname: String,
     val mobileNumber: String,

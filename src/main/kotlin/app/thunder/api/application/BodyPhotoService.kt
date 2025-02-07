@@ -3,16 +3,17 @@ package app.thunder.api.application
 import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
-import app.thunder.api.domain.body.ReviewRotationAdapter
-import app.thunder.api.domain.member.MemberAdapter
+import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhoto
 import app.thunder.api.domain.photo.BodyPhotoAdapter
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
 import java.util.UUID
 import kotlin.math.round
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -23,7 +24,8 @@ class BodyPhotoService(
     private val memberAdapter: MemberAdapter,
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val storageAdapter: StorageAdapter,
-    private val reviewRotationAdapter: ReviewRotationAdapter,
+    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     @Transactional(readOnly = true)
@@ -81,7 +83,6 @@ class BodyPhotoService(
         val imageUrl = storageAdapter.upload(imageFile, filePath)
 
         val bodyPhoto = bodyPhotoAdapter.create(memberId, imageUrl)
-        reviewRotationAdapter.create(bodyPhoto.bodyPhotoId, memberId)
         return bodyPhoto
     }
 
@@ -92,7 +93,12 @@ class BodyPhotoService(
             throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
         }
         bodyPhotoAdapter.deleteById(bodyPhotoId)
-        reviewRotationAdapter.deleteByBodyPhotoId(bodyPhotoId)
+
+        val reviewableList = reviewableBodyPhotoAdapter.getAllByBodyPhotoId(bodyPhotoId)
+        reviewableList.forEach {
+            applicationEventPublisher.publishEvent(SupplyReviewableEvent(it.memberId))
+        }
+        reviewableBodyPhotoAdapter.deleteAllByBodyPhotoId(bodyPhotoId)
     }
 
     companion object {

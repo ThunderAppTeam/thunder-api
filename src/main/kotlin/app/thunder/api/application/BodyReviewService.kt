@@ -1,11 +1,10 @@
 package app.thunder.api.application
 
-import app.thunder.api.application.SupplyReviewableEventHandler.Companion.REVIEWABLE_QUEUE_MINIMUM_SIZE
 import app.thunder.api.controller.response.GetReviewableResponse
-import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
-import app.thunder.api.domain.member.MemberAdapter
+import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
-import app.thunder.api.domain.review.BodyReviewAdapter
+import app.thunder.api.domain.review.adapter.BodyReviewAdapter
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
 import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
@@ -50,7 +49,6 @@ class BodyReviewService(
         if (bodyReviewAdapter.existsByBodyPhotoIdAndMemberId(bodyPhotoId, memberId)) {
             throw ThunderException(ALREADY_REVIEWED)
         }
-
         bodyPhoto.addReview(score)
         bodyPhotoAdapter.update(bodyPhoto)
 
@@ -58,10 +56,7 @@ class BodyReviewService(
         bodyReviewAdapter.create(bodyPhotoId, member.memberId, score)
 
         reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
-        val reviewableQueue = reviewableBodyPhotoAdapter.getAllByMemberId(memberId)
-        if (reviewableQueue.size <= REVIEWABLE_QUEUE_MINIMUM_SIZE) {
-            applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
-        }
+        applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
     }
 
 }

@@ -1,9 +1,10 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.response.GetFlagReasonResponse
-import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.flag.FlagHistoryAdapter
 import app.thunder.api.domain.flag.FlagReason
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 class FlagService(
     private val flagHistoryAdapter: FlagHistoryAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     fun getAllByCountryCode(countryCode: String): List<GetFlagReasonResponse> {
@@ -29,11 +31,12 @@ class FlagService(
         flagReason: FlagReason,
         otherReason: String?,
     ) {
-        reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
         flagHistoryAdapter.create(memberId = memberId,
                                   bodyPhotoId = bodyPhotoId,
                                   flagReason = flagReason,
                                   otherReason = otherReason)
+        reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+        applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
     }
 
 }

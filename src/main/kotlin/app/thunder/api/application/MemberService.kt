@@ -1,22 +1,22 @@
 package app.thunder.api.application
 
-import app.thunder.api.application.SupplyReviewableEventHandler.Companion.REVIEWABLE_QUEUE_MINIMUM_SIZE
-import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.member.Member
-import app.thunder.api.domain.member.MemberAdapter
-import app.thunder.api.domain.member.MemberBlockRelationAdapter
-import org.springframework.context.ApplicationEventPublisher
+import app.thunder.api.domain.member.MemberDeletionReason
+import app.thunder.api.domain.member.adapter.DeletedMemberAdapter
+import app.thunder.api.domain.member.adapter.MemberAdapter
+import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
+import app.thunder.api.domain.photo.BodyPhotoAdapter
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionTemplate
 
 @Service
 class MemberService(
-    private val applicationEventPublisher: ApplicationEventPublisher,
     private val memberAdapter: MemberAdapter,
     private val memberBlockRelationAdapter: MemberBlockRelationAdapter,
+    private val deletedMemberAdapter: DeletedMemberAdapter,
+    private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
-    private val transactionTemplate: TransactionTemplate,
 ) {
 
     @Transactional(readOnly = true)
@@ -24,35 +24,35 @@ class MemberService(
         return memberAdapter.getById(memberId)
     }
 
+    @Transactional
     fun block(requestMemberId: Long, blockedMemberId: Long) {
-        transactionTemplate.execute { status ->
-            memberAdapter.getById(blockedMemberId)
-            memberBlockRelationAdapter.create(memberId = blockedMemberId,
-                                              blockedMemberId = requestMemberId,
-                                              createdBy = requestMemberId)
-            memberBlockRelationAdapter.create(memberId = requestMemberId,
-                                              blockedMemberId = blockedMemberId,
-                                              createdBy = requestMemberId)
-            status.flush()
-            true
-        }
+        memberBlockRelationAdapter.create(memberId = blockedMemberId,
+                                          blockedMemberId = requestMemberId,
+                                          createdBy = requestMemberId)
+        memberBlockRelationAdapter.create(memberId = requestMemberId,
+                                          blockedMemberId = blockedMemberId,
+                                          createdBy = requestMemberId)
 
-        val deleteAllBlockedMemberBodyPhotoInQueue = { blocker: Long, blocked: Long ->
-            reviewableBodyPhotoAdapter.getAllByMemberId(blocker).asSequence()
-                .filter { it.bodyPhotoMemberId == blocked }
-                .forEach { reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(blocker, it.bodyPhotoId) }
-            val blockedMemberQueueSize = reviewableBodyPhotoAdapter.getAllByMemberId(blocker).size
-            if (blockedMemberQueueSize <= REVIEWABLE_QUEUE_MINIMUM_SIZE) {
-                applicationEventPublisher.publishEvent(SupplyReviewableEvent(blocker))
-            }
-        }
+        reviewableBodyPhotoAdapter.deleteAllByMemberIdAndPhotoMemberId(requestMemberId, blockedMemberId)
+        reviewableBodyPhotoAdapter.refresh(requestMemberId)
 
-        transactionTemplate.execute { status ->
-            deleteAllBlockedMemberBodyPhotoInQueue(blockedMemberId, requestMemberId)
-            deleteAllBlockedMemberBodyPhotoInQueue(requestMemberId, blockedMemberId)
-            status.flush()
-            true
-        }
+        reviewableBodyPhotoAdapter.deleteAllByMemberIdAndPhotoMemberId(blockedMemberId, requestMemberId)
+        reviewableBodyPhotoAdapter.refresh(blockedMemberId)
+    }
+
+    @Transactional
+    fun delete(memberId: Long, deletionReason: MemberDeletionReason, otherReason: String?) {
+        val member = memberAdapter.getById(memberId)
+        deletedMemberAdapter.create(member.memberId,
+                                    member.memberUuid,
+                                    member.nickname,
+                                    member.mobileNumber,
+                                    deletionReason,
+                                    otherReason)
+        memberAdapter.deleteById(memberId)
+        bodyPhotoAdapter.deleteAllByMemberId(memberId)
+        reviewableBodyPhotoAdapter.deleteAllByMemberId(memberId)
+        memberBlockRelationAdapter.deleteAllByMemberId(memberId)
     }
 
 }

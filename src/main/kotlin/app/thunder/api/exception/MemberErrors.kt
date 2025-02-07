@@ -17,6 +17,7 @@ enum class MemberErrors(
     INVALID_MOBILE_VERIFICATION(BAD_REQUEST, "Invalid mobile verification code."),
     TOO_MANY_MOBILE_VERIFICATION(TOO_MANY_REQUESTS, "Mobile verification can only be requested 5 times per day."),
     NICKNAME_DUPLICATED(CONFLICT, "Nickname already exists."),
+    MOBILE_NUMBER_DUPLICATED(CONFLICT, "This mobile number is already registered."),
 
     NOT_FOUND_MEMBER(NOT_FOUND, "Member not found."),
     EXPIRED_TOKEN(UNAUTHORIZED, "The token has expired."),

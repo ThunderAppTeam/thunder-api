@@ -1,5 +1,6 @@
-package app.thunder.api.domain.member
+package app.thunder.api.domain.member.repository
 
+import app.thunder.api.domain.member.entity.MobileVerificationEntity
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import org.springframework.data.jpa.repository.JpaRepository
 import java.time.LocalDateTime

@@ -1,5 +1,6 @@
-package app.thunder.api.domain.member
+package app.thunder.api.domain.member.entity
 
+import app.thunder.api.domain.member.Gender
 import jakarta.persistence.*
 import java.time.LocalDate
 import java.time.LocalDateTime

@@ -1,6 +1,6 @@
 package app.thunder.api.domain.member
 
-enum class MemberDeleteReason(
+enum class MemberDeletionReason(
     val descriptionKR: String,
 ) {
     DECREASED_INTEREST("서비스에 대한 관심이 줄어듬"),

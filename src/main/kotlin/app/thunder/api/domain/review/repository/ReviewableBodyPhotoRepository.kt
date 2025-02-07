@@ -1,10 +1,14 @@
-package app.thunder.api.domain.body
+package app.thunder.api.domain.review.repository
 
+import app.thunder.api.domain.review.entity.ReviewableBodyPhotoEntity
+import app.thunder.api.domain.review.entity.ReviewableBodyPhotoId
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ReviewableBodyPhotoRepository : JpaRepository<ReviewableBodyPhotoEntity, ReviewableBodyPhotoId>,
                                           KotlinJdslJpqlExecutor {
+    fun findAllByBodyPhotoId(bodyPhotoId: Long): List<ReviewableBodyPhotoEntity>
+    fun findAllByBodyPhotoMemberId(bodyPhotoMemberId: Long): List<ReviewableBodyPhotoEntity>
     fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long)
 }
 

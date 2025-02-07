@@ -63,4 +63,11 @@ class BodyPhotoAdapter(
         bodyPhotoRepository.deleteById(bodyPhotoId)
     }
 
+    @Transactional
+    fun deleteAllByMemberId(memberId: Long) {
+        val ids = bodyPhotoRepository.findAllByMemberId(memberId)
+            .map { it.bodyPhotoId }
+        bodyPhotoRepository.deleteAllByIdInBatch(ids)
+    }
+
 }

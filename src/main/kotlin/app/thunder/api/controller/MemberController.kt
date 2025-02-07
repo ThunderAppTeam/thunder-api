@@ -2,6 +2,7 @@ package app.thunder.api.controller
 
 import app.thunder.api.application.AuthService
 import app.thunder.api.application.MemberService
+import app.thunder.api.controller.request.DeleteMemberRequest
 import app.thunder.api.controller.request.PostLoginResponse
 import app.thunder.api.controller.request.PostMemberBlockRequest
 import app.thunder.api.controller.request.PostSignupRequest
@@ -13,7 +14,7 @@ import app.thunder.api.controller.response.GetMemberInfoResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
-import app.thunder.api.domain.member.MemberDeleteReason
+import app.thunder.api.domain.member.MemberDeletionReason
 import app.thunder.api.func.toKoreaZonedDateTime
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -109,12 +110,20 @@ class MemberController(
     fun getMemberDeletionReasons(
         @RequestParam(defaultValue = "KR") countryCode: String,
     ): List<GetMemberDeletionReasonResponse> {
-        return MemberDeleteReason.entries.map {
+        return MemberDeletionReason.entries.map {
             when (countryCode) {
                 "KR" -> GetMemberDeletionReasonResponse(it.name, it.descriptionKR)
                 else -> GetMemberDeletionReasonResponse(it.name, it.descriptionKR)
             }
         }
+    }
+
+    @PostMapping("/deletion")
+    fun delete(
+        @RequestBody @Valid request: DeleteMemberRequest,
+        @AuthenticationPrincipal memberId: Long,
+    ) {
+        memberService.delete(memberId, request.deletionReason, request.otherReason)
     }
 
 }

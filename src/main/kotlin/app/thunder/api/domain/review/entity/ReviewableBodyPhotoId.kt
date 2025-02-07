@@ -1,4 +1,4 @@
-package app.thunder.api.domain.body
+package app.thunder.api.domain.review.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Id

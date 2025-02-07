@@ -6,16 +6,17 @@ import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
-import app.thunder.api.domain.member.MemberAdapter
-import app.thunder.api.domain.member.MobileVerificationEntity
-import app.thunder.api.domain.member.MobileVerificationRepository
-import app.thunder.api.domain.member.findAllByDeviceIdAndCreatedAtAfter
-import app.thunder.api.domain.member.findAllByDeviceIdAndNotVerify
-import app.thunder.api.domain.member.findAllByMobileNumber
-import app.thunder.api.domain.member.findLastByDeviceIdAndMobileNumber
+import app.thunder.api.domain.member.adapter.MemberAdapter
+import app.thunder.api.domain.member.entity.MobileVerificationEntity
+import app.thunder.api.domain.member.repository.MobileVerificationRepository
+import app.thunder.api.domain.member.repository.findAllByDeviceIdAndCreatedAtAfter
+import app.thunder.api.domain.member.repository.findAllByDeviceIdAndNotVerify
+import app.thunder.api.domain.member.repository.findAllByMobileNumber
+import app.thunder.api.domain.member.repository.findLastByDeviceIdAndMobileNumber
 import app.thunder.api.exception.CommonErrors.MISSING_REQUIRED_PARAMETER
 import app.thunder.api.exception.MemberErrors.EXPIRED_MOBILE_VERIFICATION
 import app.thunder.api.exception.MemberErrors.INVALID_MOBILE_VERIFICATION
+import app.thunder.api.exception.MemberErrors.MOBILE_NUMBER_DUPLICATED
 import app.thunder.api.exception.MemberErrors.NICKNAME_DUPLICATED
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MOBILE_VERIFICATION
 import app.thunder.api.exception.MemberErrors.TOO_MANY_MOBILE_VERIFICATION
@@ -85,9 +86,13 @@ class AuthService(
 
     @Transactional
     fun signup(request: PostSignupRequest): MemberAccessToken {
-        memberAdapter.getByNickname(request.nickname)
-            ?: throw ThunderException(NICKNAME_DUPLICATED)
-        val member = memberAdapter.save(request)
+        this.isAvailableNickName(request.nickname)
+        val duplicatedMobileNumber = memberAdapter.getByMobileNumber(request.mobileNumber) != null
+        if (duplicatedMobileNumber) {
+            throw ThunderException(MOBILE_NUMBER_DUPLICATED)
+        }
+
+        val member = memberAdapter.create(request)
         applicationEventPublisher.publishEvent(SupplyReviewableEvent(member.memberId))
 
         return MemberAccessToken(
