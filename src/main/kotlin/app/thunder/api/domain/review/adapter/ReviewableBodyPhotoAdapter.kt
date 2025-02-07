@@ -9,7 +9,6 @@ import app.thunder.api.domain.review.entity.ReviewableBodyPhotoEntity
 import app.thunder.api.domain.review.entity.ReviewableBodyPhotoId
 import app.thunder.api.domain.review.repository.BodyReviewRepository
 import app.thunder.api.domain.review.repository.ReviewableBodyPhotoRepository
-import app.thunder.api.domain.review.repository.findAllByBodyPhotoId
 import app.thunder.api.domain.review.repository.findAllByMemberId
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -30,7 +29,7 @@ class ReviewableBodyPhotoAdapter(
     }
 
     @Transactional(readOnly = true)
-    fun getAllByBodyPhotoId(bodyPhotoId: Long, limit: Int? = null): List<ReviewableBodyPhoto> {
+    fun getAllByBodyPhotoId(bodyPhotoId: Long): List<ReviewableBodyPhoto> {
         return reviewableBodyPhotoRepository.findAllByBodyPhotoId(bodyPhotoId)
             .map(ReviewableBodyPhoto::from)
     }
@@ -42,6 +41,21 @@ class ReviewableBodyPhotoAdapter(
     }
 
     @Transactional
+    fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long) {
+        reviewableBodyPhotoRepository.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+    }
+
+    @Transactional
+    fun deleteAllByMemberId(memberId: Long) {
+        val ids = hashSetOf<ReviewableBodyPhotoId>()
+        reviewableBodyPhotoRepository.findAllByMemberId(memberId)
+            .forEach { ids.add(ReviewableBodyPhotoId(it.memberId, it.createdAt)) }
+        reviewableBodyPhotoRepository.findAllByBodyPhotoMemberId(memberId)
+            .forEach { ids.add(ReviewableBodyPhotoId(it.memberId, it.createdAt)) }
+        reviewableBodyPhotoRepository.deleteAllByIdInBatch(ids)
+    }
+
+    @Transactional
     fun deleteAllByBodyPhotoId(bodyPhotoId: Long) {
         val ids = reviewableBodyPhotoRepository.findAllByBodyPhotoId(bodyPhotoId)
             .map { ReviewableBodyPhotoId(it.memberId, it.createdAt) }
@@ -50,17 +64,12 @@ class ReviewableBodyPhotoAdapter(
 
     @Transactional
     fun deleteAllByMemberIdAndPhotoMemberId(memberId: Long, bodyPhotoMemberId: Long) {
-        val reviewableBodyPhotoIdSet = this.getAllByMemberId(memberId)
+        val reviewableBodyPhotoIds = reviewableBodyPhotoRepository.findAllByMemberId(memberId)
             .asSequence()
             .filter { it.bodyPhotoMemberId == bodyPhotoMemberId }
             .map { ReviewableBodyPhotoId(it.memberId, it.createdAt) }
-            .toSet()
-        reviewableBodyPhotoRepository.deleteAllByIdInBatch(reviewableBodyPhotoIdSet)
-    }
-
-    @Transactional
-    fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long) {
-        reviewableBodyPhotoRepository.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+            .toList()
+        reviewableBodyPhotoRepository.deleteAllByIdInBatch(reviewableBodyPhotoIds)
     }
 
     @Transactional
@@ -99,11 +108,13 @@ class ReviewableBodyPhotoAdapter(
             .take(supplySize)
             .toList()
 
-        filteredBodyPhotoList.forEach {
-            this.create(memberId = reviewMemberId,
-                        bodyPhotoId = it.bodyPhotoId,
-                        bodyPhotoMemberId = it.memberId)
+        val reviewableBodyPhotoEntities = filteredBodyPhotoList.map {
+            ReviewableBodyPhotoEntity.create(memberId = reviewMemberId,
+                                             bodyPhotoId = it.bodyPhotoId,
+                                             bodyPhotoMemberId = it.memberId)
         }
+        // TODO: need to using jdbcTemplate for performance
+        reviewableBodyPhotoRepository.saveAll(reviewableBodyPhotoEntities)
     }
 
     companion object {

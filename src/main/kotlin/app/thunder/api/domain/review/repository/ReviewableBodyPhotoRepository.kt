@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface ReviewableBodyPhotoRepository : JpaRepository<ReviewableBodyPhotoEntity, ReviewableBodyPhotoId>,
                                           KotlinJdslJpqlExecutor {
+    fun findAllByBodyPhotoId(bodyPhotoId: Long): List<ReviewableBodyPhotoEntity>
+    fun findAllByBodyPhotoMemberId(bodyPhotoMemberId: Long): List<ReviewableBodyPhotoEntity>
     fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long)
 }
 
@@ -23,18 +25,6 @@ fun ReviewableBodyPhotoRepository.findAllByMemberId(
             path(ReviewableBodyPhotoEntity::memberId).eq(memberId),
         ).orderBy(
             path(ReviewableBodyPhotoEntity::createdAt).asc()
-        )
-    }.filterNotNull()
-}
-
-fun ReviewableBodyPhotoRepository.findAllByBodyPhotoId(bodyPhotoId: Long): List<ReviewableBodyPhotoEntity> {
-    return this.findAll {
-        select(
-            entity(ReviewableBodyPhotoEntity::class)
-        ).from(
-            entity(ReviewableBodyPhotoEntity::class),
-        ).whereAnd(
-            path(ReviewableBodyPhotoEntity::bodyPhotoId).eq(bodyPhotoId),
         )
     }.filterNotNull()
 }

@@ -2,6 +2,7 @@ package app.thunder.api.controller
 
 import app.thunder.api.application.AuthService
 import app.thunder.api.application.MemberService
+import app.thunder.api.controller.request.DeleteMemberRequest
 import app.thunder.api.controller.request.PostLoginResponse
 import app.thunder.api.controller.request.PostMemberBlockRequest
 import app.thunder.api.controller.request.PostSignupRequest
@@ -115,6 +116,14 @@ class MemberController(
                 else -> GetMemberDeletionReasonResponse(it.name, it.descriptionKR)
             }
         }
+    }
+
+    @PostMapping("/deletion")
+    fun delete(
+        @RequestBody @Valid request: DeleteMemberRequest,
+        @AuthenticationPrincipal memberId: Long,
+    ) {
+        memberService.delete(memberId, request.deletionReason, request.otherReason)
     }
 
 }
