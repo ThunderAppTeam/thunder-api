@@ -3,8 +3,8 @@ package app.thunder.api.application
 import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
-import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
-import app.thunder.api.domain.member.MemberAdapter
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
+import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhoto
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT

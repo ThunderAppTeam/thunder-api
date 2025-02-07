@@ -1,10 +1,10 @@
 package app.thunder.api.application
 
 import app.thunder.api.application.SupplyReviewableEventHandler.Companion.REVIEWABLE_QUEUE_MINIMUM_SIZE
-import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.member.Member
-import app.thunder.api.domain.member.MemberAdapter
-import app.thunder.api.domain.member.MemberBlockRelationAdapter
+import app.thunder.api.domain.member.adapter.MemberAdapter
+import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

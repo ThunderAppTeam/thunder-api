@@ -1,7 +1,7 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.response.GetFlagReasonResponse
-import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.flag.FlagHistoryAdapter
 import app.thunder.api.domain.flag.FlagReason
 import org.springframework.stereotype.Service

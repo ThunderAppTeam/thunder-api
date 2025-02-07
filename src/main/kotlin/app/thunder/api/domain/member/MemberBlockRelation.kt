@@ -1,8 +1,9 @@
 package app.thunder.api.domain.member
 
+import app.thunder.api.domain.member.entity.MemberBlockRelationEntity
 import java.time.LocalDateTime
 
-data class MemberBlockRelation private constructor(
+class MemberBlockRelation private constructor(
     val memberBlockRelationId: Long,
     val memberId: Long,
     val blockedMemberId: Long,

@@ -1,11 +1,11 @@
 package app.thunder.api.application
 
 import app.thunder.api.domain.flag.FlagHistoryRepository
-import app.thunder.api.domain.member.MemberBlockRelationRepository
-import app.thunder.api.domain.member.MemberRepository
+import app.thunder.api.domain.member.repository.MemberBlockRelationRepository
+import app.thunder.api.domain.member.repository.MemberRepository
 import app.thunder.api.domain.photo.BodyPhotoRepository
 import app.thunder.api.domain.photo.findAllByMemberId
-import app.thunder.api.domain.review.BodyReviewRepository
+import app.thunder.api.domain.review.repository.BodyReviewRepository
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import org.springframework.context.ApplicationEventPublisher

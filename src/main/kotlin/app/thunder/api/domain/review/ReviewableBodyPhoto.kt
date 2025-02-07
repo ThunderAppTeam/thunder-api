@@ -1,5 +1,6 @@
-package app.thunder.api.domain.body
+package app.thunder.api.domain.review
 
+import app.thunder.api.domain.review.entity.ReviewableBodyPhotoEntity
 import java.time.LocalDateTime
 
 class ReviewableBodyPhoto private constructor(

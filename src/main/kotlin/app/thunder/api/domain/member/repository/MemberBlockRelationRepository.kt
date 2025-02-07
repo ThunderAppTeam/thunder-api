@@ -1,5 +1,6 @@
-package app.thunder.api.domain.member
+package app.thunder.api.domain.member.repository
 
+import app.thunder.api.domain.member.entity.MemberBlockRelationEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface MemberBlockRelationRepository : JpaRepository<MemberBlockRelationEntity, Long> {

@@ -1,10 +1,10 @@
 package app.thunder.api.application
 
-import app.thunder.api.domain.body.ReviewableBodyPhotoAdapter
+import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.domain.flag.FlagHistoryAdapter
-import app.thunder.api.domain.member.MemberBlockRelationAdapter
+import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
-import app.thunder.api.domain.review.BodyReviewAdapter
+import app.thunder.api.domain.review.adapter.BodyReviewAdapter
 import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component

@@ -1,5 +1,6 @@
 package app.thunder.api.domain.review
 
+import app.thunder.api.domain.review.entity.BodyReviewEntity
 import java.time.LocalDateTime
 
 data class BodyReview(

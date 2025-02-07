@@ -1,4 +1,4 @@
-package app.thunder.api.domain.member
+package app.thunder.api.domain.member.entity
 
 import jakarta.persistence.*
 import java.time.LocalDateTime

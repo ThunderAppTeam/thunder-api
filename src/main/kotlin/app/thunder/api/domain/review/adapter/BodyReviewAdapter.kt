@@ -1,5 +1,8 @@
-package app.thunder.api.domain.review
+package app.thunder.api.domain.review.adapter
 
+import app.thunder.api.domain.review.BodyReview
+import app.thunder.api.domain.review.entity.BodyReviewEntity
+import app.thunder.api.domain.review.repository.BodyReviewRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -9,15 +12,9 @@ class BodyReviewAdapter(
 ) {
 
     @Transactional(readOnly = true)
-    fun getAllByBodyPhotoId(bodyPhotoId: Long): List<BodyReview> {
-        return bodyReviewRepository.findAllByBodyPhotoIdIn(listOf(bodyPhotoId))
-            .map(BodyReview::from)
-    }
-
-    @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<BodyReview> {
         return bodyReviewRepository.findAllByMemberId(memberId)
-            .map(BodyReview::from)
+            .map(BodyReview.Companion::from)
     }
 
     @Transactional(readOnly = true)
