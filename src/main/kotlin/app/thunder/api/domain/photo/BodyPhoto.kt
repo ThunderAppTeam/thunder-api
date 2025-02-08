@@ -39,8 +39,7 @@ class BodyPhoto private constructor(
     }
 
     fun isReviewCompleted(): Boolean {
-        val before1Day = LocalDateTime.now().minusDays(REVIEW_COMPLETE_DAY)
-        return this.reviewCount >= REVIEW_COMPLETE_COUNT || this.createdAt.isBefore(before1Day)
+        return this.reviewCount >= REVIEW_COMPLETE_COUNT
     }
 
     fun isNotUploader(memberId: Long): Boolean {

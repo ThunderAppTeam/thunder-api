@@ -32,6 +32,8 @@ class BodyReviewService(
         val memberMap = memberAdapter.getAllById(memberIdSet)
             .associateBy { it.memberId }
 
+        applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
+
         return bodyPhotoIds.map { bodyPhotoId ->
             val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
             val member = memberMap[bodyPhoto.memberId] ?: throw ThunderException(NOT_FOUND_MEMBER)

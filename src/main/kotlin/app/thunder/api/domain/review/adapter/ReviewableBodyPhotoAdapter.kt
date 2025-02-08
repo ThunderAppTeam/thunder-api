@@ -76,7 +76,7 @@ class ReviewableBodyPhotoAdapter(
     fun refresh(reviewMemberId: Long) {
         val suppliedBodyPhotoIdSet = reviewableBodyPhotoRepository.findAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
-        if (suppliedBodyPhotoIdSet.size <= REVIEWABLE_QUEUE_MINIMUM_SIZE) {
+        if (suppliedBodyPhotoIdSet.size > REVIEWABLE_QUEUE_MINIMUM_SIZE) {
             return
         }
         val supplySize = REVIEWABLE_QUEUE_MAXIMUM_SIZE - suppliedBodyPhotoIdSet.size
