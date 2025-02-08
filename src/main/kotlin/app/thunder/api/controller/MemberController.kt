@@ -23,6 +23,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -55,8 +56,12 @@ class MemberController(
                                                       request.mobileNumber,
                                                       request.verificationCode)
 
-        val response = PostLoginResponse(memberId = memberAccessToken.memberId,
+        val response = PostLoginResponse(memberId = memberAccessToken.member?.memberId,
+                                         memberUuid = memberAccessToken.member?.memberUuid,
+                                         age = memberAccessToken.member?.age,
+                                         gender = memberAccessToken.member?.gender,
                                          accessToken = memberAccessToken.accessToken)
+
         return SuccessResponse(message = "Mobile Verification complete.",
                                data = response,
                                path = servlet.requestURI)
@@ -74,7 +79,10 @@ class MemberController(
         @RequestBody @Valid request: PostSignupRequest,
     ): PostSignUpResponse {
         val memberAccessToken = authService.signup(request)
-        return PostSignUpResponse(memberId = memberAccessToken.memberId,
+        return PostSignUpResponse(memberId = memberAccessToken.member?.memberId,
+                                  memberUuid = memberAccessToken.member?.memberUuid,
+                                  age = memberAccessToken.member?.age,
+                                  gender = memberAccessToken.member?.gender,
                                   accessToken = memberAccessToken.accessToken)
     }
 
@@ -124,6 +132,11 @@ class MemberController(
         @AuthenticationPrincipal memberId: Long,
     ) {
         memberService.delete(memberId, request.deletionReason, request.otherReason)
+    }
+
+    @PutMapping("/logout")
+    fun logout(@AuthenticationPrincipal memberId: Long) {
+        memberService.logout(memberId)
     }
 
 }

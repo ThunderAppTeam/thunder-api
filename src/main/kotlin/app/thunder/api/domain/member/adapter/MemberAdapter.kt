@@ -53,6 +53,16 @@ class MemberAdapter(
     }
 
     @Transactional
+    fun update(member: Member) {
+        memberRepository.findById(member.memberId)
+            .map { memberEntity ->
+                memberEntity.update(loggedOutAt = member.loggedOutAt,
+                                    updatedAt = member.updatedAt,
+                                    updatedBy = member.updatedBy)
+            }
+    }
+
+    @Transactional
     fun deleteById(memberId: Long) {
         memberRepository.deleteById(memberId)
     }
