@@ -55,8 +55,12 @@ class MemberController(
                                                       request.mobileNumber,
                                                       request.verificationCode)
 
-        val response = PostLoginResponse(memberId = memberAccessToken.memberId,
+        val response = PostLoginResponse(memberId = memberAccessToken.member?.memberId,
+                                         memberUuid = memberAccessToken.member?.memberUuid,
+                                         age = memberAccessToken.member?.age,
+                                         gender = memberAccessToken.member?.gender,
                                          accessToken = memberAccessToken.accessToken)
+
         return SuccessResponse(message = "Mobile Verification complete.",
                                data = response,
                                path = servlet.requestURI)
@@ -74,7 +78,10 @@ class MemberController(
         @RequestBody @Valid request: PostSignupRequest,
     ): PostSignUpResponse {
         val memberAccessToken = authService.signup(request)
-        return PostSignUpResponse(memberId = memberAccessToken.memberId,
+        return PostSignUpResponse(memberId = memberAccessToken.member?.memberId,
+                                  memberUuid = memberAccessToken.member?.memberUuid,
+                                  age = memberAccessToken.member?.age,
+                                  gender = memberAccessToken.member?.gender,
                                   accessToken = memberAccessToken.accessToken)
     }
 

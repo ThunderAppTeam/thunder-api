@@ -71,7 +71,7 @@ class AuthService(
 
         val member = memberAdapter.getByMobileNumber(mobileNumber)
         val accessToken = member?.let { tokenManager.generateAccessToken(member.memberId) }
-        return MemberAccessToken(memberId = member?.memberId,
+        return MemberAccessToken(member = member,
                                  accessToken = accessToken)
     }
 
@@ -96,7 +96,7 @@ class AuthService(
         applicationEventPublisher.publishEvent(SupplyReviewableEvent(member.memberId))
 
         return MemberAccessToken(
-            memberId = member.memberId,
+            member = member,
             accessToken = tokenManager.generateAccessToken(member.memberId),
         )
     }
