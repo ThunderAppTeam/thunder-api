@@ -7,6 +7,7 @@ import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
+import app.thunder.api.func.nullIfBlank
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -48,7 +49,7 @@ class MemberService(
                                     member.nickname,
                                     member.mobileNumber,
                                     deletionReason,
-                                    otherReason)
+                                    otherReason?.nullIfBlank())
         memberAdapter.deleteById(memberId)
         bodyPhotoAdapter.deleteAllByMemberId(memberId)
         reviewableBodyPhotoAdapter.deleteAllByMemberId(memberId)

@@ -2,6 +2,7 @@ package app.thunder.api.domain.flag
 
 import app.thunder.api.exception.BodyErrors.ALREADY_FLAGGED
 import app.thunder.api.exception.ThunderException
+import app.thunder.api.func.nullIfBlank
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -9,17 +10,6 @@ import org.springframework.transaction.annotation.Transactional
 class FlagHistoryAdapter(
     private val flagHistoryRepository: FlagHistoryRepository,
 ) {
-
-    @Transactional(readOnly = true)
-    fun getAll(): List<FlagHistoryEntity> {
-        return flagHistoryRepository.findAll()
-    }
-
-    @Transactional(readOnly = true)
-    fun getAllByMemberId(memberId: Long): List<FlagHistory> {
-        return flagHistoryRepository.findAllByMemberId(memberId)
-            .map(FlagHistory::from)
-    }
 
     @Transactional
     fun create(
@@ -35,7 +25,7 @@ class FlagHistoryAdapter(
         val entity = FlagHistoryEntity.create(memberId = memberId,
                                               bodyPhotoId = bodyPhotoId,
                                               flagReason = flagReason,
-                                              otherReason = otherReason)
+                                              otherReason = otherReason?.nullIfBlank())
         flagHistoryRepository.save(entity)
     }
 
