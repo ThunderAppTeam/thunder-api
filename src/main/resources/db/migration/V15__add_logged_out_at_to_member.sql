@@ -1,0 +1,1 @@
+ALTER TABLE member ADD COLUMN logged_out_at TIMESTAMP;

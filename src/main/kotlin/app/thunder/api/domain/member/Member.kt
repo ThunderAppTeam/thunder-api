@@ -17,10 +17,17 @@ class Member private constructor(
     val countryCode: String,
     val marketingAgreement: Boolean,
     val memberUuid: UUID,
+     loggedOutAt: LocalDateTime?,
     val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime?,
-    val updatedBy: Long?
+    updatedAt: LocalDateTime?,
+    updatedBy: Long?
 ) {
+    var loggedOutAt: LocalDateTime? = loggedOutAt
+        private set
+    var updatedAt: LocalDateTime? = updatedAt
+        private set
+    var updatedBy: Long? = updatedBy
+        private set
 
     companion object {
         fun from(entity: MemberEntity): Member {
@@ -35,11 +42,18 @@ class Member private constructor(
                 entity.countryCode,
                 entity.marketingAgreement,
                 entity.memberUuid,
+                entity.loggedOutAt,
                 entity.createdAt,
                 entity.updatedAt,
                 entity.updatedBy
             )
         }
+    }
+
+    fun logout(memberId: Long) {
+        this.loggedOutAt = LocalDateTime.now()
+        this.updatedAt = LocalDateTime.now()
+        this.updatedBy = memberId
     }
 
 }

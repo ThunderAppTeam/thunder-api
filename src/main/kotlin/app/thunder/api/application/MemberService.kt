@@ -56,4 +56,11 @@ class MemberService(
         memberBlockRelationAdapter.deleteAllByMemberId(memberId)
     }
 
+    @Transactional
+    fun logout(memberId: Long) {
+        val member = memberAdapter.getById(memberId)
+        member.logout(memberId)
+        memberAdapter.update(member)
+    }
+
 }

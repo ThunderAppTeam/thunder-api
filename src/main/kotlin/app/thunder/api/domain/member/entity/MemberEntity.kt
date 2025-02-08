@@ -1,7 +1,14 @@
 package app.thunder.api.domain.member.entity
 
 import app.thunder.api.domain.member.Gender
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -23,36 +30,33 @@ class MemberEntity private constructor(
     val memberId: Long = 0
 
     @Column(name = "nickname", unique = true)
-    var nickname: String = nickname
-        protected set
+    val nickname: String = nickname
 
     @Column(name = "mobile_number", unique = true)
-    var mobileNumber: String = mobileNumber
-        protected set
+    val mobileNumber: String = mobileNumber
 
     @Column(name = "mobile_country")
-    var mobileCountry: String = mobileCountry
-        protected set
+    val mobileCountry: String = mobileCountry
 
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
-    var gender: Gender = gender
-        protected set
+    val gender: Gender = gender
 
     @Column(name = "birth_day")
-    var birthDay: LocalDate = birthDay
-        protected set
+    val birthDay: LocalDate = birthDay
 
     @Column(name = "country_code")
-    var countryCode: String = countryCode
-        protected set
+    val countryCode: String = countryCode
 
     @Column(name = "marketing_agreement")
-    var marketingAgreement: Boolean = marketingAgreement
-        protected set
+    val marketingAgreement: Boolean = marketingAgreement
 
     @Column(name = "member_uuid", unique = true)
     val memberUuid: UUID = UUID.randomUUID()
+
+    @Column(name = "logged_out_at")
+    var loggedOutAt: LocalDateTime? = null
+        protected set
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
@@ -86,6 +90,12 @@ class MemberEntity private constructor(
                 marketingAgreement = marketingAgreement,
             )
         }
+    }
+
+    fun update(loggedOutAt: LocalDateTime?, updatedAt: LocalDateTime?, updatedBy: Long?) {
+        this.loggedOutAt = loggedOutAt
+        this.updatedAt = updatedAt
+        this.updatedBy = updatedBy
     }
 
 }
