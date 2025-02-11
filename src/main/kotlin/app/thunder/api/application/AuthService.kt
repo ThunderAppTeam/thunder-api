@@ -36,6 +36,11 @@ class AuthService(
     private val memberAdapter: MemberAdapter,
 ) {
 
+    companion object {
+        private const val MOBILE_NUMBER_FOR_TESTER = "01000000000"
+        private const val VERIFICATION_CODE_FOR_TESTER = "250101"
+    }
+
     @Transactional
     fun sendSms(request: PostSmsRequest): String {
         val yesterday = LocalDateTime.now().minusDays(1L)
@@ -44,7 +49,13 @@ class AuthService(
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
-        val verificationCode = Random.nextInt(100000, 1000000).toString()
+        var verificationCode = Random.nextInt(100000, 1000000).toString()
+        var isTestMode = request.isTestMode
+        if (request.mobileNumber == MOBILE_NUMBER_FOR_TESTER) {
+            verificationCode = VERIFICATION_CODE_FOR_TESTER
+            isTestMode = true
+        }
+
         mobileVerificationRepository.save(
             MobileVerificationEntity.create(request.deviceId,
                                             request.mobileNumber,
@@ -52,7 +63,7 @@ class AuthService(
                                             verificationCode)
         )
 
-        smsAdapter.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", request.isTestMode)
+        smsAdapter.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", isTestMode)
         return verificationCode
     }
 
