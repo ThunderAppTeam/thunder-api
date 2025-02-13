@@ -36,5 +36,6 @@ docker run -d \
 
 docker image prune -a -f
 docker volume prune -f
+docker builder prune -f
 
 echo "Successfully started ${CONTAINER_NAME}"
