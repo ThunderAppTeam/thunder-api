@@ -3,6 +3,7 @@ package app.thunder.api.controller
 import app.thunder.api.application.AuthService
 import app.thunder.api.application.MemberService
 import app.thunder.api.controller.request.DeleteMemberRequest
+import app.thunder.api.controller.request.PostFcmTokenRequest
 import app.thunder.api.controller.request.PostLoginResponse
 import app.thunder.api.controller.request.PostMemberBlockRequest
 import app.thunder.api.controller.request.PostSignupRequest
@@ -137,6 +138,14 @@ class MemberController(
     @PutMapping("/logout")
     fun logout(@AuthenticationPrincipal memberId: Long) {
         memberService.logout(memberId)
+    }
+
+    @PostMapping("/fcm-token")
+    fun postFcmToken(
+        @RequestBody @Valid request: PostFcmTokenRequest,
+        @AuthenticationPrincipal memberId: Long,
+    ) {
+        memberService.savedFcmToken(memberId, request.fcmToken)
     }
 
 }

@@ -4,8 +4,6 @@ import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.domain.member.Member
 import app.thunder.api.domain.member.entity.MemberEntity
 import app.thunder.api.domain.member.repository.MemberRepository
-import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
-import app.thunder.api.exception.ThunderException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,10 +13,10 @@ class MemberAdapter(
 ) {
 
     @Transactional(readOnly = true)
-    fun getById(memberId: Long): Member {
-        val memberEntity = memberRepository.findById(memberId)
-            .orElseThrow { ThunderException(NOT_FOUND_MEMBER) }
-        return Member.from(memberEntity)
+    fun getById(memberId: Long): Member? {
+        return memberRepository.findById(memberId)
+            .map(Member::from)
+            .orElse(null)
     }
 
     @Transactional(readOnly = true)

@@ -3,10 +3,14 @@ package app.thunder.api.application
 import app.thunder.api.domain.member.Member
 import app.thunder.api.domain.member.MemberDeletionReason
 import app.thunder.api.domain.member.adapter.DeletedMemberAdapter
+import app.thunder.api.domain.member.adapter.FcmTokenAdapter
 import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
+import app.thunder.api.exception.MemberErrors.FCM_TOKEN_ALREADY_SAVED
+import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.nullIfBlank
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,11 +22,13 @@ class MemberService(
     private val deletedMemberAdapter: DeletedMemberAdapter,
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
+    private val fcmTokenAdapter: FcmTokenAdapter,
 ) {
 
     @Transactional(readOnly = true)
     fun getById(memberId: Long): Member {
         return memberAdapter.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
     }
 
     @Transactional
@@ -43,7 +49,7 @@ class MemberService(
 
     @Transactional
     fun delete(memberId: Long, deletionReason: MemberDeletionReason, otherReason: String?) {
-        val member = memberAdapter.getById(memberId)
+        val member = this.getById(memberId)
         deletedMemberAdapter.create(member.memberId,
                                     member.memberUuid,
                                     member.nickname,
@@ -58,9 +64,18 @@ class MemberService(
 
     @Transactional
     fun logout(memberId: Long) {
-        val member = memberAdapter.getById(memberId)
+        val member = this.getById(memberId)
         member.logout(memberId)
         memberAdapter.update(member)
+    }
+
+    @Transactional
+    fun savedFcmToken(memberId: Long, fcmToken: String) {
+        if (fcmTokenAdapter.existsByMemberId(memberId)) {
+            throw ThunderException(FCM_TOKEN_ALREADY_SAVED)
+        }
+
+        fcmTokenAdapter.create(memberId, fcmToken)
     }
 
 }

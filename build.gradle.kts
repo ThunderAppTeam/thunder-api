@@ -44,6 +44,7 @@ dependencies {
 
     implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1")
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.116.Final")
+    implementation("com.google.firebase:firebase-admin:9.4.3")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
