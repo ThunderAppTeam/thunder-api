@@ -9,6 +9,7 @@ import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
+import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
 import java.util.UUID
@@ -45,8 +46,9 @@ class BodyPhotoService(
     @Transactional(readOnly = true)
     fun getByBodyPhotoId(bodyPhotoId: Long, memberId: Long): GetBodyPhotoResultResponse {
         val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
-
         val member = memberAdapter.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
+
         val bodyPhotos = bodyPhotoAdapter.getAllByGender(member.gender)
         var ranking = 1.0
         for (other in bodyPhotos) {
@@ -78,6 +80,7 @@ class BodyPhotoService(
         }
 
         val member = memberAdapter.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
         val fileName = "${UUID.randomUUID()}_${imageFile.originalFilename}"
         val filePath = "${member.nickname}/$BODY_PHOTO_PATH/$fileName"
         val imageUrl = storageAdapter.upload(imageFile, filePath)

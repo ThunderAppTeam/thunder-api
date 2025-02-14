@@ -55,6 +55,7 @@ class BodyReviewService(
         bodyPhotoAdapter.update(bodyPhoto)
 
         val member = memberAdapter.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
         bodyReviewAdapter.create(bodyPhotoId, member.memberId, score)
 
         reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)

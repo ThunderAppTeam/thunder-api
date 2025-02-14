@@ -22,7 +22,7 @@ enum class MemberErrors(
     NOT_FOUND_MEMBER(NOT_FOUND, "Member not found."),
     EXPIRED_TOKEN(UNAUTHORIZED, "The token has expired."),
     INVALID_TOKEN(UNAUTHORIZED, "The token is invalid."),
-    INVALID_AUTHORIZATION_HEADER(BAD_REQUEST, "Authorization header must include Bearer prefix."),
+    FCM_TOKEN_ALREADY_SAVED(CONFLICT, "FCM token has already been saved."),
     ;
 
 }
