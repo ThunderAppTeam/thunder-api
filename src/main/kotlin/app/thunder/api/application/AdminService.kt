@@ -6,7 +6,7 @@ import app.thunder.api.domain.member.repository.MemberRepository
 import app.thunder.api.domain.photo.BodyPhotoRepository
 import app.thunder.api.domain.photo.findAllByMemberId
 import app.thunder.api.domain.review.repository.BodyReviewRepository
-import app.thunder.api.event.SupplyReviewableEvent
+import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import org.springframework.context.ApplicationEventPublisher
@@ -27,7 +27,7 @@ class AdminService(
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun reset(target: String, mobileNumber: String) {
         val memberId = this.resetTarget(target, mobileNumber)
-        applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
+        applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
     }
 
     @Transactional

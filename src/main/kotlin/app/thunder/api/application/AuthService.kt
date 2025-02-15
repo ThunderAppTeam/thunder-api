@@ -13,7 +13,7 @@ import app.thunder.api.domain.member.repository.findAllByDeviceIdAndCreatedAtAft
 import app.thunder.api.domain.member.repository.findAllByDeviceIdAndNotVerify
 import app.thunder.api.domain.member.repository.findAllByMobileNumber
 import app.thunder.api.domain.member.repository.findLastByDeviceIdAndMobileNumber
-import app.thunder.api.event.SupplyReviewableEvent
+import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.exception.CommonErrors.MISSING_REQUIRED_PARAMETER
 import app.thunder.api.exception.MemberErrors.EXPIRED_MOBILE_VERIFICATION
 import app.thunder.api.exception.MemberErrors.INVALID_MOBILE_VERIFICATION
@@ -105,7 +105,7 @@ class AuthService(
         }
 
         val member = memberAdapter.create(request)
-        applicationEventPublisher.publishEvent(SupplyReviewableEvent(member.memberId))
+        applicationEventPublisher.publishEvent(RefreshReviewableEvent(member.memberId))
 
         return MemberAccessToken(
             member = member,

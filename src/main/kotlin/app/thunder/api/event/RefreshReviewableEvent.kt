@@ -1,5 +1,5 @@
 package app.thunder.api.event
 
-data class SupplyReviewableEvent(
+data class RefreshReviewableEvent(
     val memberId: Long,
 )

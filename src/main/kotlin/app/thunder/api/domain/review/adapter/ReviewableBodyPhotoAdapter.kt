@@ -10,6 +10,7 @@ import app.thunder.api.domain.review.entity.ReviewableBodyPhotoId
 import app.thunder.api.domain.review.repository.BodyReviewRepository
 import app.thunder.api.domain.review.repository.ReviewableBodyPhotoRepository
 import app.thunder.api.domain.review.repository.findAllByMemberId
+import app.thunder.api.domain.review.repository.findFirstAllByMemberIds
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -31,6 +32,12 @@ class ReviewableBodyPhotoAdapter(
     @Transactional(readOnly = true)
     fun getAllByBodyPhotoId(bodyPhotoId: Long): List<ReviewableBodyPhoto> {
         return reviewableBodyPhotoRepository.findAllByBodyPhotoId(bodyPhotoId)
+            .map(ReviewableBodyPhoto::from)
+    }
+
+    @Transactional(readOnly = true)
+    fun getFirstByMemberIds(memberIds: Collection<Long>): List<ReviewableBodyPhoto> {
+        return reviewableBodyPhotoRepository.findFirstAllByMemberIds(memberIds)
             .map(ReviewableBodyPhoto::from)
     }
 

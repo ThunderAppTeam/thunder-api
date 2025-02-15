@@ -14,33 +14,29 @@ class NotificationAdapter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun sendMulticastNotification(
-        token: String,
+    fun sendNotification(
+        fcmToken: String,
         title: String,
         body: String,
         imageUrl: String? = null,
-        routePath: String? = null
+        routePath: String
     ) {
         val notification = Notification.builder()
-            .apply {
-                this.setTitle(title)
-                this.setBody(body)
-                imageUrl?.let { this.setImage(imageUrl) }
-            }
+            .setTitle(title)
+            .setBody(body)
+            .apply { imageUrl?.let { setImage(it) } }
             .build()
 
         val message = Message.builder()
-            .apply {
-                this.setToken(token)
-                this.setNotification(notification)
-                routePath?.let { this.putData("routePath", routePath) }
-            }
+            .setToken(fcmToken)
+            .setNotification(notification)
+            .putData("routePath", routePath)
             .build()
 
         try {
             firebaseMessaging.send(message)
         } catch (e: FirebaseMessagingException) {
-            log.error("FCM failed -- [token={} | {}]", token, e.message)
+            log.error("FCM failed -- [token={} | {}]", fcmToken, e.message)
         }
     }
 

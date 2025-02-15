@@ -17,14 +17,9 @@ class GlobalEventHandler(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    companion object {
-        private const val REVIEW_COMPLETE_TITLE = "\uD83D\uDD25눈바디 측정 완료\uD83D\uDD25"
-        private const val REVIEW_COMPLETE_BODY = "지금 바로 측정결과를 확인해보세요!"
-    }
-
     @Async
     @TransactionalEventListener
-    fun supplyReviewableBodyPhotos(event: SupplyReviewableEvent) {
+    fun supplyReviewableBodyPhotos(event: RefreshReviewableEvent) {
         reviewableBodyPhotoAdapter.refresh(event.memberId)
     }
 
@@ -33,12 +28,12 @@ class GlobalEventHandler(
     fun notifyReviewComplete(event: ReviewCompleteEvent) {
         fcmTokenAdapter.getByMemberId(event.memberId)
             ?.let { fcmToken ->
-                notificationAdapter.sendMulticastNotification(
-                    fcmToken,
-                    REVIEW_COMPLETE_TITLE,
-                    REVIEW_COMPLETE_BODY,
-                    event.imageUrl,
-                    "/bodyCheck/${event.bodyPhotoId}"
+                notificationAdapter.sendNotification(
+                    fcmToken = fcmToken,
+                    title = "\uD83D\uDD25눈바디 측정 완료\uD83D\uDD25",
+                    body = "지금 바로 측정결과를 확인해보세요!",
+                    imageUrl = event.imageUrl,
+                    routePath = "/bodyCheck/${event.bodyPhotoId}"
                 )
             }
             ?: log.error("notifyReviewComplete failed: not found fcm token - memberId: ${event.memberId}")
