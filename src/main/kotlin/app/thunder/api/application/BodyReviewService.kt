@@ -5,6 +5,8 @@ import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.BodyReviewAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
+import app.thunder.api.event.ReviewCompleteEvent
+import app.thunder.api.event.SupplyReviewableEvent
 import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
 import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
@@ -60,6 +62,10 @@ class BodyReviewService(
 
         reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
         applicationEventPublisher.publishEvent(SupplyReviewableEvent(memberId))
+        if (bodyPhoto.isReviewCompleted()) {
+            val reviewCompleteEvent = ReviewCompleteEvent(memberId, bodyPhotoId, bodyPhoto.imageUrl)
+            applicationEventPublisher.publishEvent(reviewCompleteEvent)
+        }
     }
 
 }

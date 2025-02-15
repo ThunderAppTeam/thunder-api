@@ -6,6 +6,7 @@ import app.thunder.api.domain.member.repository.MemberRepository
 import app.thunder.api.domain.photo.BodyPhotoRepository
 import app.thunder.api.domain.photo.findAllByMemberId
 import app.thunder.api.domain.review.repository.BodyReviewRepository
+import app.thunder.api.event.SupplyReviewableEvent
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import org.springframework.context.ApplicationEventPublisher

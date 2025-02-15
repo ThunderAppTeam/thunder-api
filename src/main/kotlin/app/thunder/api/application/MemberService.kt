@@ -8,7 +8,6 @@ import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
-import app.thunder.api.exception.MemberErrors.FCM_TOKEN_ALREADY_SAVED
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.nullIfBlank
@@ -71,10 +70,6 @@ class MemberService(
 
     @Transactional
     fun savedFcmToken(memberId: Long, fcmToken: String) {
-        if (fcmTokenAdapter.existsByMemberId(memberId)) {
-            throw ThunderException(FCM_TOKEN_ALREADY_SAVED)
-        }
-
         fcmTokenAdapter.create(memberId, fcmToken)
     }
 
