@@ -45,7 +45,15 @@ jwt:
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
+firebase:
+  account-path: ${FIREBASE_ACCOUNT_PATH}
+
 aligo:
   user-id: ${ALIGO_USER_ID}
   api-key: ${ALIGO_API_KEY}
   sender: ${ALIGO_SENDER}
+
+logging:
+  level:
+    org.hibernate.orm.connections.pooling: OFF
+

@@ -10,9 +10,11 @@ class FcmTokenAdapter(
     private val memberFcmTokenRepository: MemberFcmTokenRepository,
 ) {
 
-    @Transactional(readOnly =true)
-    fun existsByMemberId(memberId:Long): Boolean {
-        return memberFcmTokenRepository.existsById(memberId)
+    @Transactional(readOnly = true)
+    fun getByMemberId(memberId: Long): String? {
+        return memberFcmTokenRepository.findById(memberId)
+            .map { it.fcmToken }
+            .orElse(null)
     }
 
     @Transactional
