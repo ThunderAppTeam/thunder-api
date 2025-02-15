@@ -17,6 +17,12 @@ class FcmTokenAdapter(
             .orElse(null)
     }
 
+    @Transactional(readOnly = true)
+    fun getMemberIdToFcmTokenMap(memberIds: Collection<Long>): Map<Long, String> {
+        return memberFcmTokenRepository.findAllById(memberIds)
+            .associate { it.memberId to it.fcmToken }
+    }
+
     @Transactional
     fun create(
         memberId: Long,

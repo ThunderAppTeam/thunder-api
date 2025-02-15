@@ -3,6 +3,7 @@ package app.thunder.api.domain.review.adapter
 import app.thunder.api.domain.review.BodyReview
 import app.thunder.api.domain.review.entity.BodyReviewEntity
 import app.thunder.api.domain.review.repository.BodyReviewRepository
+import app.thunder.api.domain.review.repository.findLatestGroupByMemberId
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,9 +13,10 @@ class BodyReviewAdapter(
 ) {
 
     @Transactional(readOnly = true)
-    fun getAllByMemberId(memberId: Long): List<BodyReview> {
-        return bodyReviewRepository.findAllByMemberId(memberId)
-            .map(BodyReview.Companion::from)
+    fun getMemberIdToLatestReviewMap(): Map<Long, BodyReview> {
+        return bodyReviewRepository.findLatestGroupByMemberId()
+            .map(BodyReview::from)
+            .associateBy { it.memberId }
     }
 
     @Transactional(readOnly = true)

@@ -29,7 +29,7 @@ class GlobalEventHandler(
         fcmTokenAdapter.getByMemberId(event.memberId)
             ?.let { fcmToken ->
                 notificationAdapter.sendNotification(
-                    token = fcmToken,
+                    fcmToken = fcmToken,
                     title = "\uD83D\uDD25눈바디 측정 완료\uD83D\uDD25",
                     body = "지금 바로 측정결과를 확인해보세요!",
                     imageUrl = event.imageUrl,

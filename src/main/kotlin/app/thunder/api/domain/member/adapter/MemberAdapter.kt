@@ -13,6 +13,12 @@ class MemberAdapter(
 ) {
 
     @Transactional(readOnly = true)
+    fun getAll(): List<Member> {
+        return memberRepository.findAll()
+            .map(Member::from)
+    }
+
+    @Transactional(readOnly = true)
     fun getById(memberId: Long): Member? {
         return memberRepository.findById(memberId)
             .map(Member::from)

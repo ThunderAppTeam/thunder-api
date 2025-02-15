@@ -15,7 +15,7 @@ class NotificationAdapter(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun sendNotification(
-        token: String,
+        fcmToken: String,
         title: String,
         body: String,
         imageUrl: String? = null,
@@ -28,7 +28,7 @@ class NotificationAdapter(
             .build()
 
         val message = Message.builder()
-            .setToken(token)
+            .setToken(fcmToken)
             .setNotification(notification)
             .putData("routePath", routePath)
             .build()
@@ -36,7 +36,7 @@ class NotificationAdapter(
         try {
             firebaseMessaging.send(message)
         } catch (e: FirebaseMessagingException) {
-            log.error("FCM failed -- [token={} | {}]", token, e.message)
+            log.error("FCM failed -- [token={} | {}]", fcmToken, e.message)
         }
     }
 
