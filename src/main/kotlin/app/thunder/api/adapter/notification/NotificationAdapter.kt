@@ -14,27 +14,23 @@ class NotificationAdapter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun sendMulticastNotification(
+    fun sendNotification(
         token: String,
         title: String,
         body: String,
         imageUrl: String? = null,
-        routePath: String? = null
+        routePath: String
     ) {
         val notification = Notification.builder()
-            .apply {
-                this.setTitle(title)
-                this.setBody(body)
-                imageUrl?.let { this.setImage(imageUrl) }
-            }
+            .setTitle(title)
+            .setBody(body)
+            .apply { imageUrl?.let { setImage(it) } }
             .build()
 
         val message = Message.builder()
-            .apply {
-                this.setToken(token)
-                this.setNotification(notification)
-                routePath?.let { this.putData("routePath", routePath) }
-            }
+            .setToken(token)
+            .setNotification(notification)
+            .putData("routePath", routePath)
             .build()
 
         try {
