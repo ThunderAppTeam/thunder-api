@@ -11,6 +11,7 @@ import app.thunder.api.domain.review.repository.BodyReviewRepository
 import app.thunder.api.domain.review.repository.ReviewableBodyPhotoRepository
 import app.thunder.api.domain.review.repository.findAllByMemberId
 import app.thunder.api.domain.review.repository.findFirstAllByMemberIds
+import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -39,12 +40,6 @@ class ReviewableBodyPhotoAdapter(
     fun getFirstByMemberIds(memberIds: Collection<Long>): List<ReviewableBodyPhoto> {
         return reviewableBodyPhotoRepository.findFirstAllByMemberIds(memberIds)
             .map(ReviewableBodyPhoto::from)
-    }
-
-    @Transactional
-    fun create(memberId: Long, bodyPhotoId: Long, bodyPhotoMemberId: Long) {
-        val entity = ReviewableBodyPhotoEntity.create(memberId, bodyPhotoId, bodyPhotoMemberId)
-        reviewableBodyPhotoRepository.save(entity)
     }
 
     @Transactional
@@ -115,10 +110,12 @@ class ReviewableBodyPhotoAdapter(
             .take(supplySize)
             .toList()
 
-        val reviewableBodyPhotoEntities = filteredBodyPhotoList.map {
+        val currentDateTime = LocalDateTime.now()
+        val reviewableBodyPhotoEntities = filteredBodyPhotoList.mapIndexed { index, it ->
             ReviewableBodyPhotoEntity.create(memberId = reviewMemberId,
                                              bodyPhotoId = it.bodyPhotoId,
-                                             bodyPhotoMemberId = it.memberId)
+                                             bodyPhotoMemberId = it.memberId,
+                                             createdAt = currentDateTime.plusSeconds(index.toLong()))
         }
         // TODO: need to using jdbcTemplate for performance
         reviewableBodyPhotoRepository.saveAll(reviewableBodyPhotoEntities)

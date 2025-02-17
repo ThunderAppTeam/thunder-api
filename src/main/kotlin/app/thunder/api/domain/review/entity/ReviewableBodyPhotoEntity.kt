@@ -9,11 +9,12 @@ import java.time.LocalDateTime
 
 @Table(name = "reviewable_body_photo")
 @Entity
-@IdClass(ReviewableBodyPhotoId::class)
+@IdClass(ReviewableBodyPhotoId::class) // TODO: CHANGE IDENTITY PK
 class ReviewableBodyPhotoEntity private constructor(
     memberId: Long,
     bodyPhotoId: Long,
     bodyPhotoMemberId: Long,
+    createdAt: LocalDateTime,
 ) {
     @Id
     @Column(name = "member_id", nullable = false)
@@ -27,12 +28,15 @@ class ReviewableBodyPhotoEntity private constructor(
 
     @Id
     @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = createdAt
 
 
     companion object {
-        fun create(memberId: Long, bodyPhotoId: Long, bodyPhotoMemberId: Long): ReviewableBodyPhotoEntity {
-            return ReviewableBodyPhotoEntity(memberId, bodyPhotoId, bodyPhotoMemberId)
+        fun create(memberId: Long,
+                   bodyPhotoId: Long,
+                   bodyPhotoMemberId: Long,
+                   createdAt: LocalDateTime): ReviewableBodyPhotoEntity {
+            return ReviewableBodyPhotoEntity(memberId, bodyPhotoId, bodyPhotoMemberId, createdAt)
         }
     }
 
