@@ -103,6 +103,7 @@ class BodyPhotoService(
             applicationEventPublisher.publishEvent(RefreshReviewableEvent(it.memberId))
         }
         reviewableBodyPhotoAdapter.deleteAllByBodyPhotoId(bodyPhotoId)
+        storageAdapter.delete(bodyPhoto.imageUrl)
     }
 
     companion object {
