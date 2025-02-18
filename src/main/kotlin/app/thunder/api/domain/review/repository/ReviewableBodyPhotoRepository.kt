@@ -33,12 +33,14 @@ fun ReviewableBodyPhotoRepository.findFirstAllByMemberIds(memberIds: Collection<
             entity(ReviewableBodyPhotoEntity::class),
         ).from(
             entity(ReviewableBodyPhotoEntity::class),
-        ).whereAnd(
+        ).whereOr(
             *subQuery.map { tuple ->
                 val memberId = tuple?.get(0, Long::class.java)
                 val createdAt = tuple?.get(1, LocalDateTime::class.java)
-                path(ReviewableBodyPhotoEntity::memberId).eq(memberId)
-                    .and(path(ReviewableBodyPhotoEntity::createdAt).eq(createdAt))
+                and(
+                    path(ReviewableBodyPhotoEntity::memberId).eq(memberId),
+                    path(ReviewableBodyPhotoEntity::createdAt).eq(createdAt),
+                )
             }.toTypedArray()
         )
     }.filterNotNull()
