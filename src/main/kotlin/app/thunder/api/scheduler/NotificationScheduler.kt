@@ -25,7 +25,7 @@ class NotificationScheduler(
 ) {
 
     companion object {
-        private val TESTER_MEMBER_IDS = setOf<Long>()
+        private val TESTER_MEMBER_IDS = setOf<Long>(1, 2, 26, 32)
     }
 
     @Scheduled(cron = "0 0 21 * * *", zone = "Asia/Seoul")
@@ -83,7 +83,7 @@ class NotificationScheduler(
         val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
         val memberIdToFcmTokenMap = fcmTokenAdapter.getMemberIdToFcmTokenMap(memberIdSet)
 
-        notificationTargetMembers
+          notificationTargetMembers
             .filter { memberIdToFirstReviewableMap.containsKey(it.memberId) }
             .forEach { targetMember ->
                 val imageUrl = memberIdToFirstReviewableMap[targetMember.memberId]
