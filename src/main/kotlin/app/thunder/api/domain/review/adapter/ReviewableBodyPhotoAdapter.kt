@@ -7,13 +7,10 @@ import app.thunder.api.domain.photo.findAllNotReviewCompleted
 import app.thunder.api.domain.review.ReviewableBodyPhoto
 import app.thunder.api.domain.review.entity.ReviewableBodyPhotoEntity
 import app.thunder.api.domain.review.entity.ReviewableBodyPhotoId
-import app.thunder.api.domain.review.repository.BodyReviewRepository
-import app.thunder.api.domain.review.repository.ReviewableBodyPhotoRepository
-import app.thunder.api.domain.review.repository.findAllByMemberId
-import app.thunder.api.domain.review.repository.findFirstAllByMemberIds
-import java.time.LocalDateTime
+import app.thunder.api.domain.review.repository.*
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Component
 class ReviewableBodyPhotoAdapter(
@@ -22,6 +19,7 @@ class ReviewableBodyPhotoAdapter(
     private val bodyReviewRepository: BodyReviewRepository,
     private val flagHistoryRepository: FlagHistoryRepository,
     private val memberBlockRelationRepository: MemberBlockRelationRepository,
+    private val reviewableBodyPhotoJdbcRepository: ReviewableBodyPhotoJdbcRepository,
 ) {
 
     @Transactional(readOnly = true)
@@ -117,8 +115,7 @@ class ReviewableBodyPhotoAdapter(
                                              bodyPhotoMemberId = it.memberId,
                                              createdAt = currentDateTime.plusSeconds(index.toLong()))
         }
-        // TODO: need to using jdbcTemplate for performance
-        reviewableBodyPhotoRepository.saveAll(reviewableBodyPhotoEntities)
+        reviewableBodyPhotoJdbcRepository.batchInsert(reviewableBodyPhotoEntities)
     }
 
     companion object {
