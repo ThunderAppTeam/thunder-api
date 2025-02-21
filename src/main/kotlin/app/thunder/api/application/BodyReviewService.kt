@@ -5,10 +5,9 @@ import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.BodyReviewAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
-import app.thunder.api.event.ReviewCompleteEvent
 import app.thunder.api.event.RefreshReviewableEvent
+import app.thunder.api.event.ReviewCompleteEvent
 import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
-import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import org.springframework.context.ApplicationEventPublisher
@@ -36,9 +35,9 @@ class BodyReviewService(
 
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
 
-        return bodyPhotoIds.map { bodyPhotoId ->
-            val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
-            val member = memberMap[bodyPhoto.memberId] ?: throw ThunderException(NOT_FOUND_MEMBER)
+        return bodyPhotoIds.mapNotNull { bodyPhotoId ->
+            val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: return@mapNotNull null
+            val member = memberMap[bodyPhoto.memberId] ?: return@mapNotNull null
             GetReviewableResponse(bodyPhoto.bodyPhotoId,
                                   bodyPhoto.imageUrl,
                                   member.memberId,
