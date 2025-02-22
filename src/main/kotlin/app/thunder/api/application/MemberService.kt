@@ -1,11 +1,15 @@
 package app.thunder.api.application
 
+import app.thunder.api.controller.request.PutMemberSettingsRequest
 import app.thunder.api.domain.member.Member
 import app.thunder.api.domain.member.MemberDeletionReason
+import app.thunder.api.domain.member.MemberSetting
+import app.thunder.api.domain.member.MemberSettingOptions
 import app.thunder.api.domain.member.adapter.DeletedMemberAdapter
 import app.thunder.api.domain.member.adapter.FcmTokenAdapter
 import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
+import app.thunder.api.domain.member.adapter.MemberSettingAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
@@ -22,6 +26,7 @@ class MemberService(
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
     private val fcmTokenAdapter: FcmTokenAdapter,
+    private val memberSettingAdapter: MemberSettingAdapter,
 ) {
 
     @Transactional(readOnly = true)
@@ -71,6 +76,37 @@ class MemberService(
     @Transactional
     fun savedFcmToken(memberId: Long, fcmToken: String) {
         fcmTokenAdapter.create(memberId, fcmToken)
+    }
+
+    @Transactional
+    fun getSettings(memberId: Long): MemberSetting {
+        val memberSetting = memberSettingAdapter.getByMemberId(memberId)
+            ?: this.createMemberOption(memberId)
+        return memberSetting
+    }
+
+    private fun createMemberOption(memberId: Long): MemberSetting {
+        val member = (memberAdapter.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER))
+        val options = MemberSettingOptions(
+            reviewCompleteNotify = true,
+            reviewRequestNotify = true,
+            marketingAgreement = member.marketingAgreement
+        )
+        return memberSettingAdapter.create(memberId, options)
+    }
+
+    @Transactional
+    fun updateSettings(memberId: Long, request: PutMemberSettingsRequest) {
+        val options = MemberSettingOptions(
+            reviewCompleteNotify = request.reviewCompleteNotify,
+            reviewRequestNotify = request.reviewRequestNotify,
+            marketingAgreement = request.marketingAgreement
+        )
+
+        val settings = this.getSettings(memberId)
+        settings.setOptions(options)
+        memberSettingAdapter.update(settings)
     }
 
 }

@@ -6,7 +6,9 @@ import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
+import app.thunder.api.domain.member.MemberSettingOptions
 import app.thunder.api.domain.member.adapter.MemberAdapter
+import app.thunder.api.domain.member.adapter.MemberSettingAdapter
 import app.thunder.api.domain.member.entity.MobileVerificationEntity
 import app.thunder.api.domain.member.repository.MobileVerificationRepository
 import app.thunder.api.domain.member.repository.findAllByDeviceIdAndCreatedAtAfter
@@ -35,6 +37,7 @@ class AuthService(
     private val tokenManager: TokenManager,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val memberAdapter: MemberAdapter,
+    private val memberSettingAdapter: MemberSettingAdapter,
 ) {
 
     companion object {
@@ -105,6 +108,10 @@ class AuthService(
         }
 
         val member = memberAdapter.create(request)
+        val memberSettingOptions = MemberSettingOptions(reviewCompleteNotify = true,
+                                                        reviewRequestNotify = true,
+                                                        marketingAgreement = request.marketingAgreement)
+        memberSettingAdapter.create(member.memberId, memberSettingOptions)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(member.memberId))
 
         return MemberAccessToken(
