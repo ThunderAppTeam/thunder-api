@@ -156,7 +156,6 @@ class MemberController(
     ): GetMemberSettingsResponse {
         val settings = memberService.getSettings(memberId)
         return GetMemberSettingsResponse(
-            memberId = settings.memberId,
             reviewCompleteNotify = settings.reviewCompleteNotify,
             reviewRequestNotify = settings.reviewRequestNotify,
             marketingAgreement = settings.marketingAgreement

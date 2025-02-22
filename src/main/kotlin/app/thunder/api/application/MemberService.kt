@@ -80,20 +80,8 @@ class MemberService(
 
     @Transactional
     fun getSettings(memberId: Long): MemberSetting {
-        val memberSetting = memberSettingAdapter.getByMemberId(memberId)
-            ?: this.createMemberOption(memberId)
-        return memberSetting
-    }
-
-    private fun createMemberOption(memberId: Long): MemberSetting {
-        val member = (memberAdapter.getById(memberId)
-            ?: throw ThunderException(NOT_FOUND_MEMBER))
-        val options = MemberSettingOptions(
-            reviewCompleteNotify = true,
-            reviewRequestNotify = true,
-            marketingAgreement = member.marketingAgreement
-        )
-        return memberSettingAdapter.create(memberId, options)
+        return memberSettingAdapter.getByMemberId(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
     }
 
     @Transactional
