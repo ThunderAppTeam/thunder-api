@@ -10,8 +10,10 @@ import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
 import app.thunder.api.controller.request.PostSmsVerifyRequest
+import app.thunder.api.controller.request.PutMemberSettingsRequest
 import app.thunder.api.controller.response.GetMemberDeletionReasonResponse
 import app.thunder.api.controller.response.GetMemberInfoResponse
+import app.thunder.api.controller.response.GetMemberSettingsResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
@@ -146,6 +148,27 @@ class MemberController(
         @AuthenticationPrincipal memberId: Long,
     ) {
         memberService.savedFcmToken(memberId, request.fcmToken)
+    }
+
+    @GetMapping("/settings")
+    fun getMemberSettings(
+        @AuthenticationPrincipal memberId: Long,
+    ): GetMemberSettingsResponse {
+        val settings = memberService.getSettings(memberId)
+        return GetMemberSettingsResponse(
+            memberId = settings.memberId,
+            reviewCompleteNotify = settings.reviewCompleteNotify,
+            reviewRequestNotify = settings.reviewRequestNotify,
+            marketingAgreement = settings.marketingAgreement
+        )
+    }
+
+    @PutMapping("/settings")
+    fun putMemberSettings(
+        @RequestBody @Valid request: PutMemberSettingsRequest,
+        @AuthenticationPrincipal memberId: Long,
+    ) {
+        memberService.updateSettings(memberId, request)
     }
 
 }
