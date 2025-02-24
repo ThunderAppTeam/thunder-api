@@ -1,6 +1,5 @@
 package app.thunder.api.domain.member.adapter
 
-import app.thunder.api.domain.member.entity.MemberFcmTokenEntity
 import app.thunder.api.domain.member.repository.MemberFcmTokenRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -12,9 +11,7 @@ class FcmTokenAdapter(
 
     @Transactional(readOnly = true)
     fun getByMemberId(memberId: Long): String? {
-        return memberFcmTokenRepository.findById(memberId)
-            .map { it.fcmToken }
-            .orElse(null)
+        return memberFcmTokenRepository.findByMemberId(memberId)?.fcmToken
     }
 
     @Transactional(readOnly = true)
@@ -24,12 +21,8 @@ class FcmTokenAdapter(
     }
 
     @Transactional
-    fun create(
-        memberId: Long,
-        fcmToken: String
-    ) {
-        val entity = MemberFcmTokenEntity.create(memberId, fcmToken)
-        memberFcmTokenRepository.save(entity)
+    fun createOrUpdate(memberId: Long, fcmToken: String) {
+        memberFcmTokenRepository.upsertFcmToken(memberId, fcmToken)
     }
 
 }

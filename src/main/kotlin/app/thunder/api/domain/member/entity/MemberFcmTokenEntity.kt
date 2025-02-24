@@ -17,10 +17,15 @@ class MemberFcmTokenEntity private constructor(
     val memberId: Long = memberId
 
     @Column(name = "fcm_token", unique = true)
-    val fcmToken: String = fcmToken
+    var fcmToken: String = fcmToken
+        protected set
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
+
+    @Column(name = "updated_at")
+    var updatedAt: LocalDateTime? = null
+        protected set
 
     companion object {
         fun create(
@@ -29,6 +34,11 @@ class MemberFcmTokenEntity private constructor(
         ): MemberFcmTokenEntity {
             return MemberFcmTokenEntity(memberId, fcmToken)
         }
+    }
+
+    fun update(fcmToken: String, updatedAt: LocalDateTime?) {
+        this.fcmToken = fcmToken
+        this.updatedAt = updatedAt
     }
 
 }

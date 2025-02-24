@@ -75,7 +75,7 @@ class MemberService(
 
     @Transactional
     fun savedFcmToken(memberId: Long, fcmToken: String) {
-        fcmTokenAdapter.create(memberId, fcmToken)
+        fcmTokenAdapter.createOrUpdate(memberId, fcmToken)
     }
 
     @Transactional
