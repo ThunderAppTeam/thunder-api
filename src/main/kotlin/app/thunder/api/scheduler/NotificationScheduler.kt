@@ -7,12 +7,12 @@ import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.BodyReviewAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset.UTC
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
 
 @Component
 class NotificationScheduler(
@@ -36,7 +36,7 @@ class NotificationScheduler(
             .toLocalDateTime()
 
         val memberIdToLatestReviewMap = bodyReviewAdapter.getMemberIdToLatestReviewMap()
-        val allMembers = memberAdapter.getAll()
+        val allMembers = memberAdapter.getAllByReviewRequestNotifyTrue()
         val notificationTargetMembers = allMembers.asSequence()
             .filter { !TESTER_MEMBER_IDS.contains(it.memberId) }
             .filter { member ->
@@ -69,7 +69,8 @@ class NotificationScheduler(
         val before30Minutes = LocalDateTime.now().minusMinutes(30)
 
         val memberIdToLatestReviewMap = bodyReviewAdapter.getMemberIdToLatestReviewMap()
-        val testers = memberAdapter.getAllById(TESTER_MEMBER_IDS)
+        val testers = memberAdapter.getAllByReviewRequestNotifyTrue()
+            .filter { TESTER_MEMBER_IDS.contains(it.memberId) }
         val notificationTargetMembers = testers.filter { member ->
             val latestReview = memberIdToLatestReviewMap[member.memberId]
             latestReview == null || latestReview.createdAt.isBefore(before30Minutes)
@@ -83,7 +84,7 @@ class NotificationScheduler(
         val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
         val memberIdToFcmTokenMap = fcmTokenAdapter.getMemberIdToFcmTokenMap(memberIdSet)
 
-          notificationTargetMembers
+        notificationTargetMembers
             .filter { memberIdToFirstReviewableMap.containsKey(it.memberId) }
             .forEach { targetMember ->
                 val imageUrl = memberIdToFirstReviewableMap[targetMember.memberId]

@@ -2,6 +2,7 @@ package app.thunder.api.event
 
 import app.thunder.api.adapter.notification.NotificationAdapter
 import app.thunder.api.domain.member.adapter.FcmTokenAdapter
+import app.thunder.api.domain.member.adapter.MemberSettingAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
@@ -13,6 +14,7 @@ class GlobalEventHandler(
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
     private val fcmTokenAdapter: FcmTokenAdapter,
     private val notificationAdapter: NotificationAdapter,
+    private val memberSettingAdapter: MemberSettingAdapter,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -26,6 +28,11 @@ class GlobalEventHandler(
     @Async
     @TransactionalEventListener
     fun notifyReviewComplete(event: ReviewCompleteEvent) {
+        val isNotificationAllowed = memberSettingAdapter.getByMemberId(event.memberId)?.reviewCompleteNotify == true
+        if (isNotificationAllowed) {
+            return
+        }
+
         fcmTokenAdapter.getByMemberId(event.memberId)
             ?.let { fcmToken ->
                 notificationAdapter.sendNotification(
