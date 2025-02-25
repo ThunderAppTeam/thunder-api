@@ -4,17 +4,24 @@ import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.domain.member.Member
 import app.thunder.api.domain.member.entity.MemberEntity
 import app.thunder.api.domain.member.repository.MemberRepository
+import app.thunder.api.domain.member.repository.MemberSettingRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
 class MemberAdapter(
-    private val memberRepository: MemberRepository
+    private val memberRepository: MemberRepository,
+    private val memberSettingRepository: MemberSettingRepository
 ) {
 
     @Transactional(readOnly = true)
-    fun getAll(): List<Member> {
-        return memberRepository.findAll()
+    fun getAllByReviewRequestNotifyTrue(): List<Member> {
+        val memberIds = memberSettingRepository.findAll().asSequence()
+            .filter { it.settings.reviewRequestNotify }
+            .map { it.memberId }
+            .toList()
+
+        return memberRepository.findAllById(memberIds)
             .map(Member::from)
     }
 
