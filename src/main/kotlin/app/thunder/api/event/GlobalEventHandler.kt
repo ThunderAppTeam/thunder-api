@@ -28,8 +28,8 @@ class GlobalEventHandler(
     @Async
     @TransactionalEventListener
     fun notifyReviewComplete(event: ReviewCompleteEvent) {
-        val isNotificationAllowed = memberSettingAdapter.getByMemberId(event.memberId)?.reviewCompleteNotify == true
-        if (isNotificationAllowed) {
+        val isNotificationDisagree = memberSettingAdapter.getByMemberId(event.memberId)?.reviewCompleteNotify == false
+        if (isNotificationDisagree) {
             return
         }
 
