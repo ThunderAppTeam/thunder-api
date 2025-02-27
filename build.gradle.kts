@@ -42,7 +42,8 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:11.1.0")
 
-    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:3.2.1")
+    implementation("software.amazon.awssdk:s3:2.30.27")
+
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.116.Final")
     implementation("com.google.firebase:firebase-admin:9.4.3")
 

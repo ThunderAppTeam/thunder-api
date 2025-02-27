@@ -1,1 +1,1 @@
-ALTER TABLE member ADD COLUMN logged_out_at TIMESTAMP;
+ALTER TABLE member ADD COLUMN IF NOT EXISTS logged_out_at TIMESTAMP;
