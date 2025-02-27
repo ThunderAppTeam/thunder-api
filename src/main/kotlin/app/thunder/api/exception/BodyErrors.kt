@@ -16,6 +16,7 @@ enum class BodyErrors(
     ALREADY_REVIEWED(CONFLICT, "Body Photo has already been reviewed by same member."),
     ALREADY_FLAGGED(CONFLICT, "Body Photo has already been flagged by same member."),
     UPLOADER_OR_ADMIN_ONLY_ACCESS(FORBIDDEN, "Only uploader or admin has permission for this request."),
+    BODY_NOT_DETECTED_IN_PHOTO(BAD_REQUEST, "Unable to detect body in image.")
     ;
 
 }
