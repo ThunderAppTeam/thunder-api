@@ -33,7 +33,7 @@ class BodyPhoto private constructor(
         }
 
         const val REVIEW_COMPLETE_DAY: Long = 1
-        const val REVIEW_COMPLETE_COUNT: Int = 20
+        const val REVIEW_COMPLETE_COUNT: Int = 10
         private const val RESULT_MAX_SCORE: Double = 10.0
         private const val REVIEW_MAX_SCORE: Double = 5.0
     }
