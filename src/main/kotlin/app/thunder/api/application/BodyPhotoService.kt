@@ -1,5 +1,6 @@
 package app.thunder.api.application
 
+import app.thunder.api.adapter.rekognition.RekognitionAdapter
 import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
@@ -8,18 +9,20 @@ import app.thunder.api.domain.photo.BodyPhoto
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.event.RefreshReviewableEvent
+import app.thunder.api.exception.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
-import java.util.UUID
-import kotlin.math.round
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.util.UUID
+import kotlin.math.round
 
 @Service
 class BodyPhotoService(
@@ -28,7 +31,10 @@ class BodyPhotoService(
     private val storageAdapter: StorageAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val rekognitionAdapter: RekognitionAdapter,
 ) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<GetBodyPhotoResponse> {
@@ -78,6 +84,12 @@ class BodyPhotoService(
             .contains(imageFile.contentType)
         if (isNotAllowImage) {
             throw ThunderException(UNSUPPORTED_IMAGE_FORMAT)
+        }
+
+        val bodyRekognition = rekognitionAdapter.getBodyRekognition(imageFile)
+        if (!bodyRekognition.isDetectedBody) {
+            log.error("Body Rekognition Failed [memberId: $memberId]\n{}", bodyRekognition)
+            throw ThunderException(BODY_NOT_DETECTED_IN_PHOTO)
         }
 
         val member = memberAdapter.getById(memberId)

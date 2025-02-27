@@ -43,6 +43,7 @@ dependencies {
     runtimeOnly("org.flywaydb:flyway-database-postgresql:11.1.0")
 
     implementation("software.amazon.awssdk:s3:2.30.27")
+    implementation("software.amazon.awssdk:rekognition:2.30.27")
 
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.116.Final")
     implementation("com.google.firebase:firebase-admin:9.4.3")
