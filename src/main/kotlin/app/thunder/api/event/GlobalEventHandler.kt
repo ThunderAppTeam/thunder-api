@@ -2,6 +2,7 @@ package app.thunder.api.event
 
 import app.thunder.api.adapter.notification.NotificationAdapter
 import app.thunder.api.domain.member.adapter.FcmTokenAdapter
+import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.member.adapter.MemberSettingAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import org.slf4j.LoggerFactory
@@ -15,6 +16,7 @@ class GlobalEventHandler(
     private val fcmTokenAdapter: FcmTokenAdapter,
     private val notificationAdapter: NotificationAdapter,
     private val memberSettingAdapter: MemberSettingAdapter,
+    private val memberAdapter: MemberAdapter,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -23,6 +25,14 @@ class GlobalEventHandler(
     @TransactionalEventListener
     fun supplyReviewableBodyPhotos(event: RefreshReviewableEvent) {
         reviewableBodyPhotoAdapter.refresh(event.memberId)
+    }
+
+    @Async
+    @TransactionalEventListener
+    fun handleReviewUploadEvent(event: ReviewUploadEvent) {
+        memberAdapter.getAll().forEach { member->
+            reviewableBodyPhotoAdapter.refresh(member.memberId)
+        }
     }
 
     @Async
