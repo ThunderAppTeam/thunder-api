@@ -15,6 +15,11 @@ class MemberAdapter(
 ) {
 
     @Transactional(readOnly = true)
+    fun getAll(): List<Member> {
+        return memberRepository.findAll().map(Member::from)
+    }
+
+    @Transactional(readOnly = true)
     fun getAllByReviewRequestNotifyTrue(): List<Member> {
         val memberIds = memberSettingRepository.findAll().asSequence()
             .filter { it.settings.reviewRequestNotify }

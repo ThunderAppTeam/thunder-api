@@ -9,20 +9,21 @@ import app.thunder.api.domain.photo.BodyPhoto
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.event.RefreshReviewableEvent
+import app.thunder.api.event.ReviewUploadEvent
 import app.thunder.api.exception.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
+import java.util.UUID
+import kotlin.math.round
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
-import java.util.UUID
-import kotlin.math.round
 
 @Service
 class BodyPhotoService(
@@ -99,6 +100,7 @@ class BodyPhotoService(
         val imageUrl = storageAdapter.upload(imageFile, filePath)
 
         val bodyPhoto = bodyPhotoAdapter.create(memberId, imageUrl)
+        applicationEventPublisher.publishEvent(ReviewUploadEvent(bodyPhoto.bodyPhotoId))
         return bodyPhoto
     }
 

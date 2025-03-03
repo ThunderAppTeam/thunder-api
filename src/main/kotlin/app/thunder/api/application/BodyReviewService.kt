@@ -62,7 +62,7 @@ class BodyReviewService(
         reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
         if (bodyPhoto.isReviewCompleted()) {
-            val reviewCompleteEvent = ReviewCompleteEvent(memberId, bodyPhotoId, bodyPhoto.imageUrl)
+            val reviewCompleteEvent = ReviewCompleteEvent(bodyPhoto.memberId, bodyPhotoId, bodyPhoto.imageUrl)
             applicationEventPublisher.publishEvent(reviewCompleteEvent)
         }
     }
