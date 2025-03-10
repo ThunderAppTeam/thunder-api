@@ -16,8 +16,10 @@ import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
+import java.io.ByteArrayOutputStream
 import java.util.UUID
 import kotlin.math.round
+import net.coobird.thumbnailator.Thumbnails
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
@@ -93,15 +95,29 @@ class BodyPhotoService(
             throw ThunderException(BODY_NOT_DETECTED_IN_PHOTO)
         }
 
+        var imageBytes = imageFile.bytes
+        if (imageFile.bytes.size >= 5 * 1024 * 1024) {
+            imageBytes = this.optimizeImageBytes(imageFile.bytes)
+        }
+
         val member = memberAdapter.getById(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
         val fileName = "${UUID.randomUUID()}_${imageFile.originalFilename}"
         val filePath = "${member.nickname}/$BODY_PHOTO_PATH/$fileName"
-        val imageUrl = storageAdapter.upload(imageFile, filePath)
+        val imageUrl = storageAdapter.upload(imageBytes, imageFile.contentType, filePath)
 
         val bodyPhoto = bodyPhotoAdapter.create(memberId, imageUrl)
         applicationEventPublisher.publishEvent(ReviewUploadEvent(bodyPhoto.bodyPhotoId))
         return bodyPhoto
+    }
+
+    private fun optimizeImageBytes(imageBytes: ByteArray): ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        Thumbnails.of(imageBytes.inputStream())
+            .size(1080, 1920)
+            .outputQuality(0.9)
+            .toOutputStream(outputStream)
+        return outputStream.toByteArray()
     }
 
     @Transactional

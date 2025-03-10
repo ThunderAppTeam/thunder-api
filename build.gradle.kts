@@ -47,6 +47,8 @@ dependencies {
 
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.116.Final")
     implementation("com.google.firebase:firebase-admin:9.4.3")
+    implementation("net.coobird:thumbnailator:0.4.20")
+
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
