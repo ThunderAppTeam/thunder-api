@@ -4,6 +4,7 @@ import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.BodyReviewAdapter
+import app.thunder.api.domain.review.adapter.DummyDeckAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewCompleteEvent
@@ -21,6 +22,7 @@ class BodyReviewService(
     private val bodyReviewAdapter: BodyReviewAdapter,
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val dummyDeckAdapter: DummyDeckAdapter,
 ) {
 
     @Transactional
@@ -35,7 +37,7 @@ class BodyReviewService(
 
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
 
-        return bodyPhotoIds.mapNotNull { bodyPhotoId ->
+        val reviewableDeck = bodyPhotoIds.mapNotNull { bodyPhotoId ->
             val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: return@mapNotNull null
             val member = memberMap[bodyPhoto.memberId] ?: return@mapNotNull null
             GetReviewableResponse(bodyPhoto.bodyPhotoId,
@@ -44,10 +46,19 @@ class BodyReviewService(
                                   member.nickname,
                                   member.age)
         }
+        if (reviewableDeck.isEmpty()) {
+            return dummyDeckAdapter.getAllByMemberId(memberId).take(size)
+        }
+        return reviewableDeck
     }
 
     @Transactional
     fun review(bodyPhotoId: Long, memberId: Long, score: Int) {
+        val isDummy = dummyDeckAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+        if (isDummy) {
+            return
+        }
+
         val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
         if (bodyReviewAdapter.existsByBodyPhotoIdAndMemberId(bodyPhotoId, memberId)) {
             throw ThunderException(ALREADY_REVIEWED)

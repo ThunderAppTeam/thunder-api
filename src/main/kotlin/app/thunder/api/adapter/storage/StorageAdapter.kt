@@ -1,7 +1,7 @@
 package app.thunder.api.adapter.storage
 
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
@@ -13,16 +13,16 @@ class StorageAdapter(
     private val awsProperties: AwsProperties,
 ) {
 
-    fun upload(file: MultipartFile, filePath: String): String {
+    fun upload(file: ByteArray, contentType: String?, filePath: String): String {
         val bucket = awsProperties.s3.bucket
         val region = awsProperties.region.static
 
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucket)
             .key(filePath)
-            .contentType(file.contentType)
+            .contentType(contentType ?: MediaType.IMAGE_JPEG_VALUE)
             .build()
-        val requestBody = RequestBody.fromInputStream(file.inputStream, file.size)
+        val requestBody = RequestBody.fromInputStream(file.inputStream(), file.size.toLong())
         s3Client.putObject(putObjectRequest, requestBody)
 
         val imageUrl = "https://$bucket.s3.$region.amazonaws.com/$filePath"

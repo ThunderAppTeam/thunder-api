@@ -16,7 +16,7 @@ class RekognitionAdapter(
     companion object {
         private val PERSON_LABELS = setOf(
             "Person", "Male", "Female", "Man", "Woman", "Shoulder", "Leg Press", "Arm", "Knee", "Neck", "Bicep Curls",
-            "Wrist", "Back", "Ankle", "Finger", "Hip", "Toe", "Calf", "Thigh"
+            "Wrist", "Back", "Ankle", "Finger", "Hip", "Toe", "Calf", "Thigh", "Body Part"
         )
     }
 
