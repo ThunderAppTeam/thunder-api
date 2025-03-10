@@ -44,11 +44,18 @@ class DummyDeckAdapter(
         var dummyDeckEntities = dummyDeckRepository.findAllByMemberIdOrderByCreatedAt(memberId)
         if (dummyDeckEntities.isEmpty()) {
             val nicknameToAgeMap = this.generateNicknameToAgeMap(dummyBodyPhotoMap.size)
-            dummyDeckEntities = dummyBodyPhotoMap.values.map { bodyPhotoEntity ->
-                val nickname = nicknameToAgeMap.keys.random()
-                val age = nicknameToAgeMap[nickname] ?: Random.nextInt(20, 38)
-                DummyDeckEntity.create(memberId, bodyPhotoEntity.bodyPhotoId, bodyPhotoEntity.memberId, nickname, age)
-            }
+            val nicknameList = nicknameToAgeMap.keys.toList()
+            dummyDeckEntities = dummyBodyPhotoMap.values
+                .shuffled()
+                .mapIndexed { index, bodyPhotoEntity ->
+                    val nickname = nicknameList[index]
+                    val age = nicknameToAgeMap[nickname] ?: Random.nextInt(20, 38)
+                    DummyDeckEntity.create(memberId = memberId,
+                                           bodyPhotoId = bodyPhotoEntity.bodyPhotoId,
+                                           bodyPhotoMemberId = bodyPhotoEntity.memberId,
+                                           nickname = nickname,
+                                           age = age)
+                }
             dummyDeckJdbcRepository.batchInsert(dummyDeckEntities)
         }
 
@@ -64,7 +71,7 @@ class DummyDeckAdapter(
         }
     }
 
-    private fun generateNicknameToAgeMap(length: Int): Map<String, Int> {
+    private fun generateNicknameToAgeMap(length: Int): HashMap<String, Int> {
         val regex = Regex("[a-zA-Z$:()'-.0-9\\s]+")
         val result = hashMapOf<String, Int>()
 
