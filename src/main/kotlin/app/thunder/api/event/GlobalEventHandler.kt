@@ -43,6 +43,8 @@ class GlobalEventHandler(
             return
         }
 
+        reviewableBodyPhotoAdapter.deleteAllByBodyPhotoId(event.bodyPhotoId)
+
         fcmTokenAdapter.getByMemberId(event.memberId)
             ?.let { fcmToken ->
                 notificationAdapter.sendNotification(
