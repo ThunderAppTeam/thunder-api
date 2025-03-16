@@ -2,20 +2,23 @@ package app.thunder.api.domain.review.adapter
 
 import app.thunder.api.domain.flag.FlagHistoryRepository
 import app.thunder.api.domain.member.repository.MemberBlockRelationRepository
-import app.thunder.api.domain.photo.BodyPhotoRepository
-import app.thunder.api.domain.photo.findAllNotReviewCompleted
 import app.thunder.api.domain.review.ReviewableBodyPhoto
 import app.thunder.api.domain.review.entity.ReviewableBodyPhotoEntity
 import app.thunder.api.domain.review.entity.ReviewableBodyPhotoId
-import app.thunder.api.domain.review.repository.*
+import app.thunder.api.domain.review.repository.BodyReviewRepository
+import app.thunder.api.domain.review.repository.ReviewableBodyPhotoJdbcRepository
+import app.thunder.api.domain.review.repository.ReviewableBodyPhotoRepository
+import app.thunder.api.domain.review.repository.findAllByMemberId
+import app.thunder.api.domain.review.repository.findFirstAllByMemberIds
+import app.thunder.domain.photo.BodyPhotoAdapter
+import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Component
 class ReviewableBodyPhotoAdapter(
     private val reviewableBodyPhotoRepository: ReviewableBodyPhotoRepository,
-    private val bodyPhotoRepository: BodyPhotoRepository,
+    private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val bodyReviewRepository: BodyReviewRepository,
     private val flagHistoryRepository: FlagHistoryRepository,
     private val memberBlockRelationRepository: MemberBlockRelationRepository,
@@ -95,7 +98,7 @@ class ReviewableBodyPhotoAdapter(
         val blockedMemberIdSet = memberBlockRelationRepository.findAllByMemberId(reviewMemberId)
             .map { it.blockedMemberId }.toSet()
 
-        val filteredBodyPhotoList = bodyPhotoRepository.findAllNotReviewCompleted()
+        val filteredBodyPhotoList = bodyPhotoAdapter.getNotReviewCompletedAll()
             .asSequence()
             .filter { it.memberId != reviewMemberId }
             .filter { !suppliedBodyPhotoIdSet.contains(it.bodyPhotoId) }

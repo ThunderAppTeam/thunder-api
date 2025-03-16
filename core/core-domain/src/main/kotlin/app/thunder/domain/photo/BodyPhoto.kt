@@ -1,9 +1,9 @@
-package app.thunder.api.domain.photo
+package app.thunder.domain.photo
 
 import java.time.LocalDateTime
 import kotlin.math.round
 
-class BodyPhoto private constructor(
+class BodyPhoto(
     val bodyPhotoId: Long,
     val memberId: Long,
     val imageUrl: String,
@@ -18,25 +18,6 @@ class BodyPhoto private constructor(
         private set
     var updatedAt: LocalDateTime? = updatedAt
         private set
-
-    companion object {
-        fun from(entity: BodyPhotoEntity): BodyPhoto {
-            return BodyPhoto(
-                entity.bodyPhotoId,
-                entity.memberId,
-                entity.imageUrl,
-                entity.reviewCount,
-                entity.totalReviewScore,
-                entity.createdAt,
-                entity.updatedAt,
-            )
-        }
-
-        const val REVIEW_COMPLETE_DAY: Long = 1
-        const val REVIEW_COMPLETE_COUNT: Int = 10
-        private const val RESULT_MAX_SCORE: Double = 10.0
-        private const val REVIEW_MAX_SCORE: Double = 5.0
-    }
 
     fun isReviewCompleted(): Boolean {
         return this.reviewCount >= REVIEW_COMPLETE_COUNT
@@ -63,6 +44,12 @@ class BodyPhoto private constructor(
         val averageScore = this.totalReviewScore / this.reviewCount
         val resultScore = averageScore * RESULT_MAX_SCORE / REVIEW_MAX_SCORE
         return round(resultScore * 10) / 10
+    }
+
+    companion object {
+        const val REVIEW_COMPLETE_COUNT: Int = 10
+        private const val RESULT_MAX_SCORE: Double = 10.0
+        private const val REVIEW_MAX_SCORE: Double = 5.0
     }
 
 }

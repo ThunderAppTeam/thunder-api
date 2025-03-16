@@ -5,17 +5,18 @@ import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.domain.member.adapter.MemberAdapter
-import app.thunder.api.domain.photo.BodyPhoto
-import app.thunder.api.domain.photo.BodyPhotoAdapter
 import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewUploadEvent
 import app.thunder.api.exception.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
+import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
 import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
+import app.thunder.domain.photo.BodyPhoto
+import app.thunder.domain.photo.BodyPhotoAdapter
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 import kotlin.math.round
@@ -56,6 +57,7 @@ class BodyPhotoService(
     @Transactional(readOnly = true)
     fun getByBodyPhotoId(bodyPhotoId: Long, memberId: Long): GetBodyPhotoResultResponse {
         val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
+            ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
         val member = memberAdapter.getById(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
 
@@ -123,6 +125,7 @@ class BodyPhotoService(
     @Transactional
     fun deleteByBodyPhotoId(bodyPhotoId: Long, memberId: Long) {
         val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
+            ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
         if (bodyPhoto.isNotUploader(memberId)) {
             throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
         }

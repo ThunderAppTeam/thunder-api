@@ -1,8 +1,8 @@
 package app.thunder.api.domain.member.adapter
 
 import app.thunder.api.controller.request.PostSignupRequest
-import app.thunder.api.domain.member.entity.MemberEntity
-import app.thunder.api.domain.member.repository.MemberRepository
+import app.thunder.storage.db.member.MemberEntity
+import app.thunder.storage.db.member.MemberRepository
 import app.thunder.api.domain.member.repository.MemberSettingRepository
 import app.thunder.domain.member.Member
 import java.time.LocalDate

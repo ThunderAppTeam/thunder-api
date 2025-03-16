@@ -5,24 +5,23 @@ import app.thunder.api.domain.admin.ReleaseUiEntity
 import app.thunder.api.domain.admin.ReleaseUiRepository
 import app.thunder.api.domain.flag.FlagHistoryRepository
 import app.thunder.api.domain.member.repository.MemberBlockRelationRepository
-import app.thunder.api.domain.member.repository.MemberRepository
-import app.thunder.api.domain.photo.BodyPhotoRepository
-import app.thunder.api.domain.photo.findAllByMemberId
 import app.thunder.api.domain.review.repository.BodyReviewRepository
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
+import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.storage.db.member.MemberRepository
+import java.time.LocalDateTime
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 class AdminService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val memberRepository: MemberRepository,
     private val bodyReviewRepository: BodyReviewRepository,
-    private val bodyPhotoRepository: BodyPhotoRepository,
+    private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val flagHistoryRepository: FlagHistoryRepository,
     private val memberBlockRelationRepository: MemberBlockRelationRepository,
     private val releaseUiRepository: ReleaseUiRepository,
@@ -37,9 +36,10 @@ class AdminService(
         when (target) {
             "REVIEW" -> {
                 bodyReviewRepository.deleteAll()
-                bodyPhotoRepository.findAllByMemberId(memberId)
+                bodyPhotoAdapter.getAllByMemberId(memberId)
                     .forEach { bodyPhotoEntity ->
-                        bodyPhotoEntity.update(0, 0.0, bodyPhotoEntity.updatedAt)
+                        // TODO: change using Adapter
+                        // bodyPhotoEntity.update(0, 0.0, bodyPhotoEntity.updatedAt)
                     }
             }
 

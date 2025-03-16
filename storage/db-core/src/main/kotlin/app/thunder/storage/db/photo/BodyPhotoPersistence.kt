@@ -1,15 +1,15 @@
-package app.thunder.api.domain.photo
+package app.thunder.storage.db.photo
 
-import app.thunder.api.domain.member.entity.MemberEntity
-import app.thunder.api.domain.photo.BodyPhoto.Companion.REVIEW_COMPLETE_COUNT
 import app.thunder.domain.member.Gender
+import app.thunder.domain.photo.BodyPhoto.Companion.REVIEW_COMPLETE_COUNT
+import app.thunder.storage.db.member.MemberEntity
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import java.time.LocalDateTime
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface BodyPhotoRepository : JpaRepository<BodyPhotoEntity, Long>, KotlinJdslJpqlExecutor
+internal interface BodyPhotoPersistence : JpaRepository<BodyPhotoEntity, Long>, KotlinJdslJpqlExecutor
 
-fun BodyPhotoRepository.findAllByMemberId(memberId: Long): List<BodyPhotoEntity> {
+internal fun BodyPhotoPersistence.findAllByMemberId(memberId: Long): List<BodyPhotoEntity> {
     return this.findAll {
         select(
             entity(BodyPhotoEntity::class)
@@ -23,7 +23,7 @@ fun BodyPhotoRepository.findAllByMemberId(memberId: Long): List<BodyPhotoEntity>
     }.filterNotNull()
 }
 
-fun BodyPhotoRepository.findAllNotReviewCompleted(): List<BodyPhotoEntity> {
+internal fun BodyPhotoPersistence.findAllNotReviewCompleted(): List<BodyPhotoEntity> {
     return this.findAll {
         select(
             entity(BodyPhotoEntity::class)
@@ -37,7 +37,7 @@ fun BodyPhotoRepository.findAllNotReviewCompleted(): List<BodyPhotoEntity> {
     }.filterNotNull()
 }
 
-fun BodyPhotoRepository.findAllByGender(gender: Gender): List<BodyPhotoEntity> {
+internal fun BodyPhotoPersistence.findAllByGender(gender: Gender): List<BodyPhotoEntity> {
     val before30Days = LocalDateTime.now().minusDays(30)
 
     return this.findAll {

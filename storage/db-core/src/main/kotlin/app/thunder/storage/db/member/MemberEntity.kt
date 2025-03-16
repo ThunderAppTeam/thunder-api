@@ -1,4 +1,4 @@
-package app.thunder.api.domain.member.entity
+package app.thunder.storage.db.member
 
 import app.thunder.domain.member.Gender
 import jakarta.persistence.Column
@@ -56,18 +56,18 @@ class MemberEntity private constructor(
 
     @Column(name = "logged_out_at")
     var loggedOutAt: LocalDateTime? = null
-        protected set
+        private set
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null
-        protected set
+        private set
 
     @Column(name = "updated_by")
     var updatedBy: Long? = null
-        protected set
+        private set
 
 
     companion object {

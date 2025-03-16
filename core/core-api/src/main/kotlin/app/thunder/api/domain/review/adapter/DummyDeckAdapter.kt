@@ -1,14 +1,13 @@
 package app.thunder.api.domain.review.adapter
 
 import app.thunder.api.controller.response.GetReviewableResponse
-import app.thunder.api.domain.member.repository.MemberRepository
-import app.thunder.api.domain.photo.BodyPhotoEntity
-import app.thunder.api.domain.photo.BodyPhotoRepository
-import app.thunder.api.domain.photo.findAllByMemberId
 import app.thunder.api.domain.review.entity.DummyDeckEntity
 import app.thunder.api.domain.review.repository.DummyDeckJdbcRepository
 import app.thunder.api.domain.review.repository.DummyDeckRepository
 import app.thunder.api.domain.review.repository.findAllByMemberIdOrderByCreatedAt
+import app.thunder.domain.photo.BodyPhoto
+import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.storage.db.member.MemberRepository
 import java.util.Locale
 import javax.annotation.PostConstruct
 import kotlin.random.Random
@@ -19,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class DummyDeckAdapter(
     private val dummyDeckRepository: DummyDeckRepository,
-    private val bodyPhotoRepository: BodyPhotoRepository,
+    private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val dummyDeckJdbcRepository: DummyDeckJdbcRepository,
     private val memberRepository: MemberRepository,
 ) {
@@ -27,16 +26,16 @@ class DummyDeckAdapter(
     private val faker = Faker(Locale.Builder().setLanguage("ko").setRegion("KR").build())
     private var maleMemberId: Long = 0L
     private var femaleMemberId: Long = 0L
-    private var dummyBodyPhotoMap: Map<Long, BodyPhotoEntity> = hashMapOf()
+    private var dummyBodyPhotoMap: Map<Long, BodyPhoto> = hashMapOf()
 
     @PostConstruct
     fun setUp() {
         maleMemberId = memberRepository.findByNickname("dummy1")?.memberId ?: 0
         femaleMemberId = memberRepository.findByNickname("dummy2")?.memberId ?: 0
 
-        val bodyPhotoEntities = bodyPhotoRepository.findAllByMemberId(maleMemberId) +
-                bodyPhotoRepository.findAllByMemberId(femaleMemberId)
-        dummyBodyPhotoMap = bodyPhotoEntities.associateBy { it.bodyPhotoId }
+        val bodyPhotos = bodyPhotoAdapter.getAllByMemberId(maleMemberId) +
+                bodyPhotoAdapter.getAllByMemberId(femaleMemberId)
+        dummyBodyPhotoMap = bodyPhotos.associateBy { it.bodyPhotoId }
     }
 
     @Transactional
@@ -47,12 +46,12 @@ class DummyDeckAdapter(
             val nicknameList = nicknameToAgeMap.keys.toList()
             dummyDeckEntities = dummyBodyPhotoMap.values
                 .shuffled()
-                .mapIndexed { index, bodyPhotoEntity ->
+                .mapIndexed { index, bodyPhoto ->
                     val nickname = nicknameList[index]
                     val age = nicknameToAgeMap[nickname] ?: Random.nextInt(20, 38)
                     DummyDeckEntity.create(memberId = memberId,
-                                           bodyPhotoId = bodyPhotoEntity.bodyPhotoId,
-                                           bodyPhotoMemberId = bodyPhotoEntity.memberId,
+                                           bodyPhotoId = bodyPhoto.bodyPhotoId,
+                                           bodyPhotoMemberId = bodyPhoto.memberId,
                                            nickname = nickname,
                                            age = age)
                 }
@@ -60,11 +59,11 @@ class DummyDeckAdapter(
         }
 
         return dummyDeckEntities.mapNotNull {
-            val bodyPhotoEntity = dummyBodyPhotoMap[it.bodyPhotoId] ?: return@mapNotNull null
+            val bodyPhoto = dummyBodyPhotoMap[it.bodyPhotoId] ?: return@mapNotNull null
             GetReviewableResponse(
                 it.bodyPhotoId,
-                bodyPhotoEntity.imageUrl,
-                bodyPhotoEntity.memberId,
+                bodyPhoto.imageUrl,
+                bodyPhoto.memberId,
                 it.nickname,
                 it.age,
             )

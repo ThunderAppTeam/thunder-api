@@ -1,4 +1,4 @@
-package app.thunder.api.domain.photo
+package app.thunder.storage.db.photo
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 
 @Table(name = "body_photo")
 @Entity
-class BodyPhotoEntity private constructor(
+internal class BodyPhotoEntity private constructor(
     memberId: Long,
     imageUrl: String,
 ) {
@@ -27,18 +27,18 @@ class BodyPhotoEntity private constructor(
 
     @Column(name = "review_count")
     var reviewCount: Int = 0
-        protected set
+        private set
 
     @Column(name = "total_review_score")
     var totalReviewScore: Double = 0.0
-        protected set
+        private set
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null
-        protected set
+        private set
 
 
     companion object {
