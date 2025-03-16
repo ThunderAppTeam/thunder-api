@@ -6,7 +6,7 @@ import java.time.ZonedDateTime
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class SuccessResponse<T>(
     val message: String = DEFAULT_SUCCESS_MESSAGE,
-    val data: T = EmptyResponse() as T,
+    val data: T,
     val path: String,
     val timestamp: ZonedDateTime = ZonedDateTime.now()
 ) {

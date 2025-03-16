@@ -2,6 +2,7 @@ rootProject.name = "thunder-api"
 
 include(
     "core:core-api",
+    "core:core-domain",
 )
 
 pluginManagement {

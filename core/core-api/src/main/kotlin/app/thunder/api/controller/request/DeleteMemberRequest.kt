@@ -1,6 +1,6 @@
 package app.thunder.api.controller.request
 
-import app.thunder.api.domain.member.MemberDeletionReason
+import app.thunder.domain.member.MemberDeletionReason
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 

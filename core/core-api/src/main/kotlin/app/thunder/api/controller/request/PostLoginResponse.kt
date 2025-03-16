@@ -1,6 +1,6 @@
 package app.thunder.api.controller.request
 
-import app.thunder.api.domain.member.Gender
+import app.thunder.domain.member.Gender
 import java.util.UUID
 
 data class PostLoginResponse(

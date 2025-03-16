@@ -1,6 +1,6 @@
 package app.thunder.api.domain.member.adapter
 
-import app.thunder.api.domain.member.MemberDeletionReason
+import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.api.domain.member.entity.DeletedMemberEntity
 import app.thunder.api.domain.member.repository.DeletedMemberRepository
 import java.util.UUID

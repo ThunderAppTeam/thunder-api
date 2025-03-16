@@ -1,11 +1,11 @@
 package app.thunder.api.controller.request
 
-import app.thunder.api.domain.member.Gender
+import app.thunder.domain.member.Gender
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
-import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
+import org.springframework.format.annotation.DateTimeFormat
 
 data class PostSignupRequest(
     @field:Pattern(regexp = "^[a-zA-Z0-9가-힣]{2,8}$")

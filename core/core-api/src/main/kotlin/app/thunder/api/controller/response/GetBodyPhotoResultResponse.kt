@@ -1,6 +1,6 @@
 package app.thunder.api.controller.response
 
-import app.thunder.api.domain.member.Gender
+import app.thunder.domain.member.Gender
 import java.time.ZonedDateTime
 
 data class GetBodyPhotoResultResponse(

@@ -1,4 +1,4 @@
-package app.thunder.api.domain.member
+package app.thunder.domain.member
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 

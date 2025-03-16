@@ -1,8 +1,8 @@
 package app.thunder.api.domain.photo
 
-import app.thunder.api.domain.member.Gender
 import app.thunder.api.domain.member.entity.MemberEntity
 import app.thunder.api.domain.photo.BodyPhoto.Companion.REVIEW_COMPLETE_COUNT
+import app.thunder.domain.member.Gender
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import java.time.LocalDateTime
 import org.springframework.data.jpa.repository.JpaRepository

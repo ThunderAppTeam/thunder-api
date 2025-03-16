@@ -1,6 +1,6 @@
 package app.thunder.api.domain.member.entity
 
-import app.thunder.api.domain.member.MemberSettingOptions
+import app.thunder.domain.member.MemberSettingOptions
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id

@@ -16,8 +16,9 @@ import app.thunder.api.controller.response.GetMemberInfoResponse
 import app.thunder.api.controller.response.GetMemberSettingsResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
+import app.thunder.api.controller.response.SuccessResponse.EmptyResponse
 import app.thunder.api.controller.response.TestSendSmsResponse
-import app.thunder.api.domain.member.MemberDeletionReason
+import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.api.func.toKoreaZonedDateTime
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -93,9 +94,13 @@ class MemberController(
     fun getNicknameAvailable(
         @RequestParam @NotBlank nickname: String,
         servlet: HttpServletRequest
-    ): SuccessResponse<Void> {
+    ): SuccessResponse<EmptyResponse> {
         authService.isAvailableNickName(nickname)
-        return SuccessResponse(message = "The nickname is available.", path = servlet.requestURI)
+        return SuccessResponse(
+            message = "The nickname is available.",
+            data = EmptyResponse(),
+            path = servlet.requestURI
+        )
     }
 
     @GetMapping("/info")

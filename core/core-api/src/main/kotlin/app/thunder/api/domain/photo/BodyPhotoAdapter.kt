@@ -1,8 +1,8 @@
 package app.thunder.api.domain.photo
 
-import app.thunder.api.domain.member.Gender
 import app.thunder.api.exception.BodyErrors
 import app.thunder.api.exception.ThunderException
+import app.thunder.domain.member.Gender
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,12 +16,6 @@ class BodyPhotoAdapter(
         val entity = bodyPhotoRepository.findById(bodyPhotoId)
             .orElseThrow { ThunderException(BodyErrors.NOT_FOUND_BODY_PHOTO) }
         return BodyPhoto.from(entity)
-    }
-
-    @Transactional(readOnly = true)
-    fun getAllNotReviewCompleted(): List<BodyPhoto> {
-        return bodyPhotoRepository.findAllNotReviewCompleted()
-            .map(BodyPhoto::from)
     }
 
     @Transactional(readOnly = true)

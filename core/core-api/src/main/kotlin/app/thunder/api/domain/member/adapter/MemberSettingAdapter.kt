@@ -1,9 +1,9 @@
 package app.thunder.api.domain.member.adapter
 
-import app.thunder.api.domain.member.MemberSetting
-import app.thunder.api.domain.member.MemberSettingOptions
 import app.thunder.api.domain.member.entity.MemberSettingEntity
 import app.thunder.api.domain.member.repository.MemberSettingRepository
+import app.thunder.domain.member.MemberSetting
+import app.thunder.domain.member.MemberSettingOptions
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,7 +15,7 @@ class MemberSettingAdapter(
     @Transactional(readOnly = true)
     fun getByMemberId(memberId: Long): MemberSetting? {
         return memberSettingRepository.findById(memberId)
-            .map(MemberSetting::from)
+            .map(::entityToDomain)
             .orElse(null)
     }
 
@@ -26,7 +26,7 @@ class MemberSettingAdapter(
     ): MemberSetting {
         val entity = MemberSettingEntity.create(memberId, memberSettingOptions)
         memberSettingRepository.save(entity)
-        return MemberSetting.from(entity)
+        return entityToDomain(entity)
     }
 
     @Transactional
@@ -40,6 +40,18 @@ class MemberSettingAdapter(
                 )
                 memberSettingEntity.update(options, memberSetting.updatedAt)
             }
+    }
+
+
+    private fun entityToDomain(entity: MemberSettingEntity): MemberSetting {
+        return MemberSetting(
+            memberId = entity.memberId,
+            reviewCompleteNotify = entity.settings.reviewCompleteNotify,
+            reviewRequestNotify = entity.settings.reviewRequestNotify,
+            marketingAgreement = entity.settings.marketingAgreement,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt,
+        )
     }
 
 }

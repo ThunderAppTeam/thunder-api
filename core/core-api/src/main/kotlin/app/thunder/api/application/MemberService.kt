@@ -1,10 +1,7 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.request.PutMemberSettingsRequest
-import app.thunder.api.domain.member.Member
-import app.thunder.api.domain.member.MemberDeletionReason
-import app.thunder.api.domain.member.MemberSetting
-import app.thunder.api.domain.member.MemberSettingOptions
+import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.api.domain.member.adapter.DeletedMemberAdapter
 import app.thunder.api.domain.member.adapter.FcmTokenAdapter
 import app.thunder.api.domain.member.adapter.MemberAdapter
@@ -15,6 +12,9 @@ import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.nullIfBlank
+import app.thunder.domain.member.Member
+import app.thunder.domain.member.MemberSetting
+import app.thunder.domain.member.MemberSettingOptions
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

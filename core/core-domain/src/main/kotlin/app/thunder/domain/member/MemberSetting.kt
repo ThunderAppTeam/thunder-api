@@ -1,9 +1,8 @@
-package app.thunder.api.domain.member
+package app.thunder.domain.member
 
-import app.thunder.api.domain.member.entity.MemberSettingEntity
 import java.time.LocalDateTime
 
-class MemberSetting private constructor(
+class MemberSetting constructor(
     val memberId: Long,
     reviewCompleteNotify: Boolean,
     reviewRequestNotify: Boolean,
@@ -21,19 +20,6 @@ class MemberSetting private constructor(
     var updatedAt: LocalDateTime? = updatedAt
         private set
 
-
-    companion object {
-        fun from(entity: MemberSettingEntity): MemberSetting {
-            return MemberSetting(
-                memberId = entity.memberId,
-                reviewCompleteNotify = entity.settings.reviewCompleteNotify,
-                reviewRequestNotify = entity.settings.reviewRequestNotify,
-                marketingAgreement = entity.settings.marketingAgreement,
-                createdAt = entity.createdAt,
-                updatedAt = entity.updatedAt,
-            )
-        }
-    }
 
     fun setOptions(options: MemberSettingOptions) {
         this.reviewRequestNotify = options.reviewRequestNotify

@@ -6,7 +6,6 @@ import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
-import app.thunder.api.domain.member.MemberSettingOptions
 import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.member.adapter.MemberSettingAdapter
 import app.thunder.api.domain.member.entity.MobileVerificationEntity
@@ -24,6 +23,7 @@ import app.thunder.api.exception.MemberErrors.NICKNAME_DUPLICATED
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MOBILE_VERIFICATION
 import app.thunder.api.exception.MemberErrors.TOO_MANY_MOBILE_VERIFICATION
 import app.thunder.api.exception.ThunderException
+import app.thunder.domain.member.MemberSettingOptions
 import java.time.LocalDateTime
 import kotlin.random.Random
 import org.springframework.context.ApplicationEventPublisher
