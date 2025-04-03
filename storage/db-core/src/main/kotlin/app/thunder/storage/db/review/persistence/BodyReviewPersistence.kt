@@ -1,15 +1,15 @@
-package app.thunder.api.domain.review.repository
+package app.thunder.storage.db.review.persistence
 
-import app.thunder.api.domain.review.entity.BodyReviewEntity
+import app.thunder.storage.db.review.entity.BodyReviewEntity
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface BodyReviewRepository : JpaRepository<BodyReviewEntity, Long>, KotlinJdslJpqlExecutor {
-    fun existsByBodyPhotoIdAndMemberId(bodyPhotoId: Long, memberId: Long): Boolean
+internal interface BodyReviewPersistence : JpaRepository<BodyReviewEntity, Long>, KotlinJdslJpqlExecutor {
     fun findAllByMemberId(memberId: Long): List<BodyReviewEntity>
+    fun existsByBodyPhotoIdAndMemberId(bodyPhotoId: Long, memberId: Long): Boolean
 }
 
-fun BodyReviewRepository.findLatestGroupByMemberId(): List<BodyReviewEntity> {
+internal fun BodyReviewPersistence.findLatestGroupByMemberId(): List<BodyReviewEntity> {
     val subQuery = this.findAll {
         select(
             max(path(BodyReviewEntity::bodyReviewId)),
@@ -29,4 +29,5 @@ fun BodyReviewRepository.findLatestGroupByMemberId(): List<BodyReviewEntity> {
             path(BodyReviewEntity::bodyReviewId).`in`(subQuery)
         )
     }.filterNotNull()
+
 }

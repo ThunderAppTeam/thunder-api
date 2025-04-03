@@ -1,27 +1,28 @@
-package app.thunder.api.domain.review.adapter
+package app.thunder.storage.db.review
 
-import app.thunder.api.controller.response.GetReviewableResponse
-import app.thunder.api.domain.review.entity.DummyDeckEntity
-import app.thunder.api.domain.review.repository.DummyDeckJdbcRepository
-import app.thunder.api.domain.review.repository.DummyDeckRepository
-import app.thunder.api.domain.review.repository.findAllByMemberIdOrderByCreatedAt
 import app.thunder.domain.photo.BodyPhoto
 import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.domain.review.DummyDeck
+import app.thunder.domain.review.DummyDeckAdapter
 import app.thunder.storage.db.member.MemberRepository
+import app.thunder.storage.db.review.entity.DummyDeckEntity
+import app.thunder.storage.db.review.jdbc.DummyDeckJdbcRepository
+import app.thunder.storage.db.review.persistence.DummyDeckPersistence
+import app.thunder.storage.db.review.persistence.findAllByMemberIdOrderByCreatedAt
+import jakarta.annotation.PostConstruct
 import java.util.Locale
-import javax.annotation.PostConstruct
 import kotlin.random.Random
 import net.datafaker.Faker
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-class DummyDeckAdapter(
-    private val dummyDeckRepository: DummyDeckRepository,
+internal class DummyDeckRepository(
+    private val dummyDeckPersistence: DummyDeckPersistence,
     private val bodyPhotoAdapter: BodyPhotoAdapter,
     private val dummyDeckJdbcRepository: DummyDeckJdbcRepository,
     private val memberRepository: MemberRepository,
-) {
+) : DummyDeckAdapter {
 
     private val faker = Faker(Locale.Builder().setLanguage("ko").setRegion("KR").build())
     private var maleMemberId: Long = 0L
@@ -39,8 +40,8 @@ class DummyDeckAdapter(
     }
 
     @Transactional
-    fun getAllByMemberId(memberId: Long): List<GetReviewableResponse> {
-        var dummyDeckEntities = dummyDeckRepository.findAllByMemberIdOrderByCreatedAt(memberId)
+    override fun getAllByMemberId(memberId: Long): List<DummyDeck> {
+        var dummyDeckEntities = dummyDeckPersistence.findAllByMemberIdOrderByCreatedAt(memberId)
         if (dummyDeckEntities.isEmpty()) {
             val nicknameToAgeMap = this.generateNicknameToAgeMap(dummyBodyPhotoMap.size)
             val nicknameList = nicknameToAgeMap.keys.toList()
@@ -58,14 +59,15 @@ class DummyDeckAdapter(
             dummyDeckJdbcRepository.batchInsert(dummyDeckEntities)
         }
 
-        return dummyDeckEntities.mapNotNull {
-            val bodyPhoto = dummyBodyPhotoMap[it.bodyPhotoId] ?: return@mapNotNull null
-            GetReviewableResponse(
-                it.bodyPhotoId,
-                bodyPhoto.imageUrl,
-                bodyPhoto.memberId,
-                it.nickname,
-                it.age,
+        return dummyDeckEntities.mapNotNull { dummyDeckEntity ->
+            val dummyPhoto = dummyBodyPhotoMap[dummyDeckEntity.bodyPhotoId] ?: return@mapNotNull null
+            DummyDeck(
+                dummyDeckEntity.dummyDeckId,
+                dummyDeckEntity.bodyPhotoId,
+                dummyDeckEntity.bodyPhotoMemberId,
+                dummyPhoto.imageUrl,
+                dummyDeckEntity.nickname,
+                dummyDeckEntity.age,
             )
         }
     }
@@ -93,10 +95,10 @@ class DummyDeckAdapter(
     }
 
     @Transactional
-    fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long): Boolean {
-        val dummyDeckEntity = dummyDeckRepository.findByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+    override fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long): Boolean {
+        val dummyDeckEntity = dummyDeckPersistence.findByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
             ?: return false
-        dummyDeckRepository.deleteById(dummyDeckEntity.dummyDeckId)
+        dummyDeckPersistence.deleteById(dummyDeckEntity.dummyDeckId)
         return true
     }
 

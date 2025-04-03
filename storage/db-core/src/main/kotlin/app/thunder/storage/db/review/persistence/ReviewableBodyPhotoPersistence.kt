@@ -1,20 +1,20 @@
-package app.thunder.api.domain.review.repository
+package app.thunder.storage.db.review.persistence
 
-import app.thunder.api.domain.review.entity.ReviewableBodyPhotoEntity
-import app.thunder.api.domain.review.entity.ReviewableBodyPhotoId
+import app.thunder.storage.db.review.entity.ReviewableBodyPhotoEntity
+import app.thunder.storage.db.review.entity.ReviewableBodyPhotoId
 import com.linecorp.kotlinjdsl.support.spring.data.jpa.repository.KotlinJdslJpqlExecutor
 import jakarta.persistence.Tuple
 import java.time.LocalDateTime
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface ReviewableBodyPhotoRepository : JpaRepository<ReviewableBodyPhotoEntity, ReviewableBodyPhotoId>,
-                                          KotlinJdslJpqlExecutor {
+internal interface ReviewableBodyPhotoPersistence : JpaRepository<ReviewableBodyPhotoEntity, ReviewableBodyPhotoId>,
+                                                    KotlinJdslJpqlExecutor {
     fun findAllByBodyPhotoId(bodyPhotoId: Long): List<ReviewableBodyPhotoEntity>
     fun findAllByBodyPhotoMemberId(bodyPhotoMemberId: Long): List<ReviewableBodyPhotoEntity>
     fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long)
 }
 
-fun ReviewableBodyPhotoRepository.findFirstAllByMemberIds(memberIds: Collection<Long>): List<ReviewableBodyPhotoEntity> {
+internal fun ReviewableBodyPhotoPersistence.findFirstAllByMemberIds(memberIds: Collection<Long>): List<ReviewableBodyPhotoEntity> {
     val subQuery = this.findAll {
         select<Tuple>(
             path(ReviewableBodyPhotoEntity::memberId),
@@ -46,7 +46,7 @@ fun ReviewableBodyPhotoRepository.findFirstAllByMemberIds(memberIds: Collection<
     }.filterNotNull()
 }
 
-fun ReviewableBodyPhotoRepository.findAllByMemberId(
+internal fun ReviewableBodyPhotoPersistence.findAllByMemberId(
     memberId: Long,
     limit: Int? = null,
 ): List<ReviewableBodyPhotoEntity> {

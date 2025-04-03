@@ -3,10 +3,10 @@ package app.thunder.api.scheduler
 import app.thunder.api.adapter.notification.NotificationAdapter
 import app.thunder.api.domain.member.adapter.FcmTokenAdapter
 import app.thunder.api.domain.member.adapter.MemberAdapter
-import app.thunder.api.domain.review.adapter.BodyReviewAdapter
-import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.domain.member.Member
 import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.domain.review.BodyReviewAdapter
+import app.thunder.domain.review.ReviewableBodyPhotoAdapter
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId

@@ -6,7 +6,7 @@ import app.thunder.api.domain.member.adapter.FcmTokenAdapter
 import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
 import app.thunder.api.domain.member.adapter.MemberSettingAdapter
-import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
+import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.nullIfBlank
@@ -15,6 +15,8 @@ import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.domain.member.MemberSetting
 import app.thunder.domain.member.MemberSettingOptions
 import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.domain.review.ReviewableBodyPhotoAdapter
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -27,6 +29,7 @@ class MemberService(
     private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
     private val fcmTokenAdapter: FcmTokenAdapter,
     private val memberSettingAdapter: MemberSettingAdapter,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     @Transactional(readOnly = true)
@@ -45,10 +48,10 @@ class MemberService(
                                           createdBy = requestMemberId)
 
         reviewableBodyPhotoAdapter.deleteAllByMemberIdAndPhotoMemberId(requestMemberId, blockedMemberId)
-        reviewableBodyPhotoAdapter.refresh(requestMemberId)
+        applicationEventPublisher.publishEvent(RefreshReviewableEvent(requestMemberId))
 
         reviewableBodyPhotoAdapter.deleteAllByMemberIdAndPhotoMemberId(blockedMemberId, requestMemberId)
-        reviewableBodyPhotoAdapter.refresh(blockedMemberId)
+        applicationEventPublisher.publishEvent(RefreshReviewableEvent(blockedMemberId))
     }
 
     @Transactional

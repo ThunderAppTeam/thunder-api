@@ -5,7 +5,6 @@ import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.domain.member.adapter.MemberAdapter
-import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewUploadEvent
 import app.thunder.api.exception.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
@@ -17,6 +16,7 @@ import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
 import app.thunder.domain.photo.BodyPhoto
 import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.domain.review.ReviewableBodyPhotoAdapter
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 import kotlin.math.round

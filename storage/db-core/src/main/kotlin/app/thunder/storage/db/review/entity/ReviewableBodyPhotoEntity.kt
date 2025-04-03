@@ -1,4 +1,4 @@
-package app.thunder.api.domain.review.entity
+package app.thunder.storage.db.review.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 @Table(name = "reviewable_body_photo")
 @Entity
 @IdClass(ReviewableBodyPhotoId::class) // TODO: CHANGE IDENTITY PK
-class ReviewableBodyPhotoEntity private constructor(
+internal class ReviewableBodyPhotoEntity private constructor(
     memberId: Long,
     bodyPhotoId: Long,
     bodyPhotoMemberId: Long,
@@ -32,11 +32,18 @@ class ReviewableBodyPhotoEntity private constructor(
 
 
     companion object {
-        fun create(memberId: Long,
-                   bodyPhotoId: Long,
-                   bodyPhotoMemberId: Long,
-                   createdAt: LocalDateTime): ReviewableBodyPhotoEntity {
-            return ReviewableBodyPhotoEntity(memberId, bodyPhotoId, bodyPhotoMemberId, createdAt)
+        internal fun create(
+            memberId: Long,
+            bodyPhotoId: Long,
+            bodyPhotoMemberId: Long,
+        ): ReviewableBodyPhotoEntity {
+
+            return ReviewableBodyPhotoEntity(
+                memberId = memberId,
+                bodyPhotoId = bodyPhotoId,
+                bodyPhotoMemberId = bodyPhotoMemberId,
+                createdAt = LocalDateTime.now(),
+            )
         }
     }
 

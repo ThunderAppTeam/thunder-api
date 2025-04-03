@@ -1,4 +1,4 @@
-package app.thunder.api.domain.review.entity
+package app.thunder.storage.db.review.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 
 @Table(name = "dummy_deck")
 @Entity
-class DummyDeckEntity private constructor(
+internal class DummyDeckEntity private constructor(
     memberId: Long,
     bodyPhotoId: Long,
     bodyPhotoMemberId: Long,
@@ -42,7 +42,7 @@ class DummyDeckEntity private constructor(
 
 
     companion object {
-        fun create(
+        internal fun create(
             memberId: Long,
             bodyPhotoId: Long,
             bodyPhotoMemberId: Long,

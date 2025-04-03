@@ -1,11 +1,16 @@
-package app.thunder.api.domain.review.entity
+package app.thunder.storage.db.review.entity
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Table(name = "body_review")
 @Entity
-class BodyReviewEntity private constructor(
+internal class BodyReviewEntity private constructor(
     bodyPhotoId: Long,
     memberId: Long,
     score: Int,
@@ -29,7 +34,7 @@ class BodyReviewEntity private constructor(
 
 
     companion object {
-        fun create(
+        internal fun create(
             bodyPhotoId: Long,
             memberId: Long,
             score: Int,

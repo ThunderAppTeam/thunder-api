@@ -2,9 +2,6 @@ package app.thunder.api.application
 
 import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.domain.member.adapter.MemberAdapter
-import app.thunder.api.domain.review.adapter.BodyReviewAdapter
-import app.thunder.api.domain.review.adapter.DummyDeckAdapter
-import app.thunder.api.domain.review.adapter.ReviewableBodyPhotoAdapter
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewCompleteEvent
 import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
@@ -12,6 +9,9 @@ import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.domain.review.BodyReviewAdapter
+import app.thunder.domain.review.DummyDeckAdapter
+import app.thunder.domain.review.ReviewableBodyPhotoAdapter
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -49,6 +49,15 @@ class BodyReviewService(
         }
         if (reviewableDeck.isEmpty()) {
             return dummyDeckAdapter.getAllByMemberId(memberId).take(size)
+                .map {
+                    GetReviewableResponse(
+                        bodyPhotoId = it.bodyPhotoId,
+                        imageUrl = it.imageUrl,
+                        memberId = it.bodyPhotoMemberId,
+                        nickname = it.nickname,
+                        age = it.age,
+                    )
+                }
         }
         return reviewableDeck
     }
