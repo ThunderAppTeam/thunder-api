@@ -1,14 +1,14 @@
 package app.thunder.api.event
 
-import app.thunder.api.adapter.notification.NotificationAdapter
-import app.thunder.api.domain.flag.FlagHistoryRepository
-import app.thunder.api.domain.member.adapter.FcmTokenAdapter
-import app.thunder.api.domain.member.adapter.MemberAdapter
-import app.thunder.api.domain.member.adapter.MemberSettingAdapter
-import app.thunder.api.domain.member.repository.MemberBlockRelationRepository
-import app.thunder.domain.photo.BodyPhotoAdapter
-import app.thunder.domain.review.BodyReviewAdapter
-import app.thunder.domain.review.ReviewableBodyPhotoAdapter
+import app.thunder.domain.member.FcmTokenPort
+import app.thunder.domain.member.MemberBlockRelationPort
+import app.thunder.domain.member.MemberPort
+import app.thunder.domain.member.MemberSettingPort
+import app.thunder.domain.notification.NotificationPort
+import app.thunder.domain.photo.BodyPhotoPort
+import app.thunder.domain.flag.FlagHistoryPort
+import app.thunder.domain.review.BodyReviewPort
+import app.thunder.domain.review.ReviewableBodyPhotoPort
 import app.thunder.domain.review.command.CreateReviewableBodyPhotoCommand
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
@@ -17,15 +17,15 @@ import org.springframework.transaction.event.TransactionalEventListener
 
 @Component
 class GlobalEventHandler(
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
-    private val fcmTokenAdapter: FcmTokenAdapter,
-    private val notificationAdapter: NotificationAdapter,
-    private val memberSettingAdapter: MemberSettingAdapter,
-    private val memberAdapter: MemberAdapter,
-    private val bodyPhotoAdapter: BodyPhotoAdapter,
-    private val bodyReviewAdapter: BodyReviewAdapter,
-    private val flagHistoryRepository: FlagHistoryRepository,
-    private val memberBlockRelationRepository: MemberBlockRelationRepository,
+    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val fcmTokenPort: FcmTokenPort,
+    private val notificationPort: NotificationPort,
+    private val memberSettingAdapter: MemberSettingPort,
+    private val memberAdapter: MemberPort,
+    private val bodyPhotoAdapter: BodyPhotoPort,
+    private val bodyReviewAdapter: BodyReviewPort,
+    private val flagHistoryPort: FlagHistoryPort,
+    private val memberBlockRelationPort: MemberBlockRelationPort,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -54,7 +54,7 @@ class GlobalEventHandler(
 
         val flagCountMap = hashMapOf<Long, Int>()
         val flaggedBodyPhotoIdSet = hashSetOf<Long>()
-        flagHistoryRepository.findAll().forEach { flagHistory ->
+        flagHistoryPort.getAll().forEach { flagHistory ->
             flagCountMap.merge(flagHistory.bodyPhotoId, 1, Int::plus)
             if (flagHistory.memberId == reviewMemberId) {
                 flaggedBodyPhotoIdSet.add(flagHistory.bodyPhotoId)
@@ -63,8 +63,7 @@ class GlobalEventHandler(
 
         val reviewedBodyPhotoIdSet = bodyReviewAdapter.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
-        val blockedMemberIdSet = memberBlockRelationRepository.findAllByMemberId(reviewMemberId)
-            .map { it.blockedMemberId }.toSet()
+        val blockedMemberIdSet = memberBlockRelationPort.getBlockedMemberIdsByMemberId(reviewMemberId)
 
         val filteredBodyPhotoList = bodyPhotoAdapter.getNotReviewCompletedAll()
             .asSequence()
@@ -99,9 +98,9 @@ class GlobalEventHandler(
 
         reviewableBodyPhotoAdapter.deleteAllByBodyPhotoId(event.bodyPhotoId)
 
-        fcmTokenAdapter.getByMemberId(event.memberId)
+        fcmTokenPort.getByMemberId(event.memberId)
             ?.let { fcmToken ->
-                notificationAdapter.sendNotification(
+                notificationPort.sendNotification(
                     fcmToken = fcmToken,
                     title = "\uD83D\uDD25눈바디 측정 완료\uD83D\uDD25",
                     body = "지금 바로 측정결과를 확인해보세요!",

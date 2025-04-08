@@ -1,29 +1,29 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.response.GetReviewableResponse
-import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewCompleteEvent
 import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
 import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
-import app.thunder.domain.photo.BodyPhotoAdapter
-import app.thunder.domain.review.BodyReviewAdapter
-import app.thunder.domain.review.DummyDeckAdapter
-import app.thunder.domain.review.ReviewableBodyPhotoAdapter
+import app.thunder.domain.member.MemberPort
+import app.thunder.domain.photo.BodyPhotoPort
+import app.thunder.domain.review.BodyReviewPort
+import app.thunder.domain.review.DummyDeckPort
+import app.thunder.domain.review.ReviewableBodyPhotoPort
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class BodyReviewService(
-    private val memberAdapter: MemberAdapter,
-    private val bodyPhotoAdapter: BodyPhotoAdapter,
-    private val bodyReviewAdapter: BodyReviewAdapter,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
+    private val memberAdapter: MemberPort,
+    private val bodyPhotoAdapter: BodyPhotoPort,
+    private val bodyReviewAdapter: BodyReviewPort,
+    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val dummyDeckAdapter: DummyDeckAdapter,
+    private val dummyDeckAdapter: DummyDeckPort,
 ) {
 
     @Transactional

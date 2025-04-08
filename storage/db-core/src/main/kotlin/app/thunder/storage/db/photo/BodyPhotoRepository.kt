@@ -2,18 +2,18 @@ package app.thunder.storage.db.photo
 
 import app.thunder.domain.member.Gender
 import app.thunder.domain.photo.BodyPhoto
-import app.thunder.domain.photo.BodyPhotoAdapter
+import app.thunder.domain.photo.BodyPhotoPort
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
 internal class BodyPhotoRepository(
-    val bodyPhotoPersistence: BodyPhotoPersistence,
-) : BodyPhotoAdapter {
+    val bodyPhotoJpaRespository: BodyPhotoJpaRespository,
+) : BodyPhotoPort {
 
     @Transactional(readOnly = true)
     override fun getById(bodyPhotoId: Long): BodyPhoto? {
-        val entity = bodyPhotoPersistence.findById(bodyPhotoId)
+        val entity = bodyPhotoJpaRespository.findById(bodyPhotoId)
             .orElse(null)
             ?: return null
         return entityToDomain(entity)
@@ -21,38 +21,38 @@ internal class BodyPhotoRepository(
 
     @Transactional(readOnly = true)
     override fun getAllById(bodyPhotoIds: Collection<Long>): List<BodyPhoto> {
-        return bodyPhotoPersistence.findAllById(bodyPhotoIds)
+        return bodyPhotoJpaRespository.findAllById(bodyPhotoIds)
             .map(::entityToDomain)
     }
 
     @Transactional(readOnly = true)
     override fun getAllByMemberId(memberId: Long): List<BodyPhoto> {
-        return bodyPhotoPersistence.findAllByMemberId(memberId)
+        return bodyPhotoJpaRespository.findAllByMemberId(memberId)
             .map(::entityToDomain)
     }
 
     @Transactional(readOnly = true)
     override fun getAllByGender(gender: Gender): List<BodyPhoto> {
-        return bodyPhotoPersistence.findAllByGender(gender)
+        return bodyPhotoJpaRespository.findAllByGender(gender)
             .map(::entityToDomain)
     }
 
     @Transactional(readOnly = true)
     override fun getNotReviewCompletedAll(): List<BodyPhoto> {
-        return bodyPhotoPersistence.findAllNotReviewCompleted()
+        return bodyPhotoJpaRespository.findAllNotReviewCompleted()
             .map(::entityToDomain)
     }
 
     @Transactional
     override fun create(memberId: Long, imageUrl: String): BodyPhoto {
         val entity = BodyPhotoEntity.create(memberId, imageUrl)
-        bodyPhotoPersistence.save(entity)
+        bodyPhotoJpaRespository.save(entity)
         return entityToDomain(entity)
     }
 
     @Transactional
     override fun update(bodyPhoto: BodyPhoto) {
-        bodyPhotoPersistence.findById(bodyPhoto.bodyPhotoId)
+        bodyPhotoJpaRespository.findById(bodyPhoto.bodyPhotoId)
             .ifPresent { bodyPhotoEntity ->
                 bodyPhotoEntity.update(reviewCount = bodyPhoto.reviewCount,
                                        totalReviewScore = bodyPhoto.totalReviewScore,
@@ -62,14 +62,14 @@ internal class BodyPhotoRepository(
 
     @Transactional
     override fun deleteById(bodyPhotoId: Long) {
-        bodyPhotoPersistence.deleteById(bodyPhotoId)
+        bodyPhotoJpaRespository.deleteById(bodyPhotoId)
     }
 
     @Transactional
     override fun deleteAllByMemberId(memberId: Long) {
-        val ids = bodyPhotoPersistence.findAllByMemberId(memberId)
+        val ids = bodyPhotoJpaRespository.findAllByMemberId(memberId)
             .map { it.bodyPhotoId }
-        bodyPhotoPersistence.deleteAllByIdInBatch(ids)
+        bodyPhotoJpaRespository.deleteAllByIdInBatch(ids)
     }
 
 

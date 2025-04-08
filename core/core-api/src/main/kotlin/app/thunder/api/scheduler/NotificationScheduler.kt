@@ -1,12 +1,12 @@
 package app.thunder.api.scheduler
 
-import app.thunder.api.adapter.notification.NotificationAdapter
-import app.thunder.api.domain.member.adapter.FcmTokenAdapter
-import app.thunder.api.domain.member.adapter.MemberAdapter
+import app.thunder.domain.member.FcmTokenPort
 import app.thunder.domain.member.Member
-import app.thunder.domain.photo.BodyPhotoAdapter
-import app.thunder.domain.review.BodyReviewAdapter
-import app.thunder.domain.review.ReviewableBodyPhotoAdapter
+import app.thunder.domain.member.MemberPort
+import app.thunder.domain.notification.NotificationPort
+import app.thunder.domain.photo.BodyPhotoPort
+import app.thunder.domain.review.BodyReviewPort
+import app.thunder.domain.review.ReviewableBodyPhotoPort
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -16,12 +16,12 @@ import org.springframework.stereotype.Component
 
 @Component
 class NotificationScheduler(
-    private val memberAdapter: MemberAdapter,
-    private val bodyPhotoAdapter: BodyPhotoAdapter,
-    private val bodyReviewAdapter: BodyReviewAdapter,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
-    private val fcmTokenAdapter: FcmTokenAdapter,
-    private val notificationAdapter: NotificationAdapter,
+    private val memberAdapter: MemberPort,
+    private val bodyPhotoAdapter: BodyPhotoPort,
+    private val bodyReviewAdapter: BodyReviewPort,
+    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val fcmTokenPort: FcmTokenPort,
+    private val notificationPort: NotificationPort,
 ) {
 
     companion object {
@@ -50,7 +50,7 @@ class NotificationScheduler(
 
         val bodyPhotoIdSet = memberIdToFirstReviewableMap.values.map { it.bodyPhotoId }.toSet()
         val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
-        val memberIdToFcmTokenMap = fcmTokenAdapter.getMemberIdToFcmTokenMap(memberIdSet)
+        val memberIdToFcmTokenMap = fcmTokenPort.getMemberIdToFcmTokenMap(memberIdSet)
 
         notificationTargetMembers
             .filter { memberIdToFirstReviewableMap.containsKey(it.memberId) }
@@ -82,7 +82,7 @@ class NotificationScheduler(
 
         val bodyPhotoIdSet = memberIdToFirstReviewableMap.values.map { it.bodyPhotoId }.toSet()
         val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
-        val memberIdToFcmTokenMap = fcmTokenAdapter.getMemberIdToFcmTokenMap(memberIdSet)
+        val memberIdToFcmTokenMap = fcmTokenPort.getMemberIdToFcmTokenMap(memberIdSet)
 
         notificationTargetMembers
             .filter { memberIdToFirstReviewableMap.containsKey(it.memberId) }
@@ -97,7 +97,7 @@ class NotificationScheduler(
     }
 
     private fun sendNotify(fcmToken: String, nickname: String, imageUrl: String?) {
-        notificationAdapter.sendNotification(
+        notificationPort.sendNotification(
             fcmToken = fcmToken,
             title = "새로운 눈바디 평가 요청 \uD83D\uDC40",
             body = "누군가 ${nickname}님께 눈바디 평가를 요청했어요.",

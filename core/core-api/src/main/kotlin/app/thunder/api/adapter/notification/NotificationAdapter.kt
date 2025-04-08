@@ -4,21 +4,22 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
+import app.thunder.domain.notification.NotificationPort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class NotificationAdapter(
     private val firebaseMessaging: FirebaseMessaging
-) {
+) : NotificationPort {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun sendNotification(
+    override fun sendNotification(
         fcmToken: String,
         title: String,
         body: String,
-        imageUrl: String? = null,
+        imageUrl: String?,
         routePath: String
     ) {
         val notification = Notification.builder()

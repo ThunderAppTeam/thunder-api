@@ -3,7 +3,7 @@ package app.thunder.api.controller
 import app.thunder.api.application.AdminService
 import app.thunder.api.controller.request.PostReleaseUiRequest
 import app.thunder.api.controller.response.GetReleaseUiResponse
-import app.thunder.api.domain.admin.MobileOs
+import app.thunder.domain.admin.MobileOs
 import jakarta.validation.Valid
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping

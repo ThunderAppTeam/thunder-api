@@ -6,14 +6,6 @@ import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
-import app.thunder.api.domain.member.adapter.MemberAdapter
-import app.thunder.api.domain.member.adapter.MemberSettingAdapter
-import app.thunder.api.domain.member.entity.MobileVerificationEntity
-import app.thunder.api.domain.member.repository.MobileVerificationRepository
-import app.thunder.api.domain.member.repository.findAllByDeviceIdAndCreatedAtAfter
-import app.thunder.api.domain.member.repository.findAllByDeviceIdAndNotVerify
-import app.thunder.api.domain.member.repository.findAllByMobileNumber
-import app.thunder.api.domain.member.repository.findLastByDeviceIdAndMobileNumber
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.exception.CommonErrors.MISSING_REQUIRED_PARAMETER
 import app.thunder.api.exception.MemberErrors.EXPIRED_MOBILE_VERIFICATION
@@ -23,7 +15,11 @@ import app.thunder.api.exception.MemberErrors.NICKNAME_DUPLICATED
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MOBILE_VERIFICATION
 import app.thunder.api.exception.MemberErrors.TOO_MANY_MOBILE_VERIFICATION
 import app.thunder.api.exception.ThunderException
+import app.thunder.domain.member.MemberPort
+import app.thunder.domain.member.MemberSettingPort
 import app.thunder.domain.member.MemberSettingOptions
+import app.thunder.domain.member.MobileVerificationPort
+import app.thunder.domain.member.command.CreateMemberCommand
 import java.time.LocalDateTime
 import kotlin.random.Random
 import org.springframework.context.ApplicationEventPublisher
@@ -33,11 +29,11 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AuthService(
     private val smsAdapter: SmsAdapter,
-    private val mobileVerificationRepository: MobileVerificationRepository, // TODO: need to change adapter
+    private val mobileVerificationPort: MobileVerificationPort,
     private val tokenManager: TokenManager,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val memberAdapter: MemberAdapter,
-    private val memberSettingAdapter: MemberSettingAdapter,
+    private val memberAdapter: MemberPort,
+    private val memberSettingAdapter: MemberSettingPort,
 ) {
 
     companion object {
@@ -48,8 +44,8 @@ class AuthService(
     @Transactional
     fun sendSms(request: PostSmsRequest): String {
         val yesterday = LocalDateTime.now().minusDays(1L)
-        val histories = mobileVerificationRepository.findAllByDeviceIdAndCreatedAtAfter(request.deviceId, yesterday)
-        if (!request.isTestMode && histories.size >= 5) {
+        val sendCount = mobileVerificationPort.getCountByDeviceIdAndCreatedAtAfter(request.deviceId, yesterday)
+        if (!request.isTestMode && sendCount >= 5) {
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
@@ -60,12 +56,10 @@ class AuthService(
             isTestMode = true
         }
 
-        mobileVerificationRepository.save(
-            MobileVerificationEntity.create(request.deviceId,
-                                            request.mobileNumber,
-                                            request.mobileCountry,
-                                            verificationCode)
-        )
+        mobileVerificationPort.create(request.deviceId,
+                                      request.mobileNumber,
+                                      request.mobileCountry,
+                                      verificationCode)
 
         smsAdapter.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", isTestMode)
         return verificationCode
@@ -73,7 +67,7 @@ class AuthService(
 
     @Transactional
     fun verifySms(deviceId: String, mobileNumber: String, verificationCode: String): MemberAccessToken {
-        val verification = mobileVerificationRepository.findLastByDeviceIdAndMobileNumber(deviceId, mobileNumber)
+        val verification = mobileVerificationPort.getLastByDeviceIdAndMobileNumber(deviceId, mobileNumber)
             ?: throw ThunderException(NOT_FOUND_MOBILE_VERIFICATION)
 
         if (verification.isExpired()) {
@@ -82,7 +76,7 @@ class AuthService(
         if (verification.verificationCode != verificationCode) {
             throw ThunderException(INVALID_MOBILE_VERIFICATION)
         }
-        verification.verified()
+        mobileVerificationPort.verify(verification.mobileVerificationId)
 
         val member = memberAdapter.getByMobileNumber(mobileNumber)
         val accessToken = member?.let { tokenManager.generateAccessToken(member.memberId) }
@@ -93,10 +87,10 @@ class AuthService(
     @Transactional
     fun resetSendLimit(request: PostSmsResetRequest) {
         when {
-            request.deviceId != null -> mobileVerificationRepository.findAllByDeviceIdAndNotVerify(request.deviceId)
-            request.mobileNumber != null -> mobileVerificationRepository.findAllByMobileNumber(request.mobileNumber)
+            request.deviceId != null -> mobileVerificationPort.resetByDeviceId(request.deviceId)
+            request.mobileNumber != null -> mobileVerificationPort.resetByMobileNumber(request.mobileNumber)
             else -> throw ThunderException(MISSING_REQUIRED_PARAMETER)
-        }.forEach { it.reset() }
+        }
     }
 
     @Transactional
@@ -107,7 +101,16 @@ class AuthService(
             throw ThunderException(MOBILE_NUMBER_DUPLICATED)
         }
 
-        val member = memberAdapter.create(request)
+        val command = CreateMemberCommand(
+            nickname = request.nickname,
+            mobileCountry = request.mobileCountry,
+            mobileNumber = request.mobileNumber,
+            gender = request.gender,
+            birthDay = request.birthDay,
+            countryCode = request.countryCode,
+            marketingAgreement = request.marketingAgreement
+        )
+        val member = memberAdapter.create(command)
         val memberSettingOptions = MemberSettingOptions(reviewCompleteNotify = true,
                                                         reviewRequestNotify = true,
                                                         marketingAgreement = request.marketingAgreement)

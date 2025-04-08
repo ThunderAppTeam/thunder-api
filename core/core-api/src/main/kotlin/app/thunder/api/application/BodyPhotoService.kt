@@ -4,7 +4,6 @@ import app.thunder.api.adapter.rekognition.RekognitionAdapter
 import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
-import app.thunder.api.domain.member.adapter.MemberAdapter
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewUploadEvent
 import app.thunder.api.exception.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
@@ -14,9 +13,10 @@ import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
+import app.thunder.domain.member.MemberPort
 import app.thunder.domain.photo.BodyPhoto
-import app.thunder.domain.photo.BodyPhotoAdapter
-import app.thunder.domain.review.ReviewableBodyPhotoAdapter
+import app.thunder.domain.photo.BodyPhotoPort
+import app.thunder.domain.review.ReviewableBodyPhotoPort
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 import kotlin.math.round
@@ -30,10 +30,10 @@ import org.springframework.web.multipart.MultipartFile
 
 @Service
 class BodyPhotoService(
-    private val memberAdapter: MemberAdapter,
-    private val bodyPhotoAdapter: BodyPhotoAdapter,
+    private val memberAdapter: MemberPort,
+    private val bodyPhotoAdapter: BodyPhotoPort,
     private val storageAdapter: StorageAdapter,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
+    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val rekognitionAdapter: RekognitionAdapter,
 ) {
