@@ -3,10 +3,10 @@ package app.thunder.api.application
 import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewCompleteEvent
-import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
-import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
-import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
-import app.thunder.api.exception.ThunderException
+import app.thunder.shared.errors.BodyErrors.ALREADY_REVIEWED
+import app.thunder.shared.errors.BodyErrors.NOT_FOUND_BODY_PHOTO
+import app.thunder.shared.errors.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.shared.errors.ThunderException
 import app.thunder.domain.member.MemberPort
 import app.thunder.domain.photo.BodyPhotoPort
 import app.thunder.domain.review.BodyReviewPort
@@ -18,22 +18,22 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class BodyReviewService(
-    private val memberAdapter: MemberPort,
-    private val bodyPhotoAdapter: BodyPhotoPort,
-    private val bodyReviewAdapter: BodyReviewPort,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val memberPort: MemberPort,
+    private val bodyPhotoPort: BodyPhotoPort,
+    private val bodyReviewPort: BodyReviewPort,
+    private val reviewableBodyPhotoPort: ReviewableBodyPhotoPort,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val dummyDeckAdapter: DummyDeckPort,
+    private val dummyDeckPort: DummyDeckPort,
 ) {
 
     @Transactional
     fun getReviewableBodyPhotoList(memberId: Long, size: Int): List<GetReviewableResponse> {
-        val reviewableBodyPhotoList = reviewableBodyPhotoAdapter.getAllByMemberId(memberId)
+        val reviewableBodyPhotoList = reviewableBodyPhotoPort.getAllByMemberId(memberId)
         val bodyPhotoIds = reviewableBodyPhotoList.take(size).map { it.bodyPhotoId }
-        val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIds)
+        val bodyPhotoMap = bodyPhotoPort.getAllById(bodyPhotoIds)
             .associateBy { it.bodyPhotoId }
         val memberIdSet = bodyPhotoMap.values.map { it.memberId }.toSet()
-        val memberMap = memberAdapter.getAllById(memberIdSet)
+        val memberMap = memberPort.getAllById(memberIdSet)
             .associateBy { it.memberId }
 
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
@@ -48,7 +48,7 @@ class BodyReviewService(
                                   member.age)
         }
         if (reviewableDeck.isEmpty()) {
-            return dummyDeckAdapter.getAllByMemberId(memberId).take(size)
+            return dummyDeckPort.getAllByMemberId(memberId).take(size)
                 .map {
                     GetReviewableResponse(
                         bodyPhotoId = it.bodyPhotoId,
@@ -64,24 +64,24 @@ class BodyReviewService(
 
     @Transactional
     fun review(bodyPhotoId: Long, memberId: Long, score: Int) {
-        val isDummy = dummyDeckAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+        val isDummy = dummyDeckPort.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
         if (isDummy) {
             return
         }
 
-        val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
+        val bodyPhoto = bodyPhotoPort.getById(bodyPhotoId)
             ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
-        if (bodyReviewAdapter.existsByBodyPhotoIdAndMemberId(bodyPhotoId, memberId)) {
+        if (bodyReviewPort.existsByBodyPhotoIdAndMemberId(bodyPhotoId, memberId)) {
             throw ThunderException(ALREADY_REVIEWED)
         }
         bodyPhoto.addReview(score)
-        bodyPhotoAdapter.update(bodyPhoto)
+        bodyPhotoPort.update(bodyPhoto)
 
-        val member = memberAdapter.getById(memberId)
+        val member = memberPort.getById(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
-        bodyReviewAdapter.create(bodyPhotoId, member.memberId, score)
+        bodyReviewPort.create(bodyPhotoId, member.memberId, score)
 
-        reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+        reviewableBodyPhotoPort.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
         if (bodyPhoto.isReviewCompleted()) {
             val reviewCompleteEvent = ReviewCompleteEvent(bodyPhoto.memberId, bodyPhotoId, bodyPhoto.imageUrl)

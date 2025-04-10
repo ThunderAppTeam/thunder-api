@@ -2,14 +2,14 @@ package app.thunder.api.application
 
 import app.thunder.api.controller.request.PutMemberSettingsRequest
 import app.thunder.api.event.RefreshReviewableEvent
-import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
-import app.thunder.api.exception.ThunderException
+import app.thunder.shared.errors.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.shared.errors.ThunderException
 import app.thunder.api.func.nullIfBlank
 import app.thunder.domain.member.DeletedMemberPort
 import app.thunder.domain.member.FcmTokenPort
 import app.thunder.domain.member.Member
-import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.domain.member.MemberBlockRelationPort
+import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.domain.member.MemberPort
 import app.thunder.domain.member.MemberSetting
 import app.thunder.domain.member.MemberSettingOptions
@@ -22,19 +22,19 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class MemberService(
-    private val memberAdapter: MemberPort,
+    private val memberPort: MemberPort,
     private val memberBlockRelationPort: MemberBlockRelationPort,
     private val deletedMemberPort: DeletedMemberPort,
-    private val bodyPhotoAdapter: BodyPhotoPort,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val bodyPhotoPort: BodyPhotoPort,
+    private val reviewableBodyPhotoPort: ReviewableBodyPhotoPort,
     private val fcmTokenPort: FcmTokenPort,
-    private val memberSettingAdapter: MemberSettingPort,
+    private val memberSettingPort: MemberSettingPort,
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     @Transactional(readOnly = true)
     fun getById(memberId: Long): Member {
-        return memberAdapter.getById(memberId)
+        return memberPort.getById(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
     }
 
@@ -47,10 +47,10 @@ class MemberService(
                                        blockedMemberId = blockedMemberId,
                                        createdBy = requestMemberId)
 
-        reviewableBodyPhotoAdapter.deleteAllByMemberIdAndPhotoMemberId(requestMemberId, blockedMemberId)
+        reviewableBodyPhotoPort.deleteAllByMemberIdAndPhotoMemberId(requestMemberId, blockedMemberId)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(requestMemberId))
 
-        reviewableBodyPhotoAdapter.deleteAllByMemberIdAndPhotoMemberId(blockedMemberId, requestMemberId)
+        reviewableBodyPhotoPort.deleteAllByMemberIdAndPhotoMemberId(blockedMemberId, requestMemberId)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(blockedMemberId))
     }
 
@@ -63,9 +63,9 @@ class MemberService(
                                  member.mobileNumber,
                                  deletionReason,
                                  otherReason?.nullIfBlank())
-        memberAdapter.deleteById(memberId)
-        bodyPhotoAdapter.deleteAllByMemberId(memberId)
-        reviewableBodyPhotoAdapter.deleteAllByMemberId(memberId)
+        memberPort.deleteById(memberId)
+        bodyPhotoPort.deleteAllByMemberId(memberId)
+        reviewableBodyPhotoPort.deleteAllByMemberId(memberId)
         memberBlockRelationPort.deleteAllByMemberId(memberId)
     }
 
@@ -73,7 +73,7 @@ class MemberService(
     fun logout(memberId: Long) {
         val member = this.getById(memberId)
         member.logout(memberId)
-        memberAdapter.update(member)
+        memberPort.update(member)
     }
 
     @Transactional
@@ -83,7 +83,7 @@ class MemberService(
 
     @Transactional
     fun getSettings(memberId: Long): MemberSetting {
-        return memberSettingAdapter.getByMemberId(memberId)
+        return memberSettingPort.getByMemberId(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
     }
 
@@ -97,7 +97,7 @@ class MemberService(
 
         val settings = this.getSettings(memberId)
         settings.setOptions(options)
-        memberSettingAdapter.update(settings)
+        memberSettingPort.update(settings)
     }
 
 }

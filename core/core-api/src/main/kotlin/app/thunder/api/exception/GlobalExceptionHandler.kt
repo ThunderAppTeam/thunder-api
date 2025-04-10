@@ -3,9 +3,11 @@ package app.thunder.api.exception
 import app.thunder.api.controller.response.ErrorResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.SuccessResponse.EmptyResponse
-import app.thunder.api.exception.CommonErrors.INVALID_PARAMETER_VALUE
-import app.thunder.api.exception.CommonErrors.MISSING_REQUIRED_PARAMETER
-import app.thunder.api.exception.CommonErrors.UNKNOWN_SERVER_ERROR
+import app.thunder.shared.errors.CommonErrors.INVALID_PARAMETER_VALUE
+import app.thunder.shared.errors.CommonErrors.MISSING_REQUIRED_PARAMETER
+import app.thunder.shared.errors.CommonErrors.UNKNOWN_SERVER_ERROR
+import app.thunder.shared.errors.ExternalApiException
+import app.thunder.shared.errors.ThunderException
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException

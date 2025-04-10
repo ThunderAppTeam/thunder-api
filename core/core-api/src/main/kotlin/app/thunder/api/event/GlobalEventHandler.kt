@@ -1,12 +1,12 @@
 package app.thunder.api.event
 
+import app.thunder.domain.flag.FlagHistoryPort
 import app.thunder.domain.member.FcmTokenPort
 import app.thunder.domain.member.MemberBlockRelationPort
 import app.thunder.domain.member.MemberPort
 import app.thunder.domain.member.MemberSettingPort
 import app.thunder.domain.notification.NotificationPort
 import app.thunder.domain.photo.BodyPhotoPort
-import app.thunder.domain.flag.FlagHistoryPort
 import app.thunder.domain.review.BodyReviewPort
 import app.thunder.domain.review.ReviewableBodyPhotoPort
 import app.thunder.domain.review.command.CreateReviewableBodyPhotoCommand
@@ -17,13 +17,13 @@ import org.springframework.transaction.event.TransactionalEventListener
 
 @Component
 class GlobalEventHandler(
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val reviewableBodyPhotoPort: ReviewableBodyPhotoPort,
     private val fcmTokenPort: FcmTokenPort,
     private val notificationPort: NotificationPort,
-    private val memberSettingAdapter: MemberSettingPort,
-    private val memberAdapter: MemberPort,
-    private val bodyPhotoAdapter: BodyPhotoPort,
-    private val bodyReviewAdapter: BodyReviewPort,
+    private val memberSettingPort: MemberSettingPort,
+    private val memberPort: MemberPort,
+    private val bodyPhotoPort: BodyPhotoPort,
+    private val bodyReviewPort: BodyReviewPort,
     private val flagHistoryPort: FlagHistoryPort,
     private val memberBlockRelationPort: MemberBlockRelationPort,
 ) {
@@ -39,13 +39,13 @@ class GlobalEventHandler(
     @Async
     @TransactionalEventListener
     fun handleReviewUploadEvent(event: ReviewUploadEvent) {
-        memberAdapter.getAll().forEach { member ->
+        memberPort.getAll().forEach { member ->
             refresh(member.memberId)
         }
     }
 
     private fun refresh(reviewMemberId: Long) {
-        val suppliedBodyPhotoIdSet = reviewableBodyPhotoAdapter.getAllByMemberId(reviewMemberId)
+        val suppliedBodyPhotoIdSet = reviewableBodyPhotoPort.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
         if (suppliedBodyPhotoIdSet.size > REVIEWABLE_QUEUE_MINIMUM_SIZE) {
             return
@@ -61,11 +61,11 @@ class GlobalEventHandler(
             }
         }
 
-        val reviewedBodyPhotoIdSet = bodyReviewAdapter.getAllByMemberId(reviewMemberId)
+        val reviewedBodyPhotoIdSet = bodyReviewPort.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
         val blockedMemberIdSet = memberBlockRelationPort.getBlockedMemberIdsByMemberId(reviewMemberId)
 
-        val filteredBodyPhotoList = bodyPhotoAdapter.getNotReviewCompletedAll()
+        val filteredBodyPhotoList = bodyPhotoPort.getNotReviewCompletedAll()
             .asSequence()
             .filter { it.memberId != reviewMemberId }
             .filter { !suppliedBodyPhotoIdSet.contains(it.bodyPhotoId) }
@@ -85,18 +85,18 @@ class GlobalEventHandler(
                 bodyPhotoMemberId = bodyPhoto.memberId
             )
         }
-        reviewableBodyPhotoAdapter.saveAll(commands)
+        reviewableBodyPhotoPort.saveAll(commands)
     }
 
     @Async
     @TransactionalEventListener
     fun notifyReviewComplete(event: ReviewCompleteEvent) {
-        val isNotificationDisagree = memberSettingAdapter.getByMemberId(event.memberId)?.reviewCompleteNotify == false
+        val isNotificationDisagree = memberSettingPort.getByMemberId(event.memberId)?.reviewCompleteNotify == false
         if (isNotificationDisagree) {
             return
         }
 
-        reviewableBodyPhotoAdapter.deleteAllByBodyPhotoId(event.bodyPhotoId)
+        reviewableBodyPhotoPort.deleteAllByBodyPhotoId(event.bodyPhotoId)
 
         fcmTokenPort.getByMemberId(event.memberId)
             ?.let { fcmToken ->

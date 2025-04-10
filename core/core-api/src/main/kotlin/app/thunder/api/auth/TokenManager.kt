@@ -1,14 +1,14 @@
 package app.thunder.api.auth
 
-import app.thunder.api.exception.MemberErrors.EXPIRED_TOKEN
-import app.thunder.api.exception.MemberErrors.INVALID_TOKEN
-import app.thunder.api.exception.ThunderException
+import app.thunder.shared.errors.MemberErrors.EXPIRED_TOKEN
+import app.thunder.shared.errors.MemberErrors.INVALID_TOKEN
+import app.thunder.shared.errors.ThunderException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
-import org.springframework.stereotype.Component
-import java.util.*
+import java.util.Date
 import javax.crypto.SecretKey
+import org.springframework.stereotype.Component
 
 @Component
 class TokenManager(
@@ -42,9 +42,9 @@ class TokenManager(
                 .parseSignedClaims(token)
                 .payload
                 .subject
-        } catch (e: ExpiredJwtException) {
+        } catch (_: ExpiredJwtException) {
             throw ThunderException(EXPIRED_TOKEN)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw ThunderException(INVALID_TOKEN)
         }
     }

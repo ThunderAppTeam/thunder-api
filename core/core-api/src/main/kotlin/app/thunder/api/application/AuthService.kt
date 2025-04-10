@@ -1,25 +1,25 @@
 package app.thunder.api.application
 
-import app.thunder.api.adapter.sms.SmsAdapter
 import app.thunder.api.application.dto.MemberAccessToken
 import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
 import app.thunder.api.controller.request.PostSmsRequest
 import app.thunder.api.controller.request.PostSmsResetRequest
 import app.thunder.api.event.RefreshReviewableEvent
-import app.thunder.api.exception.CommonErrors.MISSING_REQUIRED_PARAMETER
-import app.thunder.api.exception.MemberErrors.EXPIRED_MOBILE_VERIFICATION
-import app.thunder.api.exception.MemberErrors.INVALID_MOBILE_VERIFICATION
-import app.thunder.api.exception.MemberErrors.MOBILE_NUMBER_DUPLICATED
-import app.thunder.api.exception.MemberErrors.NICKNAME_DUPLICATED
-import app.thunder.api.exception.MemberErrors.NOT_FOUND_MOBILE_VERIFICATION
-import app.thunder.api.exception.MemberErrors.TOO_MANY_MOBILE_VERIFICATION
-import app.thunder.api.exception.ThunderException
 import app.thunder.domain.member.MemberPort
-import app.thunder.domain.member.MemberSettingPort
 import app.thunder.domain.member.MemberSettingOptions
+import app.thunder.domain.member.MemberSettingPort
 import app.thunder.domain.member.MobileVerificationPort
+import app.thunder.domain.member.SmsPort
 import app.thunder.domain.member.command.CreateMemberCommand
+import app.thunder.shared.errors.CommonErrors.MISSING_REQUIRED_PARAMETER
+import app.thunder.shared.errors.MemberErrors.EXPIRED_MOBILE_VERIFICATION
+import app.thunder.shared.errors.MemberErrors.INVALID_MOBILE_VERIFICATION
+import app.thunder.shared.errors.MemberErrors.MOBILE_NUMBER_DUPLICATED
+import app.thunder.shared.errors.MemberErrors.NICKNAME_DUPLICATED
+import app.thunder.shared.errors.MemberErrors.NOT_FOUND_MOBILE_VERIFICATION
+import app.thunder.shared.errors.MemberErrors.TOO_MANY_MOBILE_VERIFICATION
+import app.thunder.shared.errors.ThunderException
 import java.time.LocalDateTime
 import kotlin.random.Random
 import org.springframework.context.ApplicationEventPublisher
@@ -28,12 +28,12 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AuthService(
-    private val smsAdapter: SmsAdapter,
+    private val smsPort: SmsPort,
     private val mobileVerificationPort: MobileVerificationPort,
     private val tokenManager: TokenManager,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val memberAdapter: MemberPort,
-    private val memberSettingAdapter: MemberSettingPort,
+    private val memberPort: MemberPort,
+    private val memberSettingPort: MemberSettingPort,
 ) {
 
     companion object {
@@ -61,7 +61,7 @@ class AuthService(
                                       request.mobileCountry,
                                       verificationCode)
 
-        smsAdapter.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", isTestMode)
+        smsPort.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", isTestMode)
         return verificationCode
     }
 
@@ -78,7 +78,7 @@ class AuthService(
         }
         mobileVerificationPort.verify(verification.mobileVerificationId)
 
-        val member = memberAdapter.getByMobileNumber(mobileNumber)
+        val member = memberPort.getByMobileNumber(mobileNumber)
         val accessToken = member?.let { tokenManager.generateAccessToken(member.memberId) }
         return MemberAccessToken(member = member,
                                  accessToken = accessToken)
@@ -96,7 +96,7 @@ class AuthService(
     @Transactional
     fun signup(request: PostSignupRequest): MemberAccessToken {
         this.isAvailableNickName(request.nickname)
-        val duplicatedMobileNumber = memberAdapter.getByMobileNumber(request.mobileNumber) != null
+        val duplicatedMobileNumber = memberPort.getByMobileNumber(request.mobileNumber) != null
         if (duplicatedMobileNumber) {
             throw ThunderException(MOBILE_NUMBER_DUPLICATED)
         }
@@ -110,11 +110,11 @@ class AuthService(
             countryCode = request.countryCode,
             marketingAgreement = request.marketingAgreement
         )
-        val member = memberAdapter.create(command)
+        val member = memberPort.create(command)
         val memberSettingOptions = MemberSettingOptions(reviewCompleteNotify = true,
                                                         reviewRequestNotify = true,
                                                         marketingAgreement = request.marketingAgreement)
-        memberSettingAdapter.create(member.memberId, memberSettingOptions)
+        memberSettingPort.create(member.memberId, memberSettingOptions)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(member.memberId))
 
         return MemberAccessToken(
@@ -125,7 +125,7 @@ class AuthService(
 
     @Transactional(readOnly = true)
     fun isAvailableNickName(nickname: String) {
-        val isPresent = memberAdapter.getByNickname(nickname)
+        val isPresent = memberPort.getByNickname(nickname)
         if (isPresent != null) {
             throw ThunderException(NICKNAME_DUPLICATED)
         }
