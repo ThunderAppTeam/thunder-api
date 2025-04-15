@@ -47,3 +47,4 @@ out/
 ### Agents ###
 .opencode
 .sisyphus
+.agent

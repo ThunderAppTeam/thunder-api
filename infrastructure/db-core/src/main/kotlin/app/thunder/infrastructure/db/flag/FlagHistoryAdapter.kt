@@ -48,4 +48,25 @@ internal class FlagHistoryAdapter(
         }
     }
 
+    @Transactional(readOnly = true)
+    override fun getAllByMemberId(memberId: Long): List<FlagHistory> {
+        return flagHistoryJpaRepository.findAllByMemberId(memberId).map { entity ->
+            FlagHistory(
+                flagHistoryId = entity.flagHistoryId,
+                memberId = entity.memberId,
+                bodyPhotoId = entity.bodyPhotoId,
+                flagReason = entity.flagReason,
+                otherReason = entity.otherReason,
+                createdAt = entity.createdAt,
+            )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    override fun getFlagCountByBodyPhotoId(): Map<Long, Int> {
+        return flagHistoryJpaRepository.findAll()
+            .groupingBy { it.bodyPhotoId }
+            .eachCount()
+    }
+
 }

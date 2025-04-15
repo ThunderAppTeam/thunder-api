@@ -6,4 +6,8 @@ interface FlagHistoryPort {
     fun exists(memberId: Long, bodyPhotoId: Long): Boolean
 
     fun getAll(): List<FlagHistory>
+
+    fun getAllByMemberId(memberId: Long): List<FlagHistory>
+
+    fun getFlagCountByBodyPhotoId(): Map<Long, Int>
 }

@@ -38,6 +38,16 @@ internal class BodyPhotoRepositoryAdapter(
     }
 
     @Transactional(readOnly = true)
+    override fun countByGender(gender: Gender): Long {
+        return bodyPhotoJpaRepository.countByGender(gender)
+    }
+
+    @Transactional(readOnly = true)
+    override fun countByGenderWithHigherScore(gender: Gender, score: Double): Long {
+        return bodyPhotoJpaRepository.countByGenderWithHigherScore(gender, score)
+    }
+
+    @Transactional(readOnly = true)
     override fun getNotReviewCompletedAll(): List<BodyPhoto> {
         return bodyPhotoJpaRepository.findAllNotReviewCompleted()
             .map(::entityToDomain)

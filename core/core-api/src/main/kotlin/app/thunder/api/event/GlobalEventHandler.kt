@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionalEventListener
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class GlobalEventHandler(
@@ -31,20 +32,35 @@ class GlobalEventHandler(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Async
+    @Transactional
     @TransactionalEventListener
     fun supplyReviewableBodyPhotos(event: RefreshReviewableEvent) {
         refresh(event.memberId)
     }
 
     @Async
+    @Transactional
     @TransactionalEventListener
     fun handleReviewUploadEvent(event: ReviewUploadEvent) {
+        val notCompletedPhotos = bodyPhotoPort.getNotReviewCompletedAll()
+        val flagCountMap = flagHistoryPort.getFlagCountByBodyPhotoId()
+
         memberPort.getAll().forEach { member ->
-            refresh(member.memberId)
+            refreshWithPreloadedData(member.memberId, notCompletedPhotos, flagCountMap)
         }
     }
 
     private fun refresh(reviewMemberId: Long) {
+        val notCompletedPhotos = bodyPhotoPort.getNotReviewCompletedAll()
+        val flagCountMap = flagHistoryPort.getFlagCountByBodyPhotoId()
+        refreshWithPreloadedData(reviewMemberId, notCompletedPhotos, flagCountMap)
+    }
+
+    private fun refreshWithPreloadedData(
+        reviewMemberId: Long,
+        notCompletedPhotos: List<app.thunder.domain.photo.BodyPhoto>,
+        flagCountMap: Map<Long, Int>,
+    ) {
         val suppliedBodyPhotoIdSet = reviewableBodyPhotoPort.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
         if (suppliedBodyPhotoIdSet.size > REVIEWABLE_QUEUE_MINIMUM_SIZE) {
@@ -52,20 +68,14 @@ class GlobalEventHandler(
         }
         val supplySize = REVIEWABLE_QUEUE_MAXIMUM_SIZE - suppliedBodyPhotoIdSet.size
 
-        val flagCountMap = hashMapOf<Long, Int>()
-        val flaggedBodyPhotoIdSet = hashSetOf<Long>()
-        flagHistoryPort.getAll().forEach { flagHistory ->
-            flagCountMap.merge(flagHistory.bodyPhotoId, 1, Int::plus)
-            if (flagHistory.memberId == reviewMemberId) {
-                flaggedBodyPhotoIdSet.add(flagHistory.bodyPhotoId)
-            }
-        }
+        val flaggedBodyPhotoIdSet = flagHistoryPort.getAllByMemberId(reviewMemberId)
+            .map { it.bodyPhotoId }.toHashSet()
 
         val reviewedBodyPhotoIdSet = bodyReviewPort.getAllByMemberId(reviewMemberId)
             .map { it.bodyPhotoId }.toSet()
         val blockedMemberIdSet = memberBlockRelationPort.getBlockedMemberIdsByMemberId(reviewMemberId)
 
-        val filteredBodyPhotoList = bodyPhotoPort.getNotReviewCompletedAll()
+        val filteredBodyPhotoList = notCompletedPhotos
             .asSequence()
             .filter { it.memberId != reviewMemberId }
             .filter { !suppliedBodyPhotoIdSet.contains(it.bodyPhotoId) }
@@ -89,6 +99,7 @@ class GlobalEventHandler(
     }
 
     @Async
+    @Transactional
     @TransactionalEventListener
     fun notifyReviewComplete(event: ReviewCompleteEvent) {
         val isNotificationDisagree = memberSettingPort.getByMemberId(event.memberId)?.reviewCompleteNotify == false

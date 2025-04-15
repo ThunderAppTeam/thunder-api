@@ -134,12 +134,11 @@ class GlobalExceptionHandler : ResponseBodyAdvice<Any> {
         ex: Exception,
         request: HttpServletRequest
     ): ResponseEntity<ErrorResponse> {
-        logger.error("", ex)
+        logger.error("Unhandled exception on {}", request.requestURI, ex)
 
         val errorResponse = ErrorResponse(
             errorCode = UNKNOWN_SERVER_ERROR.name,
             message = UNKNOWN_SERVER_ERROR.message,
-            errorLog = ex.localizedMessage,
             path = request.requestURI
         )
         return ResponseEntity.status(UNKNOWN_SERVER_ERROR.httpStatus).body(errorResponse)

@@ -4,13 +4,13 @@ WORKDIR /app
 COPY . .
 RUN ./gradlew core:core-api:build -x test --no-daemon
 
-FROM openjdk:21-jdk-slim-buster
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-ARG ENV_FILE_PATH
-
 COPY --from=builder /app/core/core-api/build/libs/*.jar /app/thunder-api.jar
-COPY ${ENV_FILE_PATH} /app/.env
+
+RUN addgroup --system appuser && adduser --system --ingroup appuser appuser
+USER appuser
 
 EXPOSE 9000
-ENTRYPOINT ["/bin/sh", "-c", "set -a && . /app/.env && exec java -jar /app/thunder-api.jar"]
+ENTRYPOINT ["java", "-jar", "/app/thunder-api.jar"]

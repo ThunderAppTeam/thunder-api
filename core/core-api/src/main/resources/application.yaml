@@ -47,6 +47,9 @@ jwt:
 firebase:
   account-path: ${FIREBASE_ACCOUNT_PATH}
 
+sms:
+  test-mode-enabled: ${SMS_TEST_MODE_ENABLED:false}
+
 aligo:
   user-id: ${ALIGO_USER_ID}
   api-key: ${ALIGO_API_KEY}

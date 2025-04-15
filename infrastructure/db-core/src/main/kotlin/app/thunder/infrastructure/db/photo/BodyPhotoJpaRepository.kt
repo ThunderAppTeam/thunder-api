@@ -55,4 +55,39 @@ internal interface BodyPhotoJpaRepository : JpaRepository<BodyPhotoEntity, Long>
             )
         }.filterNotNull()
     }
+
+    fun countByGender(gender: Gender): Long {
+        val before30Days = LocalDateTime.now().minusDays(30)
+
+        return findAll {
+            select(
+                count(entity(BodyPhotoEntity::class))
+            ).from(
+                entity(BodyPhotoEntity::class),
+                join(entity(MemberEntity::class))
+                    .on(path(MemberEntity::memberId).eq(path(BodyPhotoEntity::memberId)))
+            ).whereAnd(
+                path(BodyPhotoEntity::createdAt).ge(before30Days),
+                path(MemberEntity::gender).eq(gender),
+            )
+        }.firstOrNull() ?: 0L
+    }
+
+    fun countByGenderWithHigherScore(gender: Gender, score: Double): Long {
+        val before30Days = LocalDateTime.now().minusDays(30)
+
+        return findAll {
+            select(
+                count(entity(BodyPhotoEntity::class))
+            ).from(
+                entity(BodyPhotoEntity::class),
+                join(entity(MemberEntity::class))
+                    .on(path(MemberEntity::memberId).eq(path(BodyPhotoEntity::memberId)))
+            ).whereAnd(
+                path(BodyPhotoEntity::createdAt).ge(before30Days),
+                path(MemberEntity::gender).eq(gender),
+                path(BodyPhotoEntity::totalReviewScore).gt(score),
+            )
+        }.firstOrNull() ?: 0L
+    }
 }

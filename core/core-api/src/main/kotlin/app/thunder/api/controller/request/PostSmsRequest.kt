@@ -14,6 +14,4 @@ data class PostSmsRequest(
     @field:NotBlank
     @field:Size(max = 2)
     val mobileCountry: String,
-
-    val isTestMode: Boolean = false,
 )

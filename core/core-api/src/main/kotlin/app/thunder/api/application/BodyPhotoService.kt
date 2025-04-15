@@ -61,14 +61,10 @@ class BodyPhotoService(
         val member = memberPort.getById(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
 
-        val bodyPhotos = bodyPhotoPort.getAllByGender(member.gender)
-        var ranking = 1.0
-        for (other in bodyPhotos) {
-            if (other.getResultReviewScore() > bodyPhoto.getResultReviewScore()) {
-                ranking += 1
-            }
-        }
-        val genderTopPercent = ranking / bodyPhotos.size * 100
+        val totalCount = bodyPhotoPort.countByGender(member.gender)
+        val higherCount = bodyPhotoPort.countByGenderWithHigherScore(member.gender, bodyPhoto.totalReviewScore)
+        val ranking = higherCount + 1
+        val genderTopPercent = if (totalCount > 0) ranking.toDouble() / totalCount * 100 else 100.0
 
         return GetBodyPhotoResultResponse(
             bodyPhotoId = bodyPhoto.bodyPhotoId,

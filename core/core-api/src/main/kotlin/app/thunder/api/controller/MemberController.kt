@@ -17,7 +17,7 @@ import app.thunder.api.controller.response.GetMemberSettingsResponse
 import app.thunder.api.controller.response.PostSignUpResponse
 import app.thunder.api.controller.response.SuccessResponse
 import app.thunder.api.controller.response.SuccessResponse.EmptyResponse
-import app.thunder.api.controller.response.TestSendSmsResponse
+import app.thunder.api.func.toKoreaZonedDateTime
 import app.thunder.api.func.toKoreaZonedDateTime
 import app.thunder.domain.member.MemberDeletionReason
 import jakarta.servlet.http.HttpServletRequest
@@ -44,11 +44,8 @@ class MemberController(
     @PostMapping("/sms")
     fun postSms(
         @RequestBody @Valid request: PostSmsRequest,
-    ): TestSendSmsResponse {
-        val verificationCode: String = authService.sendSms(request)
-        return TestSendSmsResponse(
-            verificationCode.takeIf { request.isTestMode }
-        )
+    ) {
+        authService.sendSms(request)
     }
 
     @PostMapping("/sms/verify")

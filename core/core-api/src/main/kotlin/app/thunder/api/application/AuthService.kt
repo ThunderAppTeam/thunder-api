@@ -1,5 +1,6 @@
 package app.thunder.api.application
 
+import app.thunder.api.config.SmsProperties
 import app.thunder.api.application.dto.MemberAccessToken
 import app.thunder.api.auth.TokenManager
 import app.thunder.api.controller.request.PostSignupRequest
@@ -34,6 +35,7 @@ class AuthService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val memberPort: MemberPort,
     private val memberSettingPort: MemberSettingPort,
+    private val smsProperties: SmsProperties,
 ) {
 
     companion object {
@@ -42,18 +44,17 @@ class AuthService(
     }
 
     @Transactional
-    fun sendSms(request: PostSmsRequest): String {
+    fun sendSms(request: PostSmsRequest) {
         val yesterday = LocalDateTime.now().minusDays(1L)
         val sendCount = mobileVerificationPort.getCountByDeviceIdAndCreatedAtAfter(request.deviceId, yesterday)
-        if (!request.isTestMode && sendCount >= 5) {
+        if (sendCount >= 5) {
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
         var verificationCode = Random.nextInt(100000, 1000000).toString()
-        var isTestMode = request.isTestMode
-        if (request.mobileNumber == MOBILE_NUMBER_FOR_TESTER) {
+        val isTestMode = smsProperties.testModeEnabled
+        if (isTestMode && request.mobileNumber == MOBILE_NUMBER_FOR_TESTER) {
             verificationCode = VERIFICATION_CODE_FOR_TESTER
-            isTestMode = true
         }
 
         mobileVerificationPort.create(request.deviceId,
@@ -62,7 +63,6 @@ class AuthService(
                                       verificationCode)
 
         smsPort.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", isTestMode)
-        return verificationCode
     }
 
     @Transactional
