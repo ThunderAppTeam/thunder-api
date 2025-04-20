@@ -1,0 +1,142 @@
+package app.thunder.api.application
+
+import app.thunder.api.controller.response.GetBodyPhotoResponse
+import app.thunder.api.controller.response.GetBodyPhotoResultResponse
+import app.thunder.api.event.RefreshReviewableEvent
+import app.thunder.api.event.ReviewUploadEvent
+import app.thunder.api.func.toKoreaZonedDateTime
+import app.thunder.core.member.repository.MemberRepository
+import app.thunder.core.photo.client.BodyDetectionClient
+import app.thunder.core.photo.domain.BodyPhoto
+import app.thunder.core.photo.repository.BodyPhotoRepository
+import app.thunder.core.photo.client.BodyPhotoStorageClient
+import app.thunder.core.review.repository.ReviewableBodyPhotoRepository
+import app.thunder.libraries.errors.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
+import app.thunder.libraries.errors.BodyErrors.NOT_FOUND_BODY_PHOTO
+import app.thunder.libraries.errors.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
+import app.thunder.libraries.errors.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
+import app.thunder.libraries.errors.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.libraries.errors.ThunderException
+import java.io.ByteArrayOutputStream
+import java.util.UUID
+import kotlin.math.round
+import net.coobird.thumbnailator.Thumbnails
+import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.http.MediaType
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
+
+@Service
+class BodyPhotoService(
+    private val memberRepository: MemberRepository,
+    private val bodyPhotoRepository: BodyPhotoRepository,
+    private val bodyPhotoStorageClient: BodyPhotoStorageClient,
+    private val reviewableBodyPhotoRepository: ReviewableBodyPhotoRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val bodyDetectionClient: BodyDetectionClient,
+) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    @Transactional(readOnly = true)
+    fun getAllByMemberId(memberId: Long): List<GetBodyPhotoResponse> {
+        return bodyPhotoRepository.getAllByMemberId(memberId).map {
+            GetBodyPhotoResponse(
+                bodyPhotoId = it.bodyPhotoId,
+                imageUrl = it.imageUrl,
+                isReviewCompleted = it.isReviewCompleted(),
+                reviewCount = it.reviewCount,
+                reviewScore = it.getResultReviewScore(),
+                createdAt = it.createdAt.toKoreaZonedDateTime()
+            )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    fun getByBodyPhotoId(bodyPhotoId: Long, memberId: Long): GetBodyPhotoResultResponse {
+        val bodyPhoto = bodyPhotoRepository.getById(bodyPhotoId)
+            ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
+        val member = memberRepository.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
+
+        val totalCount = bodyPhotoRepository.countByGender(member.gender)
+        val higherCount = bodyPhotoRepository.countByGenderWithHigherScore(member.gender, bodyPhoto.totalReviewScore)
+        val ranking = higherCount + 1
+        val genderTopPercent = if (totalCount > 0) ranking.toDouble() / totalCount * 100 else 100.0
+
+        return GetBodyPhotoResultResponse(
+            bodyPhotoId = bodyPhoto.bodyPhotoId,
+            imageUrl = bodyPhoto.imageUrl,
+            isReviewCompleted = bodyPhoto.isReviewCompleted(),
+            reviewCount = bodyPhoto.reviewCount,
+            progressRate = bodyPhoto.progressRate(),
+            gender = member.gender,
+            reviewScore = bodyPhoto.getResultReviewScore(),
+            genderTopRate = round(genderTopPercent),
+            createdAt = bodyPhoto.createdAt.toKoreaZonedDateTime(),
+        )
+    }
+
+    @Transactional
+    fun upload(imageFile: MultipartFile, memberId: Long): BodyPhoto {
+        val isNotAllowImage = !setOf(MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE)
+            .contains(imageFile.contentType)
+        if (isNotAllowImage) {
+            throw ThunderException(UNSUPPORTED_IMAGE_FORMAT)
+        }
+
+        val bodyDetectionResult = bodyDetectionClient.detectBody(imageFile.bytes)
+        if (!bodyDetectionResult.isDetectedBody) {
+            log.error("Body Rekognition Failed [memberId: $memberId]\n{}", bodyDetectionResult.details)
+            throw ThunderException(BODY_NOT_DETECTED_IN_PHOTO)
+        }
+
+        var imageBytes = imageFile.bytes
+        if (imageFile.bytes.size >= 5 * 1024 * 1024) {
+            imageBytes = this.optimizeImageBytes(imageFile.bytes)
+        }
+
+        val member = memberRepository.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
+        val fileName = "${UUID.randomUUID()}_${imageFile.originalFilename}"
+        val filePath = "${member.nickname}/$BODY_PHOTO_PATH/$fileName"
+        val imageUrl = bodyPhotoStorageClient.upload(imageBytes, imageFile.contentType, filePath)
+
+        val bodyPhoto = bodyPhotoRepository.create(memberId, imageUrl)
+        applicationEventPublisher.publishEvent(ReviewUploadEvent(bodyPhoto.bodyPhotoId))
+        return bodyPhoto
+    }
+
+    private fun optimizeImageBytes(imageBytes: ByteArray): ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        Thumbnails.of(imageBytes.inputStream())
+            .size(1080, 1920)
+            .outputQuality(0.9)
+            .toOutputStream(outputStream)
+        return outputStream.toByteArray()
+    }
+
+    @Transactional
+    fun deleteByBodyPhotoId(bodyPhotoId: Long, memberId: Long) {
+        val bodyPhoto = bodyPhotoRepository.getById(bodyPhotoId)
+            ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
+        if (bodyPhoto.isNotUploader(memberId)) {
+            throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
+        }
+        bodyPhotoRepository.deleteById(bodyPhotoId)
+
+        val reviewableList = reviewableBodyPhotoRepository.getAllByBodyPhotoId(bodyPhotoId)
+        reviewableList.forEach {
+            applicationEventPublisher.publishEvent(RefreshReviewableEvent(it.memberId))
+        }
+        reviewableBodyPhotoRepository.deleteAllByBodyPhotoId(bodyPhotoId)
+        bodyPhotoStorageClient.delete(bodyPhoto.imageUrl)
+    }
+
+    companion object {
+        private const val BODY_PHOTO_PATH = "body_photo"
+    }
+
+}

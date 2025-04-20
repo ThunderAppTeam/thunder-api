@@ -1,14 +1,11 @@
-tasks.getByName("bootJar") {
-    enabled = false
-}
-
-tasks.getByName("jar") {
-    enabled = true
+plugins {
+    id("thunder.spring")
+    id("thunder.library")
 }
 
 dependencies {
-    implementation(project(":core:core-domain"))
+    implementation(project(":core"))
 
     implementation("org.springframework.boot:spring-boot-starter")
-    implementation("com.google.firebase:firebase-admin:9.4.3")
+    implementation(libs.firebase.admin)
 }

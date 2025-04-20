@@ -1,0 +1,44 @@
+[versions]
+kotlin = "1.9.25"
+java = "21"
+
+spring-boot = "3.4.1"
+spring-dependency-management = "1.1.7"
+
+testcontainers = "1.21.4"
+kotlin-jdsl = "3.5.4"
+jjwt = "0.12.6"
+awssdk = "2.30.27"
+firebase-admin = "9.4.3"
+datafaker = "2.4.2"
+thumbnailator = "0.4.20"
+flyway-database-postgresql = "11.1.0"
+netty-resolver-dns-native-macos = "4.1.116.Final"
+jackson = "2.18.2"
+
+[libraries]
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
+
+kotlin-jdsl-jpql-dsl = { module = "com.linecorp.kotlin-jdsl:jpql-dsl", version.ref = "kotlin-jdsl" }
+kotlin-jdsl-jpql-render = { module = "com.linecorp.kotlin-jdsl:jpql-render", version.ref = "kotlin-jdsl" }
+kotlin-jdsl-spring-data-jpa-support = { module = "com.linecorp.kotlin-jdsl:spring-data-jpa-support", version.ref = "kotlin-jdsl" }
+
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+awssdk-s3 = { module = "software.amazon.awssdk:s3", version.ref = "awssdk" }
+awssdk-rekognition = { module = "software.amazon.awssdk:rekognition", version.ref = "awssdk" }
+
+firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
+datafaker = { module = "net.datafaker:datafaker", version.ref = "datafaker" }
+thumbnailator = { module = "net.coobird:thumbnailator", version.ref = "thumbnailator" }
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-database-postgresql" }
+netty-resolver-dns-native-macos = { module = "io.netty:netty-resolver-dns-native-macos", version.ref = "netty-resolver-dns-native-macos" }
+
+# build-logic convention plugin implementation dependencies
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-allopen-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
+kotlin-noarg-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-noarg", version.ref = "kotlin" }
+spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spring-dependency-management-gradle-plugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "spring-dependency-management" }

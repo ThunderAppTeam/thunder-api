@@ -1,14 +1,11 @@
-tasks.getByName("bootJar") {
-    enabled = false
-}
-
-tasks.getByName("jar") {
-    enabled = true
+plugins {
+    id("thunder.spring")
+    id("thunder.library")
 }
 
 dependencies {
-    implementation(project(":core:core-domain"))
-    implementation(project(":shared:errors"))
+    implementation(project(":core"))
+    implementation(project(":libraries:errors"))
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("io.netty:netty-resolver-dns-native-macos:4.1.116.Final")
+    implementation(libs.netty.resolver.dns.native.macos)
 }

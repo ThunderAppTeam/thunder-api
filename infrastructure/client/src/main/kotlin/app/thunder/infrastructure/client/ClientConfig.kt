@@ -1,6 +1,6 @@
 package app.thunder.infrastructure.client
 
-import app.thunder.infrastructure.client.sms.AligoClient
+import app.thunder.infrastructure.client.sms.AligoHttpClient
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,7 +15,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory
 class ClientConfig {
 
     @Bean
-    fun aligoClient(objectMapper: ObjectMapper): AligoClient {
+    fun aligoHttpClient(objectMapper: ObjectMapper): AligoHttpClient {
         val webClient: WebClient = WebClient.builder()
             .baseUrl("https://apis.aligo.in")
             .codecs { configurer ->
@@ -24,7 +24,7 @@ class ClientConfig {
             }.build()
         val adapter: WebClientAdapter = WebClientAdapter.create(webClient)
         val factory = HttpServiceProxyFactory.builderFor(adapter).build()
-        return factory.createClient(AligoClient::class.java)
+        return factory.createClient(AligoHttpClient::class.java)
     }
 
 }
