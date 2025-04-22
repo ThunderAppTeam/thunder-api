@@ -5,19 +5,24 @@ import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewUploadEvent
 import app.thunder.api.func.toKoreaZonedDateTime
+import app.thunder.core.flag.repository.FlagHistoryRepository
 import app.thunder.core.member.repository.MemberRepository
 import app.thunder.core.photo.client.BodyDetectionClient
 import app.thunder.core.photo.domain.BodyPhoto
+import app.thunder.core.photo.domain.BodyPhoto.Companion.RANKING_PERIOD_DAYS
 import app.thunder.core.photo.repository.BodyPhotoRepository
 import app.thunder.core.photo.client.BodyPhotoStorageClient
+import app.thunder.core.review.repository.BodyReviewRepository
 import app.thunder.core.review.repository.ReviewableBodyPhotoRepository
 import app.thunder.libraries.errors.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
+import app.thunder.libraries.errors.BodyErrors.IMAGE_TOO_LARGE
 import app.thunder.libraries.errors.BodyErrors.NOT_FOUND_BODY_PHOTO
 import app.thunder.libraries.errors.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
 import app.thunder.libraries.errors.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
 import app.thunder.libraries.errors.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.libraries.errors.ThunderException
 import java.io.ByteArrayOutputStream
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.math.round
 import net.coobird.thumbnailator.Thumbnails
@@ -25,6 +30,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 
@@ -36,6 +42,9 @@ class BodyPhotoService(
     private val reviewableBodyPhotoRepository: ReviewableBodyPhotoRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val bodyDetectionClient: BodyDetectionClient,
+    private val bodyReviewRepository: BodyReviewRepository,
+    private val flagHistoryRepository: FlagHistoryRepository,
+    private val bodyPhotoStorageCleaner: BodyPhotoStorageCleaner,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -54,17 +63,24 @@ class BodyPhotoService(
         }
     }
 
-    @Transactional(readOnly = true)
-    fun getByBodyPhotoId(bodyPhotoId: Long, memberId: Long): GetBodyPhotoResultResponse {
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    fun getByBodyPhotoId(bodyPhotoId: Long, memberId: Long, isAdmin: Boolean): GetBodyPhotoResultResponse {
         val bodyPhoto = bodyPhotoRepository.getById(bodyPhotoId)
             ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
-        val member = memberRepository.getById(memberId)
+        if (bodyPhoto.isNotUploader(memberId) && !isAdmin) {
+            throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
+        }
+        val owner = memberRepository.getById(bodyPhoto.memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
 
-        val totalCount = bodyPhotoRepository.countByGender(member.gender)
-        val higherCount = bodyPhotoRepository.countByGenderWithHigherScore(member.gender, bodyPhoto.totalReviewScore)
+        val since = LocalDateTime.now().minusDays(RANKING_PERIOD_DAYS)
+        val poolCount = bodyPhotoRepository.countReviewCompletedByGender(owner.gender, since)
+        val totalCount = if (bodyPhoto.isInRankingPool(since)) poolCount else poolCount + 1
+        val higherCount = bodyPhotoRepository.countReviewCompletedByGenderWithHigherAverageScore(
+            owner.gender, bodyPhoto.averageScore(), since,
+        )
         val ranking = higherCount + 1
-        val genderTopPercent = if (totalCount > 0) ranking.toDouble() / totalCount * 100 else 100.0
+        val genderTopPercent = ranking.toDouble() / totalCount * 100
 
         return GetBodyPhotoResultResponse(
             bodyPhotoId = bodyPhoto.bodyPhotoId,
@@ -72,7 +88,7 @@ class BodyPhotoService(
             isReviewCompleted = bodyPhoto.isReviewCompleted(),
             reviewCount = bodyPhoto.reviewCount,
             progressRate = bodyPhoto.progressRate(),
-            gender = member.gender,
+            gender = owner.gender,
             reviewScore = bodyPhoto.getResultReviewScore(),
             genderTopRate = round(genderTopPercent),
             createdAt = bodyPhoto.createdAt.toKoreaZonedDateTime(),
@@ -81,32 +97,37 @@ class BodyPhotoService(
 
     @Transactional
     fun upload(imageFile: MultipartFile, memberId: Long): BodyPhoto {
-        val isNotAllowImage = !setOf(MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE)
-            .contains(imageFile.contentType)
-        if (isNotAllowImage) {
-            throw ThunderException(UNSUPPORTED_IMAGE_FORMAT)
-        }
+        val extension = IMAGE_EXTENSIONS[imageFile.contentType]
+            ?: throw ThunderException(UNSUPPORTED_IMAGE_FORMAT)
 
-        val bodyDetectionResult = bodyDetectionClient.detectBody(imageFile.bytes)
+        val imageBytes = prepareImageBytes(imageFile.bytes)
+        val bodyDetectionResult = bodyDetectionClient.detectBody(imageBytes)
         if (!bodyDetectionResult.isDetectedBody) {
             log.error("Body Rekognition Failed [memberId: $memberId]\n{}", bodyDetectionResult.details)
             throw ThunderException(BODY_NOT_DETECTED_IN_PHOTO)
         }
 
-        var imageBytes = imageFile.bytes
-        if (imageFile.bytes.size >= 5 * 1024 * 1024) {
-            imageBytes = this.optimizeImageBytes(imageFile.bytes)
-        }
-
-        val member = memberRepository.getById(memberId)
-            ?: throw ThunderException(NOT_FOUND_MEMBER)
-        val fileName = "${UUID.randomUUID()}_${imageFile.originalFilename}"
-        val filePath = "${member.nickname}/$BODY_PHOTO_PATH/$fileName"
+        val filePath = "$memberId/$BODY_PHOTO_PATH/${UUID.randomUUID()}.$extension"
         val imageUrl = bodyPhotoStorageClient.upload(imageBytes, imageFile.contentType, filePath)
+        bodyPhotoStorageCleaner.deleteOnRollback(imageUrl)
 
+        reviewableBodyPhotoRepository.lockQueue(memberId)
+        memberRepository.getById(memberId)
+            ?: throw ThunderException(NOT_FOUND_MEMBER)
         val bodyPhoto = bodyPhotoRepository.create(memberId, imageUrl)
         applicationEventPublisher.publishEvent(ReviewUploadEvent(bodyPhoto.bodyPhotoId))
         return bodyPhoto
+    }
+
+    private fun prepareImageBytes(imageBytes: ByteArray): ByteArray {
+        if (imageBytes.size < IMAGE_SIZE_LIMIT_BYTES) {
+            return imageBytes
+        }
+        val optimized = optimizeImageBytes(imageBytes)
+        if (optimized.size >= IMAGE_SIZE_LIMIT_BYTES) {
+            throw ThunderException(IMAGE_TOO_LARGE)
+        }
+        return optimized
     }
 
     private fun optimizeImageBytes(imageBytes: ByteArray): ByteArray {
@@ -126,17 +147,24 @@ class BodyPhotoService(
             throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
         }
         bodyPhotoRepository.deleteById(bodyPhotoId)
+        bodyReviewRepository.deleteAllByBodyPhotoId(bodyPhotoId)
+        flagHistoryRepository.deleteAllByBodyPhotoId(bodyPhotoId)
 
         val reviewableList = reviewableBodyPhotoRepository.getAllByBodyPhotoId(bodyPhotoId)
         reviewableList.forEach {
             applicationEventPublisher.publishEvent(RefreshReviewableEvent(it.memberId))
         }
         reviewableBodyPhotoRepository.deleteAllByBodyPhotoId(bodyPhotoId)
-        bodyPhotoStorageClient.delete(bodyPhoto.imageUrl)
+        bodyPhotoStorageCleaner.deleteAfterCommit(listOf(bodyPhoto.imageUrl))
     }
 
     companion object {
         private const val BODY_PHOTO_PATH = "body_photo"
+        private const val IMAGE_SIZE_LIMIT_BYTES = 5 * 1024 * 1024
+        private val IMAGE_EXTENSIONS = mapOf(
+            MediaType.IMAGE_JPEG_VALUE to "jpg",
+            MediaType.IMAGE_PNG_VALUE to "png",
+        )
     }
 
 }

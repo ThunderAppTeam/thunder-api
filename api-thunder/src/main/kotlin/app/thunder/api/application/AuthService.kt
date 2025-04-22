@@ -16,13 +16,16 @@ import app.thunder.core.member.command.CreateMemberCommand
 import app.thunder.libraries.errors.CommonErrors.MISSING_REQUIRED_PARAMETER
 import app.thunder.libraries.errors.MemberErrors.EXPIRED_MOBILE_VERIFICATION
 import app.thunder.libraries.errors.MemberErrors.INVALID_MOBILE_VERIFICATION
+import app.thunder.libraries.errors.MemberErrors.MOBILE_NOT_VERIFIED
 import app.thunder.libraries.errors.MemberErrors.MOBILE_NUMBER_DUPLICATED
 import app.thunder.libraries.errors.MemberErrors.NICKNAME_DUPLICATED
 import app.thunder.libraries.errors.MemberErrors.NOT_FOUND_MOBILE_VERIFICATION
 import app.thunder.libraries.errors.MemberErrors.TOO_MANY_MOBILE_VERIFICATION
+import app.thunder.libraries.errors.MemberErrors.TOO_MANY_VERIFICATION_ATTEMPTS
 import app.thunder.libraries.errors.ThunderException
+import java.security.SecureRandom
+import java.time.Duration
 import java.time.LocalDateTime
-import kotlin.random.Random
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -36,22 +39,29 @@ class AuthService(
     private val memberRepository: MemberRepository,
     private val memberSettingRepository: MemberSettingRepository,
     private val smsProperties: SmsProperties,
+    private val secureRandom: SecureRandom = SecureRandom(),
 ) {
 
     companion object {
         private const val MOBILE_NUMBER_FOR_TESTER = "01000000000"
         private const val VERIFICATION_CODE_FOR_TESTER = "250101"
+        private const val MAX_UNVERIFIED_SENDS_PER_DAY = 5
+        private const val VERIFICATION_CODE_MIN = 100000
+        private const val VERIFICATION_CODE_RANGE = 900000
+        private val SIGNUP_VERIFICATION_VALIDITY = Duration.ofMinutes(30)
     }
 
     @Transactional
     fun sendSms(request: PostSmsRequest) {
+        mobileVerificationRepository.lockSendLimit(request.deviceId, request.mobileNumber)
         val yesterday = LocalDateTime.now().minusDays(1L)
-        val sendCount = mobileVerificationRepository.getCountByDeviceIdAndCreatedAtAfter(request.deviceId, yesterday)
-        if (sendCount >= 5) {
+        val deviceSendCount = mobileVerificationRepository.getCountByDeviceIdAndCreatedAtAfter(request.deviceId, yesterday)
+        val mobileSendCount = mobileVerificationRepository.getCountByMobileNumberAndCreatedAtAfter(request.mobileNumber, yesterday)
+        if (deviceSendCount >= MAX_UNVERIFIED_SENDS_PER_DAY || mobileSendCount >= MAX_UNVERIFIED_SENDS_PER_DAY) {
             throw ThunderException(TOO_MANY_MOBILE_VERIFICATION)
         }
 
-        var verificationCode = Random.nextInt(100000, 1000000).toString()
+        var verificationCode = (VERIFICATION_CODE_MIN + secureRandom.nextInt(VERIFICATION_CODE_RANGE)).toString()
         val isTestMode = smsProperties.testModeEnabled
         if (isTestMode && request.mobileNumber == MOBILE_NUMBER_FOR_TESTER) {
             verificationCode = VERIFICATION_CODE_FOR_TESTER
@@ -65,7 +75,7 @@ class AuthService(
         smsClient.sendSms(request.mobileNumber, "인증번호 [${verificationCode}]를 Thunder 앱에서 입력해주세요.", isTestMode)
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = [ThunderException::class])
     fun verifySms(deviceId: String, mobileNumber: String, verificationCode: String): MemberAccessToken {
         val verification = mobileVerificationRepository.getLastByDeviceIdAndMobileNumber(deviceId, mobileNumber)
             ?: throw ThunderException(NOT_FOUND_MOBILE_VERIFICATION)
@@ -73,28 +83,36 @@ class AuthService(
         if (verification.isExpired()) {
             throw ThunderException(EXPIRED_MOBILE_VERIFICATION)
         }
+        if (verification.isLocked()) {
+            throw ThunderException(TOO_MANY_VERIFICATION_ATTEMPTS)
+        }
         if (verification.verificationCode != verificationCode) {
+            mobileVerificationRepository.increaseFailedAttemptCount(verification.mobileVerificationId)
             throw ThunderException(INVALID_MOBILE_VERIFICATION)
         }
-        mobileVerificationRepository.verify(verification.mobileVerificationId)
+        if (!mobileVerificationRepository.verify(verification.mobileVerificationId)) {
+            throw ThunderException(INVALID_MOBILE_VERIFICATION)
+        }
 
         val member = memberRepository.getByMobileNumber(mobileNumber)
-        val accessToken = member?.let { tokenManager.generateAccessToken(member.memberId) }
+            ?: return MemberAccessToken(member = null, accessToken = null)
+        memberRepository.revokeTokensIssuedBefore(member.memberId, LocalDateTime.now())
         return MemberAccessToken(member = member,
-                                 accessToken = accessToken)
+                                 accessToken = tokenManager.generateAccessToken(member.memberId))
     }
 
     @Transactional
     fun resetSendLimit(request: PostSmsResetRequest) {
-        when {
-            request.deviceId != null -> mobileVerificationRepository.resetByDeviceId(request.deviceId)
-            request.mobileNumber != null -> mobileVerificationRepository.resetByMobileNumber(request.mobileNumber)
-            else -> throw ThunderException(MISSING_REQUIRED_PARAMETER)
+        if (request.deviceId == null && request.mobileNumber == null) {
+            throw ThunderException(MISSING_REQUIRED_PARAMETER)
         }
+        request.deviceId?.let { mobileVerificationRepository.resetByDeviceId(it) }
+        request.mobileNumber?.let { mobileVerificationRepository.resetByMobileNumber(it) }
     }
 
     @Transactional
     fun signup(request: PostSignupRequest): MemberAccessToken {
+        requireVerifiedMobileNumber(request.mobileNumber)
         this.isAvailableNickName(request.nickname)
         val duplicatedMobileNumber = memberRepository.getByMobileNumber(request.mobileNumber) != null
         if (duplicatedMobileNumber) {
@@ -121,6 +139,13 @@ class AuthService(
             member = member,
             accessToken = tokenManager.generateAccessToken(member.memberId),
         )
+    }
+
+    private fun requireVerifiedMobileNumber(mobileNumber: String) {
+        val verifiedAfter = LocalDateTime.now().minus(SIGNUP_VERIFICATION_VALIDITY)
+        if (!mobileVerificationRepository.existsVerifiedByMobileNumberAfter(mobileNumber, verifiedAfter)) {
+            throw ThunderException(MOBILE_NOT_VERIFIED)
+        }
     }
 
     @Transactional(readOnly = true)

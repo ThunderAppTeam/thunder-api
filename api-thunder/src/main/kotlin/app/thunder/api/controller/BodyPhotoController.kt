@@ -1,10 +1,12 @@
 package app.thunder.api.controller
 
 import app.thunder.api.application.BodyPhotoService
+import app.thunder.api.auth.JwtAuthenticationFilter.Companion.ADMIN_ROLE
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.controller.response.PostBodyPhotoResponse
 import jakarta.validation.constraints.Positive
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -34,8 +36,10 @@ class BodyPhotoController(
     fun getBodyPhotoDetail(
         @PathVariable @Positive bodyPhotoId: Long,
         @AuthenticationPrincipal memberId: Long,
+        authentication: Authentication,
     ): GetBodyPhotoResultResponse {
-        return bodyPhotoService.getByBodyPhotoId(bodyPhotoId, memberId)
+        val isAdmin = authentication.authorities.any { it.authority == "ROLE_$ADMIN_ROLE" }
+        return bodyPhotoService.getByBodyPhotoId(bodyPhotoId, memberId, isAdmin)
     }
 
     @PostMapping

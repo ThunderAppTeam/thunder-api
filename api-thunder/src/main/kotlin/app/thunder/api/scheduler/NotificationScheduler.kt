@@ -4,6 +4,7 @@ import app.thunder.core.member.repository.FcmTokenRepository
 import app.thunder.core.member.domain.Member
 import app.thunder.core.member.repository.MemberRepository
 import app.thunder.core.notification.client.NotificationClient
+import app.thunder.core.notification.domain.NotificationResult
 import app.thunder.core.photo.repository.BodyPhotoRepository
 import app.thunder.core.review.repository.BodyReviewRepository
 import app.thunder.core.review.repository.ReviewableBodyPhotoRepository
@@ -60,7 +61,7 @@ class NotificationScheduler(
                     ?.imageUrl
 
                 memberIdToFcmTokenMap[targetMember.memberId]
-                    ?.let { fcmToken -> this.sendNotify(fcmToken, targetMember.nickname, imageUrl) }
+                    ?.let { fcmToken -> this.sendNotify(targetMember, fcmToken, imageUrl) }
             }
     }
 
@@ -92,18 +93,21 @@ class NotificationScheduler(
                     ?.imageUrl
 
                 memberIdToFcmTokenMap[targetMember.memberId]
-                    ?.let { fcmToken -> this.sendNotify(fcmToken, targetMember.nickname, imageUrl) }
+                    ?.let { fcmToken -> this.sendNotify(targetMember, fcmToken, imageUrl) }
             }
     }
 
-    private fun sendNotify(fcmToken: String, nickname: String, imageUrl: String?) {
-        notificationClient.sendNotification(
+    private fun sendNotify(member: Member, fcmToken: String, imageUrl: String?) {
+        val result = notificationClient.sendNotification(
             fcmToken = fcmToken,
             title = "새로운 눈바디 평가 요청 \uD83D\uDC40",
-            body = "누군가 ${nickname}님께 눈바디 평가를 요청했어요.",
+            body = "누군가 ${member.nickname}님께 눈바디 평가를 요청했어요.",
             imageUrl = imageUrl,
             routePath = "/"
         )
+        if (result == NotificationResult.INVALID_TOKEN) {
+            fcmTokenRepository.deleteByMemberIdAndFcmToken(member.memberId, fcmToken)
+        }
     }
 
 }

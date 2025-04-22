@@ -37,5 +37,6 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation(libs.firebase.admin)
+    testImplementation(libs.instancio.junit)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 @Table(name = "reviewable_body_photo")
 @Entity
-@IdClass(ReviewableBodyPhotoId::class) // TODO: CHANGE IDENTITY PK
+@IdClass(ReviewableBodyPhotoId::class)
 internal class ReviewableBodyPhotoEntity private constructor(
     memberId: Long,
     bodyPhotoId: Long,
@@ -20,13 +20,13 @@ internal class ReviewableBodyPhotoEntity private constructor(
     @Column(name = "member_id", nullable = false)
     val memberId: Long = memberId
 
+    @Id
     @Column(name = "body_photo_id", nullable = false)
     val bodyPhotoId: Long = bodyPhotoId
 
     @Column(name = "body_photo_member_id", nullable = false)
     val bodyPhotoMemberId: Long = bodyPhotoMemberId
 
-    @Id
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = createdAt
 

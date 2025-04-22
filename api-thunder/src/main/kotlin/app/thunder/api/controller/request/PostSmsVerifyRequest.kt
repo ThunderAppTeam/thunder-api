@@ -1,6 +1,7 @@
 package app.thunder.api.controller.request
 
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
 data class PostSmsVerifyRequest(
@@ -8,7 +9,7 @@ data class PostSmsVerifyRequest(
     val deviceId: String,
 
     @field:NotBlank
-    @field:Size(min = 10, max = 15)
+    @field:Pattern(regexp = "^[0-9]{10,15}$")
     val mobileNumber: String,
 
     @field:NotBlank

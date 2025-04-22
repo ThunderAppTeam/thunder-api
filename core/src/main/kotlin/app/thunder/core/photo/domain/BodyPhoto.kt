@@ -23,31 +23,40 @@ class BodyPhoto(
         return this.reviewCount >= REVIEW_COMPLETE_COUNT
     }
 
+    fun isInRankingPool(since: LocalDateTime): Boolean {
+        return isReviewCompleted() && !this.createdAt.isBefore(since)
+    }
+
+    fun isUploader(memberId: Long): Boolean {
+        return this.memberId == memberId
+    }
+
     fun isNotUploader(memberId: Long): Boolean {
-        return this.memberId != memberId
+        return !isUploader(memberId)
     }
 
     fun progressRate(): Double {
-        return (this.reviewCount / 20.0 * 100).coerceAtMost(100.0)
+        return (this.reviewCount.toDouble() / REVIEW_COMPLETE_COUNT * 100).coerceAtMost(100.0)
     }
 
-    fun addReview(score: Int) {
-        this.reviewCount += 1
-        this.totalReviewScore += score
-        this.updatedAt = LocalDateTime.now()
+    fun averageScore(): Double {
+        if (this.reviewCount <= 0) {
+            return 0.0
+        }
+        return this.totalReviewScore / this.reviewCount
     }
 
     fun getResultReviewScore(): Double {
         if (this.reviewCount <= 0) {
             return 0.0
         }
-        val averageScore = this.totalReviewScore / this.reviewCount
-        val resultScore = averageScore * RESULT_MAX_SCORE / REVIEW_MAX_SCORE
+        val resultScore = averageScore() * RESULT_MAX_SCORE / REVIEW_MAX_SCORE
         return round(resultScore * 10) / 10
     }
 
     companion object {
         const val REVIEW_COMPLETE_COUNT: Int = 10
+        const val RANKING_PERIOD_DAYS: Long = 30L
         private const val RESULT_MAX_SCORE: Double = 10.0
         private const val REVIEW_MAX_SCORE: Double = 5.0
     }

@@ -69,4 +69,9 @@ internal class FlagHistoryRepositoryImpl(
             .eachCount()
     }
 
+    @Transactional
+    override fun deleteAllByBodyPhotoId(bodyPhotoId: Long) {
+        flagHistoryJpaRepository.deleteAllByBodyPhotoId(bodyPhotoId)
+    }
+
 }

@@ -4,10 +4,12 @@ import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewCompleteEvent
 import app.thunder.libraries.errors.BodyErrors.ALREADY_REVIEWED
+import app.thunder.libraries.errors.BodyErrors.ALREADY_REVIEW_COMPLETED
 import app.thunder.libraries.errors.BodyErrors.NOT_FOUND_BODY_PHOTO
-import app.thunder.libraries.errors.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.libraries.errors.BodyErrors.NOT_REVIEWABLE_BODY_PHOTO
 import app.thunder.libraries.errors.ThunderException
 import app.thunder.core.member.repository.MemberRepository
+import app.thunder.core.photo.domain.BodyPhoto.Companion.REVIEW_COMPLETE_COUNT
 import app.thunder.core.photo.repository.BodyPhotoRepository
 import app.thunder.core.review.repository.BodyReviewRepository
 import app.thunder.core.review.repository.DummyDeckRepository
@@ -28,18 +30,18 @@ class BodyReviewService(
 
     @Transactional
     fun getReviewableBodyPhotoList(memberId: Long, size: Int): List<GetReviewableResponse> {
-        val reviewableBodyPhotoList = reviewableBodyPhotoRepository.getAllByMemberId(memberId)
-        val bodyPhotoIds = reviewableBodyPhotoList.take(size).map { it.bodyPhotoId }
+        val bodyPhotoIds = reviewableBodyPhotoRepository.getAllByMemberId(memberId)
+            .map { it.bodyPhotoId }
         val bodyPhotoMap = bodyPhotoRepository.getAllById(bodyPhotoIds)
+            .filterNot { it.isReviewCompleted() }
             .associateBy { it.bodyPhotoId }
-        val memberIdSet = bodyPhotoMap.values.map { it.memberId }.toSet()
-        val memberMap = memberRepository.getAllById(memberIdSet)
+        val reviewableBodyPhotos = bodyPhotoIds.mapNotNull { bodyPhotoMap[it] }.take(size)
+        val memberMap = memberRepository.getAllById(reviewableBodyPhotos.map { it.memberId }.toSet())
             .associateBy { it.memberId }
 
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
 
-        val reviewableDeck = bodyPhotoIds.mapNotNull { bodyPhotoId ->
-            val bodyPhoto = bodyPhotoMap[bodyPhotoId] ?: return@mapNotNull null
+        val reviewableDeck = reviewableBodyPhotos.mapNotNull { bodyPhoto ->
             val member = memberMap[bodyPhoto.memberId] ?: return@mapNotNull null
             GetReviewableResponse(bodyPhoto.bodyPhotoId,
                                   bodyPhoto.imageUrl,
@@ -48,6 +50,7 @@ class BodyReviewService(
                                   member.age)
         }
         if (reviewableDeck.isEmpty()) {
+            reviewableBodyPhotoRepository.lockQueue(memberId)
             return dummyDeckRepository.getAllByMemberId(memberId).take(size)
                 .map {
                     GetReviewableResponse(
@@ -69,24 +72,36 @@ class BodyReviewService(
             return
         }
 
-        val bodyPhoto = bodyPhotoRepository.getById(bodyPhotoId)
-            ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
+        reviewableBodyPhotoRepository.lockQueue(memberId)
         if (bodyReviewRepository.existsByBodyPhotoIdAndMemberId(bodyPhotoId, memberId)) {
             throw ThunderException(ALREADY_REVIEWED)
         }
-        bodyPhoto.addReview(score)
-        bodyPhotoRepository.update(bodyPhoto)
-
-        val member = memberRepository.getById(memberId)
-            ?: throw ThunderException(NOT_FOUND_MEMBER)
-        bodyReviewRepository.create(bodyPhotoId, member.memberId, score)
+        if (!reviewableBodyPhotoRepository.exists(memberId, bodyPhotoId)) {
+            throw ThunderException(NOT_REVIEWABLE_BODY_PHOTO)
+        }
+        if (!bodyPhotoRepository.addReview(bodyPhotoId, score)) {
+            throw rejectedReviewException(bodyPhotoId)
+        }
+        bodyReviewRepository.create(bodyPhotoId, memberId, score)
 
         reviewableBodyPhotoRepository.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
-        if (bodyPhoto.isReviewCompleted()) {
-            val reviewCompleteEvent = ReviewCompleteEvent(bodyPhoto.memberId, bodyPhotoId, bodyPhoto.imageUrl)
-            applicationEventPublisher.publishEvent(reviewCompleteEvent)
+        completeIfFinished(bodyPhotoId)
+    }
+
+    private fun completeIfFinished(bodyPhotoId: Long) {
+        val bodyPhoto = bodyPhotoRepository.getById(bodyPhotoId)
+            ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
+        if (bodyPhoto.reviewCount != REVIEW_COMPLETE_COUNT) {
+            return
         }
+        reviewableBodyPhotoRepository.deleteAllByBodyPhotoId(bodyPhotoId)
+        applicationEventPublisher.publishEvent(ReviewCompleteEvent(bodyPhoto.memberId, bodyPhotoId, bodyPhoto.imageUrl))
+    }
+
+    private fun rejectedReviewException(bodyPhotoId: Long): ThunderException {
+        val errorCode = if (bodyPhotoRepository.getById(bodyPhotoId) == null) NOT_FOUND_BODY_PHOTO else ALREADY_REVIEW_COMPLETED
+        return ThunderException(errorCode)
     }
 
 }

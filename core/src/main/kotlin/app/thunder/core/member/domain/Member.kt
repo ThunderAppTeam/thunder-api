@@ -26,11 +26,4 @@ class Member(
         private set
     var updatedBy: Long? = updatedBy
         private set
-
-    fun logout(memberId: Long) {
-        this.loggedOutAt = LocalDateTime.now()
-        this.updatedAt = LocalDateTime.now()
-        this.updatedBy = memberId
-    }
-
 }

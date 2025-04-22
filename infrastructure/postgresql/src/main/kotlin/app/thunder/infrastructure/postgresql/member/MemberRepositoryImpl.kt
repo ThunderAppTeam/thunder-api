@@ -7,6 +7,7 @@ import app.thunder.infrastructure.postgresql.member.entity.MemberEntity
 import app.thunder.infrastructure.postgresql.member.persistence.MemberJpaRepository
 import app.thunder.infrastructure.postgresql.member.persistence.MemberSettingJpaRepository
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Period
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -73,13 +74,8 @@ internal class MemberRepositoryImpl(
     }
 
     @Transactional
-    override fun update(member: Member) {
-        memberJpaRepository.findById(member.memberId)
-            .map { memberEntity ->
-                memberEntity.update(loggedOutAt = member.loggedOutAt,
-                                    updatedAt = member.updatedAt,
-                                    updatedBy = member.updatedBy)
-            }
+    override fun revokeTokensIssuedBefore(memberId: Long, revokedAt: LocalDateTime) {
+        memberJpaRepository.revokeTokensIssuedBefore(memberId, revokedAt)
     }
 
     @Transactional

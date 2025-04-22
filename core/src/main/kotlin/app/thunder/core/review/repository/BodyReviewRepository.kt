@@ -6,5 +6,6 @@ interface BodyReviewRepository {
     fun getAllByMemberId(memberId: Long): List<BodyReview>
     fun getMemberIdToLatestReviewMap(): Map<Long, BodyReview>
     fun existsByBodyPhotoIdAndMemberId(bodyPhotoId: Long, memberId: Long): Boolean
+    fun deleteAllByBodyPhotoId(bodyPhotoId: Long)
     fun create(bodyPhotoId: Long, memberId: Long, score: Int): BodyReview
 }

@@ -23,7 +23,18 @@ internal class FcmTokenRepositoryImpl(
 
     @Transactional
     override fun createOrUpdate(memberId: Long, fcmToken: String) {
+        memberFcmTokenJpaRepository.deleteByFcmTokenOfOtherMembers(fcmToken, memberId)
         memberFcmTokenJpaRepository.upsertFcmToken(memberId, fcmToken)
+    }
+
+    @Transactional
+    override fun deleteByMemberId(memberId: Long) {
+        memberFcmTokenJpaRepository.deleteById(memberId)
+    }
+
+    @Transactional
+    override fun deleteByMemberIdAndFcmToken(memberId: Long, fcmToken: String) {
+        memberFcmTokenJpaRepository.deleteByMemberIdAndFcmToken(memberId, fcmToken)
     }
 
 }

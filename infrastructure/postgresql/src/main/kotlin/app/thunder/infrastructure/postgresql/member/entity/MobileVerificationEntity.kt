@@ -43,6 +43,9 @@ internal class MobileVerificationEntity private constructor(
     var verifiedAt: LocalDateTime? = null
         protected set
 
+    @Column(name = "failed_attempt_count")
+    var failedAttemptCount: Int = 0
+        protected set
 
     companion object {
         fun create(
@@ -62,12 +65,8 @@ internal class MobileVerificationEntity private constructor(
         private val RESET_DATE_TIME = LocalDateTime.of(1, 1, 1, 0, 0)
     }
 
-    fun isExpired(): Boolean {
-        return LocalDateTime.now().isAfter(expiredAt)
-    }
-
-    fun verified() {
-        this.verifiedAt = LocalDateTime.now()
+    fun isExpired(now: LocalDateTime = LocalDateTime.now()): Boolean {
+        return !now.isBefore(expiredAt)
     }
 
     fun reset() {

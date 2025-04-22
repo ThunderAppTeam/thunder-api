@@ -31,6 +31,11 @@ internal class BodyReviewRepositoryImpl(
     }
 
     @Transactional
+    override fun deleteAllByBodyPhotoId(bodyPhotoId: Long) {
+        bodyReviewJpaRepository.deleteAllByBodyPhotoId(bodyPhotoId)
+    }
+
+    @Transactional
     override fun create(bodyPhotoId: Long, memberId: Long, score: Int): BodyReview {
         val entity = BodyReviewEntity.create(bodyPhotoId, memberId, score)
         bodyReviewJpaRepository.save(entity)

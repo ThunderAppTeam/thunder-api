@@ -23,6 +23,16 @@ internal class ReviewableBodyPhotoRepositoryImpl(
     }
 
     @Transactional(readOnly = true)
+    override fun exists(memberId: Long, bodyPhotoId: Long): Boolean {
+        return reviewableBodyPhotoJpaRepository.existsByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
+    }
+
+    @Transactional
+    override fun lockQueue(memberId: Long) {
+        reviewableBodyPhotoJpaRepository.lockByKey("reviewable_body_photo:queue:$memberId")
+    }
+
+    @Transactional(readOnly = true)
     override fun getAllByBodyPhotoId(bodyPhotoId: Long): List<ReviewableBodyPhoto> {
         return reviewableBodyPhotoJpaRepository.findAllByBodyPhotoId(bodyPhotoId)
             .map(::entityToDomain)
@@ -43,16 +53,16 @@ internal class ReviewableBodyPhotoRepositoryImpl(
     override fun deleteAllByMemberId(memberId: Long) {
         val ids = hashSetOf<ReviewableBodyPhotoId>()
         reviewableBodyPhotoJpaRepository.findAllByMemberId(memberId)
-            .forEach { ids.add(ReviewableBodyPhotoId(it.memberId, it.createdAt)) }
+            .forEach { ids.add(ReviewableBodyPhotoId(it.memberId, it.bodyPhotoId)) }
         reviewableBodyPhotoJpaRepository.findAllByBodyPhotoMemberId(memberId)
-            .forEach { ids.add(ReviewableBodyPhotoId(it.memberId, it.createdAt)) }
+            .forEach { ids.add(ReviewableBodyPhotoId(it.memberId, it.bodyPhotoId)) }
         reviewableBodyPhotoJpaRepository.deleteAllByIdInBatch(ids)
     }
 
     @Transactional
     override fun deleteAllByBodyPhotoId(bodyPhotoId: Long) {
         val ids = reviewableBodyPhotoJpaRepository.findAllByBodyPhotoId(bodyPhotoId)
-            .map { ReviewableBodyPhotoId(it.memberId, it.createdAt) }
+            .map { ReviewableBodyPhotoId(it.memberId, it.bodyPhotoId) }
         reviewableBodyPhotoJpaRepository.deleteAllByIdInBatch(ids)
     }
 
@@ -61,7 +71,7 @@ internal class ReviewableBodyPhotoRepositoryImpl(
         val reviewableBodyPhotoIds = reviewableBodyPhotoJpaRepository.findAllByMemberId(memberId)
             .asSequence()
             .filter { it.bodyPhotoMemberId == bodyPhotoMemberId }
-            .map { ReviewableBodyPhotoId(it.memberId, it.createdAt) }
+            .map { ReviewableBodyPhotoId(it.memberId, it.bodyPhotoId) }
             .toList()
         reviewableBodyPhotoJpaRepository.deleteAllByIdInBatch(reviewableBodyPhotoIds)
     }
@@ -70,9 +80,9 @@ internal class ReviewableBodyPhotoRepositoryImpl(
     override fun saveAll(commands: Collection<CreateReviewableBodyPhotoCommand>) {
         val entities = commands.map { command ->
             ReviewableBodyPhotoEntity.create(
-                command.bodyPhotoId,
-                command.memberId,
-                command.bodyPhotoMemberId
+                memberId = command.memberId,
+                bodyPhotoId = command.bodyPhotoId,
+                bodyPhotoMemberId = command.bodyPhotoMemberId,
             )
         }
         reviewableBodyPhotoJdbcRepository.batchInsert(entities)

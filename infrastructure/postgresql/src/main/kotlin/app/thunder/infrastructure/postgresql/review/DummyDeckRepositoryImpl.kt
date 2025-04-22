@@ -24,7 +24,6 @@ internal class DummyDeckRepositoryImpl(
     private val memberJpaRepository: MemberJpaRepository,
 ) : DummyDeckRepository {
 
-    private val faker = Faker(Locale.Builder().setLanguage("ko").setRegion("KR").build())
     private var maleMemberId: Long = 0L
     private var femaleMemberId: Long = 0L
     private var dummyBodyPhotoMap: Map<Long, BodyPhoto> = hashMapOf()
@@ -44,20 +43,8 @@ internal class DummyDeckRepositoryImpl(
     override fun getAllByMemberId(memberId: Long): List<DummyDeck> {
         var dummyDeckEntities = dummyDeckJpaRepository.findAllByMemberIdOrderByCreatedAt(memberId)
         if (dummyDeckEntities.isEmpty()) {
-            val nicknameToAgeMap = this.generateNicknameToAgeMap(dummyBodyPhotoMap.size)
-            val nicknameList = nicknameToAgeMap.keys.toList()
-            dummyDeckEntities = dummyBodyPhotoMap.values
-                .shuffled()
-                .mapIndexed { index, bodyPhoto ->
-                    val nickname = nicknameList[index]
-                    val age = nicknameToAgeMap[nickname] ?: Random.nextInt(20, 38)
-                    DummyDeckEntity.create(memberId = memberId,
-                                           bodyPhotoId = bodyPhoto.bodyPhotoId,
-                                           bodyPhotoMemberId = bodyPhoto.memberId,
-                                           nickname = nickname,
-                                           age = age)
-                }
-            dummyDeckJdbcRepository.batchInsert(dummyDeckEntities)
+            dummyDeckJdbcRepository.batchInsert(generateDummyDeckEntities(memberId))
+            dummyDeckEntities = dummyDeckJpaRepository.findAllByMemberIdOrderByCreatedAt(memberId)
         }
 
         return dummyDeckEntities.mapNotNull { dummyDeckEntity ->
@@ -73,7 +60,24 @@ internal class DummyDeckRepositoryImpl(
         }
     }
 
+    private fun generateDummyDeckEntities(memberId: Long): List<DummyDeckEntity> {
+        val nicknameToAgeMap = this.generateNicknameToAgeMap(dummyBodyPhotoMap.size)
+        val nicknameList = nicknameToAgeMap.keys.toList()
+        return dummyBodyPhotoMap.values
+            .shuffled()
+            .mapIndexed { index, bodyPhoto ->
+                val nickname = nicknameList[index]
+                val age = nicknameToAgeMap[nickname] ?: Random.nextInt(20, 38)
+                DummyDeckEntity.create(memberId = memberId,
+                                       bodyPhotoId = bodyPhoto.bodyPhotoId,
+                                       bodyPhotoMemberId = bodyPhoto.memberId,
+                                       nickname = nickname,
+                                       age = age)
+            }
+    }
+
     private fun generateNicknameToAgeMap(length: Int): HashMap<String, Int> {
+        val faker = Faker(Locale.Builder().setLanguage("ko").setRegion("KR").build())
         val regex = Regex("[a-zA-Z$:()'-.0-9\\s]+")
         val result = hashMapOf<String, Int>()
 
@@ -95,12 +99,22 @@ internal class DummyDeckRepositoryImpl(
         return result
     }
 
+    @Transactional(readOnly = true)
+    override fun exists(memberId: Long, bodyPhotoId: Long): Boolean {
+        return dummyDeckJpaRepository.findByMemberIdAndBodyPhotoId(memberId, bodyPhotoId) != null
+    }
+
     @Transactional
     override fun deleteByMemberIdAndBodyPhotoId(memberId: Long, bodyPhotoId: Long): Boolean {
         val dummyDeckEntity = dummyDeckJpaRepository.findByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
             ?: return false
         dummyDeckJpaRepository.deleteById(dummyDeckEntity.dummyDeckId)
         return true
+    }
+
+    @Transactional
+    override fun deleteAllByMemberId(memberId: Long) {
+        dummyDeckJpaRepository.deleteAllByMemberIdInBulk(memberId)
     }
 
 }

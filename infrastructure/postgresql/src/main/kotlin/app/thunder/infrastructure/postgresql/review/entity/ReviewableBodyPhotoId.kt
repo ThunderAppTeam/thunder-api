@@ -3,7 +3,6 @@ package app.thunder.infrastructure.postgresql.review.entity
 import jakarta.persistence.Column
 import jakarta.persistence.Id
 import java.io.Serializable
-import java.time.LocalDateTime
 
 internal data class ReviewableBodyPhotoId(
     @Id
@@ -11,6 +10,6 @@ internal data class ReviewableBodyPhotoId(
     val memberId: Long = 0,
 
     @Id
-    @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    @Column(name = "body_photo_id", nullable = false)
+    val bodyPhotoId: Long = 0,
 ) : Serializable

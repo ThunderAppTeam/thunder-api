@@ -34,9 +34,7 @@ internal class MemberBlockRelationRepositoryImpl(
 
     @Transactional
     override fun deleteAllByMemberId(memberId: Long) {
-        val ids = memberBlockRelationJpaRepository.findAllByMemberId(memberId)
-            .map { it.blockedMemberId }
-        memberBlockRelationJpaRepository.deleteAllByIdInBatch(ids)
+        memberBlockRelationJpaRepository.deleteAllReferencingMember(memberId)
     }
 
 }

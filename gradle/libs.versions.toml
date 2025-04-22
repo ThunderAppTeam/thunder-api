@@ -15,6 +15,7 @@ thumbnailator = "0.4.20"
 flyway-database-postgresql = "11.1.0"
 netty-resolver-dns-native-macos = "4.1.116.Final"
 jackson = "2.18.2"
+instancio = "5.5.1"
 
 [libraries]
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
@@ -32,6 +33,7 @@ awssdk-rekognition = { module = "software.amazon.awssdk:rekognition", version.re
 
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 datafaker = { module = "net.datafaker:datafaker", version.ref = "datafaker" }
+instancio-junit = { module = "org.instancio:instancio-junit", version.ref = "instancio" }
 thumbnailator = { module = "net.coobird:thumbnailator", version.ref = "thumbnailator" }
 flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway-database-postgresql" }
 netty-resolver-dns-native-macos = { module = "io.netty:netty-resolver-dns-native-macos", version.ref = "netty-resolver-dns-native-macos" }

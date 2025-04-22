@@ -6,6 +6,7 @@ import app.thunder.libraries.errors.ThunderException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import java.time.Instant
 import java.util.Date
 import javax.crypto.SecretKey
 import org.springframework.stereotype.Component
@@ -34,14 +35,14 @@ class TokenManager(
         return token
     }
 
-    fun getSubject(token: String): String {
+    fun parse(token: String): TokenClaims {
         try {
-            return Jwts.parser()
+            val payload = Jwts.parser()
                 .verifyWith(this.getSecretKey())
                 .build()
                 .parseSignedClaims(token)
                 .payload
-                .subject
+            return TokenClaims(subject = payload.subject, issuedAt = payload.issuedAt.toInstant())
         } catch (_: ExpiredJwtException) {
             throw ThunderException(EXPIRED_TOKEN)
         } catch (_: Exception) {
@@ -54,3 +55,9 @@ class TokenManager(
     }
 
 }
+
+
+data class TokenClaims(
+    val subject: String,
+    val issuedAt: Instant,
+)

@@ -2,7 +2,9 @@ package app.thunder.infrastructure.postgresql.photo
 
 import app.thunder.core.member.domain.Gender
 import app.thunder.core.photo.domain.BodyPhoto
+import app.thunder.core.photo.domain.BodyPhoto.Companion.REVIEW_COMPLETE_COUNT
 import app.thunder.core.photo.repository.BodyPhotoRepository
+import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -32,19 +34,17 @@ internal class BodyPhotoRepositoryImpl(
     }
 
     @Transactional(readOnly = true)
-    override fun getAllByGender(gender: Gender): List<BodyPhoto> {
-        return bodyPhotoJpaRepository.findAllByGender(gender)
-            .map(BodyPhotoEntity::toDomain)
+    override fun countReviewCompletedByGender(gender: Gender, since: LocalDateTime): Long {
+        return bodyPhotoJpaRepository.countReviewCompletedByGender(gender, since)
     }
 
     @Transactional(readOnly = true)
-    override fun countByGender(gender: Gender): Long {
-        return bodyPhotoJpaRepository.countByGender(gender)
-    }
-
-    @Transactional(readOnly = true)
-    override fun countByGenderWithHigherScore(gender: Gender, score: Double): Long {
-        return bodyPhotoJpaRepository.countByGenderWithHigherScore(gender, score)
+    override fun countReviewCompletedByGenderWithHigherAverageScore(
+        gender: Gender,
+        averageScore: Double,
+        since: LocalDateTime,
+    ): Long {
+        return bodyPhotoJpaRepository.countReviewCompletedByGenderWithHigherAverageScore(gender, averageScore, since)
     }
 
     @Transactional(readOnly = true)
@@ -58,6 +58,11 @@ internal class BodyPhotoRepositoryImpl(
         val entity = BodyPhotoEntity.create(memberId, imageUrl)
         bodyPhotoJpaRepository.save(entity)
         return entity.toDomain()
+    }
+
+    @Transactional
+    override fun addReview(bodyPhotoId: Long, score: Int): Boolean {
+        return bodyPhotoJpaRepository.addReview(bodyPhotoId, score, LocalDateTime.now(), REVIEW_COMPLETE_COUNT) > 0
     }
 
     @Transactional

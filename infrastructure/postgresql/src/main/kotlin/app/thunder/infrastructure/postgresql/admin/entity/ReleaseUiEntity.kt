@@ -35,7 +35,7 @@ internal class ReleaseUiEntity private constructor(
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null
         protected set
 

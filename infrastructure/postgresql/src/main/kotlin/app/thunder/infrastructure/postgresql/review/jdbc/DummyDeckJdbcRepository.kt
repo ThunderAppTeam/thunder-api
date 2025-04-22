@@ -25,6 +25,7 @@ internal class DummyDeckJdbcRepository(
                 created_at
             ) 
             VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT (member_id, body_photo_id) DO NOTHING
         """
 
         jdbcTemplate.batchUpdate(sql, object : BatchPreparedStatementSetter {

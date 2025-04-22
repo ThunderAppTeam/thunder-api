@@ -50,6 +50,9 @@ firebase:
 sms:
   test-mode-enabled: ${SMS_TEST_MODE_ENABLED:false}
 
+admin:
+  member-ids: ${ADMIN_MEMBER_IDS:}
+
 aligo:
   user-id: ${ALIGO_USER_ID}
   api-key: ${ALIGO_API_KEY}

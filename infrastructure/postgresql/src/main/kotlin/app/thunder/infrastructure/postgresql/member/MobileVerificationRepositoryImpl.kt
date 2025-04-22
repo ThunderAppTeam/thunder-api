@@ -19,6 +19,18 @@ internal class MobileVerificationRepositoryImpl(
             .size
     }
 
+    @Transactional(readOnly = true)
+    override fun getCountByMobileNumberAndCreatedAtAfter(mobileNumber: String, createdAt: LocalDateTime): Int {
+        return mobileVerificationJpaRepository
+            .countByMobileNumberAndCreatedAtAfterAndVerifiedAtIsNull(mobileNumber, createdAt)
+    }
+
+    @Transactional
+    override fun lockSendLimit(deviceId: String, mobileNumber: String) {
+        mobileVerificationJpaRepository.lockByKey("mobile_verification:device:$deviceId")
+        mobileVerificationJpaRepository.lockByKey("mobile_verification:mobile:$mobileNumber")
+    }
+
     @Transactional
     override fun create(deviceId: String, mobileNumber: String, mobileCountry: String, verificationCode: String) {
         val entity = MobileVerificationEntity.create(deviceId, mobileNumber, mobileCountry, verificationCode)
@@ -33,14 +45,28 @@ internal class MobileVerificationRepositoryImpl(
                     mobileVerificationId = entity.mobileVerificationId,
                     verificationCode = entity.verificationCode,
                     expiredAt = entity.expiredAt,
+                    failedAttemptCount = entity.failedAttemptCount,
                 )
             }
     }
 
+    @Transactional(readOnly = true)
+    override fun existsVerifiedByMobileNumberAfter(mobileNumber: String, verifiedAfter: LocalDateTime): Boolean {
+        return mobileVerificationJpaRepository.existsByMobileNumberAndVerifiedAtAfter(mobileNumber, verifiedAfter)
+    }
+
     @Transactional
-    override fun verify(mobileVerificationId: Long) {
-        mobileVerificationJpaRepository.findById(mobileVerificationId)
-            .ifPresent { entity -> entity.verified() }
+    override fun verify(mobileVerificationId: Long): Boolean {
+        return mobileVerificationJpaRepository.markVerified(
+            mobileVerificationId,
+            LocalDateTime.now(),
+            MobileVerification.MAX_FAILED_ATTEMPTS,
+        ) > 0
+    }
+
+    @Transactional
+    override fun increaseFailedAttemptCount(mobileVerificationId: Long) {
+        mobileVerificationJpaRepository.increaseFailedAttemptCount(mobileVerificationId)
     }
 
     @Transactional

@@ -91,11 +91,4 @@ internal class MemberEntity private constructor(
             )
         }
     }
-
-    fun update(loggedOutAt: LocalDateTime?, updatedAt: LocalDateTime?, updatedBy: Long?) {
-        this.loggedOutAt = loggedOutAt
-        this.updatedAt = updatedAt
-        this.updatedBy = updatedBy
-    }
-
 }

@@ -43,6 +43,10 @@ internal class MemberSettingRepositoryImpl(
             }
     }
 
+    @Transactional
+    override fun deleteByMemberId(memberId: Long) {
+        memberSettingJpaRepository.deleteById(memberId)
+    }
 
     private fun entityToDomain(entity: MemberSettingEntity): MemberSetting {
         return MemberSetting(

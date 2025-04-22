@@ -1,13 +1,9 @@
 package app.thunder.api.exception
 
-import app.thunder.api.controller.response.ErrorResponse
 import app.thunder.libraries.errors.CommonErrors.INVALID_PARAMETER_VALUE
 import app.thunder.libraries.errors.CommonErrors.UNKNOWN_SERVER_ERROR
 import app.thunder.libraries.errors.ErrorCode
 import app.thunder.libraries.errors.ThunderException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.FilterConfig
@@ -15,16 +11,12 @@ import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import java.nio.charset.StandardCharsets
-import java.time.ZonedDateTime
 import org.slf4j.LoggerFactory
-import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageNotReadableException
 
-class ExceptionHandlingFilter : Filter {
-    private val objectMapper = ObjectMapper()
-        .registerModules(JavaTimeModule())
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+class ExceptionHandlingFilter(
+    private val errorResponseWriter: ErrorResponseWriter,
+) : Filter {
 
     companion object{
         private val logger = LoggerFactory.getLogger(this::class.java)
@@ -52,14 +44,7 @@ class ExceptionHandlingFilter : Filter {
     private fun handleException(request: HttpServletRequest,
                                 response: HttpServletResponse,
                                 error: ErrorCode) {
-        val errorResponse = ErrorResponse(errorCode = (error as Enum<*>).name,
-                                          message = error.message,
-                                          path = request.requestURI,
-                                          timestamp = ZonedDateTime.now())
-        response.status = error.httpStatus.value()
-        response.contentType = MediaType.APPLICATION_JSON_VALUE
-        response.characterEncoding = StandardCharsets.UTF_8.name()
-        response.writer.write(objectMapper.writeValueAsString(errorResponse))
+        errorResponseWriter.write(request, response, error)
     }
 
 }

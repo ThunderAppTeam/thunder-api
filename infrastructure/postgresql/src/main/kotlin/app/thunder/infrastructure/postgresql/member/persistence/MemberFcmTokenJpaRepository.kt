@@ -11,6 +11,14 @@ internal interface MemberFcmTokenJpaRepository : JpaRepository<MemberFcmTokenEnt
 
     fun findByMemberId(memberId: Long): MemberFcmTokenEntity?
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM MemberFcmTokenEntity e WHERE e.fcmToken = :fcmToken AND e.memberId <> :memberId")
+    fun deleteByFcmTokenOfOtherMembers(@Param("fcmToken") fcmToken: String, @Param("memberId") memberId: Long): Int
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM MemberFcmTokenEntity e WHERE e.memberId = :memberId AND e.fcmToken = :fcmToken")
+    fun deleteByMemberIdAndFcmToken(@Param("memberId") memberId: Long, @Param("fcmToken") fcmToken: String): Int
+
     @Modifying
     @Query(
         """

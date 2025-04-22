@@ -2,6 +2,7 @@ package app.thunder.api.controller.request
 
 import app.thunder.core.member.domain.Gender
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Past
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.LocalDate
@@ -16,11 +17,12 @@ data class PostSignupRequest(
     val mobileCountry: String,
 
     @field:NotBlank
-    @field:Size(min = 10, max = 15)
+    @field:Pattern(regexp = "^[0-9]{10,15}$")
     val mobileNumber: String,
 
     val gender: Gender,
 
+    @field:Past
     @field:DateTimeFormat(pattern = "yyyy-MM-dd")
     val birthDay: LocalDate,
 

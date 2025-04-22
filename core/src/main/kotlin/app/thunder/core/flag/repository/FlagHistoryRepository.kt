@@ -13,4 +13,6 @@ interface FlagHistoryRepository {
     fun getAllByMemberId(memberId: Long): List<FlagHistory>
 
     fun getFlagCountByBodyPhotoId(): Map<Long, Int>
+
+    fun deleteAllByBodyPhotoId(bodyPhotoId: Long)
 }

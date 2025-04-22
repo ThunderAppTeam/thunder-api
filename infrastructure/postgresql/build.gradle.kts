@@ -15,4 +15,12 @@ dependencies {
     implementation(libs.kotlin.jdsl.spring.data.jpa.support)
 
     implementation(libs.datafaker)
+
+    testImplementation("org.springframework.boot:spring-boot-testcontainers")
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation(libs.instancio.junit)
+    testRuntimeOnly("org.postgresql:postgresql")
+    testRuntimeOnly(libs.flyway.database.postgresql)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
