@@ -1,6 +1,7 @@
 package app.thunder.infrastructure.postgresql.member
 
 import app.thunder.infrastructure.postgresql.PostgresqlJpaTest
+import app.thunder.infrastructure.postgresql.member.persistence.MemberBlockRelationJpaRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.instancio.Instancio
 import org.junit.jupiter.api.DisplayName
@@ -16,6 +17,9 @@ class MemberBlockRelationRepositoryImplTest {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @Autowired
+    private lateinit var jpaRepository: MemberBlockRelationJpaRepository
 
     @Test
     @DisplayName("차단 관계를 저장하면 차단한 회원의 차단 대상 회원 ID 목록으로 조회된다")
@@ -55,6 +59,38 @@ class MemberBlockRelationRepositoryImplTest {
         assertThat(repository.getBlockedMemberIdsByMemberId(other)).containsExactly(third)
         assertThat(repository.getBlockedMemberIdsByMemberId(third)).isEmpty()
         assertThat(relationCountReferencing(memberId)).isEqualTo(0)
+    }
+
+    @Test
+    @DisplayName("차단 관계를 저장하면 식별자가 발급되고 차단한 회원, 차단 대상, 생성자, 생성 시각이 기록된다")
+    fun createPersistsRelation() {
+        // given
+        val (memberId, blockedMemberId, createdBy) = distinctIds(3)
+
+        // when
+        repository.create(memberId, blockedMemberId, createdBy)
+
+        // then
+        val relation = jpaRepository.findAllByMemberId(memberId).single()
+        assertThat(relation.memberBlockRelationId).isPositive()
+        assertThat(relation.memberId).isEqualTo(memberId)
+        assertThat(relation.blockedMemberId).isEqualTo(blockedMemberId)
+        assertThat(relation.createdBy).isEqualTo(createdBy)
+        assertThat(relation.createdAt).isNotNull()
+    }
+
+    @Test
+    @DisplayName("이미 저장된 차단 관계를 다시 저장하면 새 행이 만들어지지 않는다")
+    fun createIsIdempotent() {
+        // given
+        val (memberId, blockedMemberId) = distinctIds(2)
+        repository.create(memberId, blockedMemberId, memberId)
+
+        // when
+        repository.create(memberId, blockedMemberId, memberId)
+
+        // then
+        assertThat(relationCountReferencing(memberId)).isEqualTo(1)
     }
 
     private fun relationCountReferencing(memberId: Long): Int = jdbcTemplate.queryForObject(

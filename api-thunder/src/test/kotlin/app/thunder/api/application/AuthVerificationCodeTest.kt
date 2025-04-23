@@ -25,7 +25,7 @@ class AuthVerificationCodeTest {
     fun verificationCodeComesFromSecureRandom() {
         // given
         val fixedRandom = object : SecureRandom() {
-            override fun nextInt(bound: Int): Int = 554_321
+            override fun nextInt(bound: Int): Int = if (bound == VERIFICATION_CODE_RANGE) 554_321 else 0
         }
         val authService = AuthService(
             smsClient = smsClient,
@@ -44,6 +44,10 @@ class AuthVerificationCodeTest {
         // then
         verify(mobileVerificationRepository).create("device-1", "01012345678", "KR", "654321")
         verify(smsClient).sendSms("01012345678", "인증번호 [654321]를 Thunder 앱에서 입력해주세요.", false)
+    }
+
+    companion object {
+        private const val VERIFICATION_CODE_RANGE = 900_000
     }
 
 }

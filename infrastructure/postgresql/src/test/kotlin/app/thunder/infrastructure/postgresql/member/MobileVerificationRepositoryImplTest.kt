@@ -144,6 +144,46 @@ class MobileVerificationRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("만료 시각 이전의 엔티티는 만료되지 않았고 만료 시각은 생성 3분 뒤이다")
+    fun entityNotExpiredBeforeExpiry() {
+        // given
+        val entity = MobileVerificationEntity.create("device-1", MOBILE_NUMBER, "KR", "111111")
+
+        // when
+        val beforeExpiry = entity.isExpired(entity.expiredAt.minusNanos(1))
+
+        // then
+        assertThat(beforeExpiry).isFalse()
+        assertThat(entity.expiredAt).isEqualTo(entity.createdAt.plusMinutes(3))
+    }
+
+    @Test
+    @DisplayName("기준 시각을 생략하면 현재 시각으로 판단해 방금 만든 엔티티는 만료되지 않았다")
+    fun entityNotExpiredWithoutReferenceTime() {
+        // given
+        val entity = MobileVerificationEntity.create("device-1", MOBILE_NUMBER, "KR", "111111")
+
+        // when
+        val now = entity.isExpired()
+
+        // then
+        assertThat(now).isFalse()
+    }
+
+    @Test
+    @DisplayName("엔티티를 초기화하면 인증 시각이 초기값으로 기록된다")
+    fun entityReset() {
+        // given
+        val entity = MobileVerificationEntity.create("device-1", MOBILE_NUMBER, "KR", "111111")
+
+        // when
+        entity.reset()
+
+        // then
+        assertThat(entity.verifiedAt).isEqualTo(LocalDateTime.of(1, 1, 1, 0, 0))
+    }
+
+    @Test
     @DisplayName("mobile_verification 테이블에는 mobile_number 단독 index가 있다")
     fun mobileNumberIndexExists() {
         // given

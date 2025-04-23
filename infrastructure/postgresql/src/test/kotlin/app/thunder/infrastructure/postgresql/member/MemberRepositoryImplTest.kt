@@ -99,6 +99,33 @@ class MemberRepositoryImplTest {
         }
     }
 
+    @Test
+    @DisplayName("닉네임으로 회원을 조회하면 그 닉네임의 회원이 반환된다")
+    fun getByNickname() {
+        // given
+        val memberId = insertMember(loggedOutAt = null)
+
+        // when
+        val member = repository.getByNickname("user$memberId")
+
+        // then
+        assertThat(member?.memberId).isEqualTo(memberId)
+        assertThat(member?.nickname).isEqualTo("user$memberId")
+    }
+
+    @Test
+    @DisplayName("없는 닉네임으로 회원을 조회하면 null이 반환된다")
+    fun getByNicknameMissing() {
+        // given
+        val nickname = Instancio.gen().string().alphaNumeric().length(20).get()
+
+        // when
+        val member = repository.getByNickname(nickname)
+
+        // then
+        assertThat(member).isNull()
+    }
+
     private fun insertMember(loggedOutAt: LocalDateTime?): Long {
         val memberId = Instancio.gen().longs().min(1L).max(1_000_000L).get()
         jdbcTemplate.update(

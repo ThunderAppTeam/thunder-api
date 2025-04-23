@@ -2,7 +2,11 @@ package app.thunder.api.member
 
 import app.thunder.api.scheduler.NotificationScheduler
 import app.thunder.core.member.repository.FcmTokenRepository
+import app.thunder.core.member.repository.MemberRepository
 import app.thunder.core.notification.domain.NotificationResult
+import app.thunder.core.photo.repository.BodyPhotoRepository
+import app.thunder.core.review.repository.BodyReviewRepository
+import app.thunder.core.review.repository.ReviewableBodyPhotoRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -14,10 +18,33 @@ import org.springframework.beans.factory.annotation.Autowired
 class InvalidFcmTokenCleanupTest : MemberWebTest() {
 
     @Autowired
-    private lateinit var notificationScheduler: NotificationScheduler
+    private lateinit var memberRepository: MemberRepository
+
+    @Autowired
+    private lateinit var bodyPhotoRepository: BodyPhotoRepository
+
+    @Autowired
+    private lateinit var bodyReviewRepository: BodyReviewRepository
+
+    @Autowired
+    private lateinit var reviewableBodyPhotoRepository: ReviewableBodyPhotoRepository
 
     @Autowired
     private lateinit var fcmTokenRepository: FcmTokenRepository
+
+    private lateinit var notificationScheduler: NotificationScheduler
+
+    @BeforeEach
+    fun createScheduler() {
+        notificationScheduler = NotificationScheduler(
+            memberRepository,
+            bodyPhotoRepository,
+            bodyReviewRepository,
+            reviewableBodyPhotoRepository,
+            fcmTokenRepository,
+            notificationClient,
+        )
+    }
 
     @BeforeEach
     fun createMembers() {

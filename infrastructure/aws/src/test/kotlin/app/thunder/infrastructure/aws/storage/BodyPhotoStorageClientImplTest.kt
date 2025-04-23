@@ -4,6 +4,7 @@ import app.thunder.infrastructure.aws.storage.AwsProperties.AwsCredentialsProper
 import app.thunder.infrastructure.aws.storage.AwsProperties.AwsRegionProperties
 import app.thunder.infrastructure.aws.storage.AwsProperties.AwsS3Properties
 import org.assertj.core.api.Assertions.assertThat
+import org.instancio.Instancio
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -12,7 +13,9 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 class BodyPhotoStorageClientImplTest {
 
@@ -69,6 +72,46 @@ class BodyPhotoStorageClientImplTest {
 
         // then
         verify(s3Client, never()).deleteObject(ArgumentCaptor.forClass(DeleteObjectRequest::class.java).capture())
+    }
+
+    @Test
+    @DisplayName("파일을 버킷의 경로에 지정한 콘텐츠 타입으로 올리고 저장된 URL을 돌려준다")
+    fun uploadPutsObjectAndReturnsUrl() {
+        // given
+        val file = Instancio.create(ByteArray::class.java)
+        val filePath = "1/body_photo/0f0f0f0f.png"
+
+        // when
+        val url = client.upload(file, "image/png", filePath)
+
+        // then
+        val (request, body) = capturedPutArguments()
+        assertThat(url).isEqualTo("$URL_PREFIX/$filePath")
+        assertThat(request.bucket()).isEqualTo(BUCKET)
+        assertThat(request.key()).isEqualTo(filePath)
+        assertThat(request.contentType()).isEqualTo("image/png")
+        assertThat(body.optionalContentLength()).hasValue(file.size.toLong())
+        assertThat(body.contentStreamProvider().newStream().readAllBytes()).isEqualTo(file)
+    }
+
+    @Test
+    @DisplayName("콘텐츠 타입이 없으면 image/jpeg로 올린다")
+    fun uploadDefaultsContentTypeToJpeg() {
+        // given
+        val file = Instancio.create(ByteArray::class.java)
+
+        // when
+        client.upload(file, null, "1/body_photo/a.jpg")
+
+        // then
+        assertThat(capturedPutArguments().first.contentType()).isEqualTo("image/jpeg")
+    }
+
+    private fun capturedPutArguments(): Pair<PutObjectRequest, RequestBody> {
+        val requestCaptor = ArgumentCaptor.forClass(PutObjectRequest::class.java)
+        val bodyCaptor = ArgumentCaptor.forClass(RequestBody::class.java)
+        verify(s3Client).putObject(requestCaptor.capture(), bodyCaptor.capture())
+        return requestCaptor.value to bodyCaptor.value
     }
 
     private fun capturedDeleteRequest(): DeleteObjectRequest {

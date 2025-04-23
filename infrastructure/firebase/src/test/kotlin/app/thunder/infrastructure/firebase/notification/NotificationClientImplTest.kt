@@ -17,8 +17,10 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.slf4j.LoggerFactory
 
@@ -27,6 +29,7 @@ class NotificationClientImplTest {
     private lateinit var firebaseMessaging: FirebaseMessaging
     private lateinit var client: NotificationClientImpl
     private lateinit var logAppender: ListAppender<ILoggingEvent>
+    private var originalLogLevel: Level? = null
     private val logger = LoggerFactory.getLogger(NotificationClientImpl::class.java) as Logger
 
     @BeforeEach
@@ -35,12 +38,14 @@ class NotificationClientImplTest {
         client = NotificationClientImpl(firebaseMessaging)
         logAppender = ListAppender<ILoggingEvent>().apply { start() }
         logger.addAppender(logAppender)
+        originalLogLevel = logger.level
         logger.level = Level.ALL
     }
 
     @AfterEach
     fun tearDown() {
         logger.detachAppender(logAppender)
+        logger.level = originalLogLevel
     }
 
     @Test
@@ -115,6 +120,29 @@ class NotificationClientImplTest {
         assertThat(messages).isNotEmpty()
         assertThat(messages).allSatisfy { assertThat(it).doesNotContain(token) }
         assertThat(messages.joinToString()).contains("${token.take(6)}...")
+    }
+
+    @Test
+    @DisplayName("이미지 URL이 있으면 알림 이미지로 담아 전송한다")
+    fun sendsImageUrlInNotification() {
+        // given
+        val token = fcmToken()
+        val imageUrl = "https://example.com/${Instancio.create(String::class.java)}.jpg"
+
+        // when
+        val result = client.sendNotification(token, "title", "body", imageUrl, "/")
+
+        // then
+        val captor = ArgumentCaptor.forClass(Message::class.java)
+        verify(firebaseMessaging).send(captor.capture())
+        assertThat(result).isEqualTo(NotificationResult.SENT)
+        assertThat(fieldOf(fieldOf(captor.value, "notification"), "image")).isEqualTo(imageUrl)
+    }
+
+    private fun fieldOf(target: Any?, name: String): Any? {
+        val field = target!!.javaClass.getDeclaredField(name)
+        field.isAccessible = true
+        return field.get(target)
     }
 
     private fun send(token: String): NotificationResult = client.sendNotification(

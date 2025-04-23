@@ -97,6 +97,64 @@ class DummyDeckRepositoryImplTest {
         assertThat(storedIds(otherRequesterId)).isEmpty()
     }
 
+    @Test
+    @DisplayName("더미 덱에 있는 사진을 지우면 true를 돌려주고 그 행만 사라진다")
+    fun deleteByMemberIdAndBodyPhotoId() {
+        // given
+        val otherRequesterId = insertMember("other-requester")
+        val deck = repository.getAllByMemberId(requesterId)
+        val otherDeck = repository.getAllByMemberId(otherRequesterId)
+        val target = deck.first()
+
+        // when
+        val deleted = repository.deleteByMemberIdAndBodyPhotoId(requesterId, target.bodyPhotoId)
+
+        // then
+        assertThat(deleted).isTrue()
+        assertThat(repository.exists(requesterId, target.bodyPhotoId)).isFalse()
+        assertThat(storedIds(requesterId)).hasSize(deck.size - 1).doesNotContain(target.dummyDeckId)
+        assertThat(repository.exists(otherRequesterId, target.bodyPhotoId)).isTrue()
+        assertThat(storedIds(otherRequesterId)).containsExactlyInAnyOrderElementsOf(otherDeck.map { it.dummyDeckId })
+    }
+
+    @Test
+    @DisplayName("더미 덱에 없는 사진을 지우면 false를 돌려주고 덱은 그대로이다")
+    fun deleteByMemberIdAndBodyPhotoIdMissing() {
+        // given
+        val deck = repository.getAllByMemberId(requesterId)
+        val missingBodyPhotoId = deck.maxOf { it.bodyPhotoId } + 1
+
+        // when
+        val deleted = repository.deleteByMemberIdAndBodyPhotoId(requesterId, missingBodyPhotoId)
+
+        // then
+        assertThat(deleted).isFalse()
+        assertThat(storedIds(requesterId)).hasSize(deck.size)
+    }
+
+    @Test
+    @DisplayName("더미 사진이 아닌 사진을 가리키는 더미 덱 행은 조회 결과에서 빠진다")
+    fun getAllByMemberIdSkipsRowsOfUnknownPhoto() {
+        // given
+        val deck = repository.getAllByMemberId(requesterId)
+        val unknownPhotoId = deck.maxOf { it.bodyPhotoId } + 1
+        jdbcTemplate.update(
+            """
+            INSERT INTO dummy_deck (member_id, body_photo_id, body_photo_member_id, nickname, age, created_at)
+            VALUES (?, ?, ?, 'orphan', 30, ?)
+            """.trimIndent(),
+            requesterId, unknownPhotoId, deck.first().bodyPhotoMemberId, LocalDateTime.now(),
+        )
+
+        // when
+        val result = repository.getAllByMemberId(requesterId)
+
+        // then
+        assertThat(storedIds(requesterId)).hasSize(deck.size + 1)
+        assertThat(result.map { it.dummyDeckId }).containsExactlyInAnyOrderElementsOf(deck.map { it.dummyDeckId })
+        assertThat(result.map { it.bodyPhotoId }).doesNotContain(unknownPhotoId)
+    }
+
     private fun storedIds(memberId: Long): List<Long> =
         jdbcTemplate.queryForList("SELECT dummy_deck_id FROM dummy_deck WHERE member_id = ?", Long::class.java, memberId)
 

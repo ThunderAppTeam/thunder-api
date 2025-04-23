@@ -31,6 +31,28 @@ class FlagHistoryRepositoryImplTest {
         assertThat(repository.getFlagCountByBodyPhotoId()).isEqualTo(mapOf(keptPhotoId to 1))
     }
 
+    @Test
+    @DisplayName("신고 기록을 모두 조회하면 저장한 회원, 사진, 사유, 기타 사유가 그대로 담기고 빈 기타 사유는 null이 된다")
+    fun getAll() {
+        // given
+        val photoId = positiveId()
+        repository.create(1L, photoId, FlagReason.OTHER, "reason")
+        repository.create(2L, photoId, FlagReason.SEXUAL_CONTENT, "   ")
+
+        // when
+        val result = repository.getAll().filter { it.bodyPhotoId == photoId }
+
+        // then
+        assertThat(result).hasSize(2)
+        assertThat(result.map { it.flagHistoryId }).allMatch { it > 0 }.doesNotHaveDuplicates()
+        assertThat(result.map { it.createdAt }).doesNotContainNull()
+        assertThat(result.map { Triple(it.memberId, it.flagReason, it.otherReason) })
+            .containsExactlyInAnyOrder(
+                Triple(1L, FlagReason.OTHER, "reason"),
+                Triple(2L, FlagReason.SEXUAL_CONTENT, null),
+            )
+    }
+
     private fun positiveId(): Long = Instancio.gen().longs().min(1L).max(1_000_000L).get()
 
 }

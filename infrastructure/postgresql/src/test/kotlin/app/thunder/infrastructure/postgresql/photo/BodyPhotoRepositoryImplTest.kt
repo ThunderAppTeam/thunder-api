@@ -1,6 +1,8 @@
 package app.thunder.infrastructure.postgresql.photo
 
 import app.thunder.core.member.domain.Gender
+import app.thunder.core.photo.domain.BodyPhoto
+import jakarta.persistence.EntityManager
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -21,6 +23,9 @@ class BodyPhotoRepositoryImplTest {
 
     @Autowired
     private lateinit var jdbcTemplate: JdbcTemplate
+
+    @Autowired
+    private lateinit var entityManager: EntityManager
 
     private var femaleId = 0L
     private var otherFemaleId = 0L
@@ -216,6 +221,64 @@ class BodyPhotoRepositoryImplTest {
 
         // then
         assertThat(changed).isFalse()
+    }
+
+    @Test
+    @DisplayName("사진을 수정하면 리뷰 수와 점수 합계, 갱신 시각이 저장되고 다른 사진은 그대로이다")
+    fun update() {
+        // given
+        val photoId = insertPhoto(femaleId, reviewCount = 2, totalReviewScore = 7.0)
+        val otherPhotoId = insertPhoto(femaleId, reviewCount = 3, totalReviewScore = 9.0)
+        val updatedAt = LocalDateTime.of(2026, 1, 2, 3, 4, 5)
+        val stored = repository.getById(photoId)!!
+        val changed = BodyPhoto(
+            bodyPhotoId = stored.bodyPhotoId,
+            memberId = stored.memberId,
+            imageUrl = stored.imageUrl,
+            reviewCount = 7,
+            totalReviewScore = 28.5,
+            createdAt = stored.createdAt,
+            updatedAt = updatedAt,
+        )
+
+        // when
+        repository.update(changed)
+        entityManager.flush()
+        entityManager.clear()
+
+        // then
+        val photo = repository.getById(photoId)!!
+        assertThat(photo.reviewCount).isEqualTo(7)
+        assertThat(photo.totalReviewScore).isEqualTo(28.5)
+        assertThat(photo.updatedAt).isEqualTo(updatedAt)
+        val other = repository.getById(otherPhotoId)!!
+        assertThat(other.reviewCount).isEqualTo(3)
+        assertThat(other.totalReviewScore).isEqualTo(9.0)
+        assertThat(other.updatedAt).isNull()
+    }
+
+    @Test
+    @DisplayName("없는 사진을 수정해도 새 사진이 만들어지지 않는다")
+    fun updateMissingPhoto() {
+        // given
+        val missingId = 987_654L
+        val missing = BodyPhoto(
+            bodyPhotoId = missingId,
+            memberId = femaleId,
+            imageUrl = Instancio.gen().net().uri().get().toString(),
+            reviewCount = 5,
+            totalReviewScore = 20.0,
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now(),
+        )
+
+        // when
+        repository.update(missing)
+        entityManager.flush()
+        entityManager.clear()
+
+        // then
+        assertThat(repository.getById(missingId)).isNull()
     }
 
     private fun insertMember(gender: Gender): Long {

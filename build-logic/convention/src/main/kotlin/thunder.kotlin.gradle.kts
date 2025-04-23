@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
+    jacoco
     id("org.jetbrains.kotlin.jvm")
 }
 

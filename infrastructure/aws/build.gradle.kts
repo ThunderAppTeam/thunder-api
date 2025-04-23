@@ -10,5 +10,6 @@ dependencies {
     implementation(libs.awssdk.s3)
     implementation(libs.awssdk.rekognition)
 
+    testImplementation(libs.instancio.junit)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

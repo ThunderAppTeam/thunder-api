@@ -1,6 +1,7 @@
 package app.thunder.api
 
 import app.thunder.api.auth.TokenManager
+import app.thunder.api.scheduler.NotificationScheduler
 import com.google.firebase.messaging.FirebaseMessaging
 import java.time.LocalDateTime
 import java.util.UUID
@@ -35,6 +36,9 @@ abstract class ThunderApiWebTest {
 
     @MockitoBean
     protected lateinit var firebaseMessaging: FirebaseMessaging
+
+    @MockitoBean
+    private lateinit var cronDrivenNotificationScheduler: NotificationScheduler
 
     @Autowired
     protected lateinit var mockMvc: MockMvc
