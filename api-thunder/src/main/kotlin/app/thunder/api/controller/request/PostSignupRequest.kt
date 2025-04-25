@@ -1,6 +1,7 @@
 package app.thunder.api.controller.request
 
 import app.thunder.core.member.domain.Gender
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Past
 import jakarta.validation.constraints.Pattern
@@ -29,5 +30,6 @@ data class PostSignupRequest(
     @field:Size(max = 2)
     val countryCode: String,
 
+    @JsonProperty(required = true)
     val marketingAgreement: Boolean,
 )
