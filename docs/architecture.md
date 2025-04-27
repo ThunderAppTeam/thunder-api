@@ -69,6 +69,16 @@ core 파일은 `app.thunder.core.<domain>.<kind>`에 둔다.<br>
   그래야 core 계약과 같은 이름이 두 곳에 생기지 않는다.<br>
   Spring Data는 `<JPA 인터페이스 이름>Impl` 클래스를 custom 구현으로 연결하므로 `*RepositoryImpl`과 겹치지 않는다.
 
+## 요청 DTO
+
+- `api-thunder`의 `controller.request` 요청 DTO에서 non-null `Boolean` 생성자 필드에는
+  `@JsonProperty(required = true)`를 붙인다.<br>
+  붙이지 않으면 Jackson이 요청 본문에 빠진 필드를 `false`로 채워서, 400으로 거절해야 할 요청이 그대로 처리된다.
+- 이 규칙을 전역 설정 `spring.jackson.deserialization.fail-on-null-for-primitives`로 대신하지 않는다.<br>
+  같은 `ObjectMapper`가 Aligo SMS 응답도 읽어서, 응답 DTO의 원시 타입 필드까지 영향을 받는다.
+- 숫자 필드는 이 규칙의 대상이 아니다.<br>
+  지금 있는 숫자 필드는 `@Positive`나 `@Range`가 빠진 값인 0을 거른다.
+
 ## 규칙 검사
 
 `./gradlew build`가 `testing:architecture` 테스트를 함께 실행하고, 위반이 있으면 빌드가 실패한다.
@@ -79,6 +89,7 @@ core 파일은 `app.thunder.core.<domain>.<kind>`에 둔다.<br>
 | `CoreRulesTest` | core의 금지 import, 계약 이름, 도메인 간 import |
 | `ImplementationRulesTest` | `Port`/`Adapter` 이름 금지, 구현체당 계약 하나와 `internal class *Impl` |
 | `BoundaryRulesTest` | infrastructure 모듈 간 import 금지, api의 infrastructure import 범위, libraries 독립 |
+| `ApiRequestRulesTest` | 요청 DTO의 non-null `Boolean` 생성자 필드에 `@JsonProperty(required = true)` |
 
 규칙을 바꿀 때는 이 문서와 테스트를 함께 바꾼다.
 
