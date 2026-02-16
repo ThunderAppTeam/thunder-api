@@ -1,34 +1,34 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.request.PutMemberSettingsRequest
-import app.thunder.api.domain.member.adapter.DeletedMemberAdapter
-import app.thunder.api.domain.member.adapter.FcmTokenAdapter
-import app.thunder.api.domain.member.adapter.MemberAdapter
-import app.thunder.api.domain.member.adapter.MemberBlockRelationAdapter
-import app.thunder.api.domain.member.adapter.MemberSettingAdapter
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
 import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.nullIfBlank
+import app.thunder.domain.member.DeletedMemberPort
+import app.thunder.domain.member.FcmTokenPort
 import app.thunder.domain.member.Member
 import app.thunder.domain.member.MemberDeletionReason
+import app.thunder.domain.member.MemberBlockRelationPort
+import app.thunder.domain.member.MemberPort
 import app.thunder.domain.member.MemberSetting
 import app.thunder.domain.member.MemberSettingOptions
-import app.thunder.domain.photo.BodyPhotoAdapter
-import app.thunder.domain.review.ReviewableBodyPhotoAdapter
+import app.thunder.domain.member.MemberSettingPort
+import app.thunder.domain.photo.BodyPhotoPort
+import app.thunder.domain.review.ReviewableBodyPhotoPort
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class MemberService(
-    private val memberAdapter: MemberAdapter,
-    private val memberBlockRelationAdapter: MemberBlockRelationAdapter,
-    private val deletedMemberAdapter: DeletedMemberAdapter,
-    private val bodyPhotoAdapter: BodyPhotoAdapter,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
-    private val fcmTokenAdapter: FcmTokenAdapter,
-    private val memberSettingAdapter: MemberSettingAdapter,
+    private val memberAdapter: MemberPort,
+    private val memberBlockRelationPort: MemberBlockRelationPort,
+    private val deletedMemberPort: DeletedMemberPort,
+    private val bodyPhotoAdapter: BodyPhotoPort,
+    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val fcmTokenPort: FcmTokenPort,
+    private val memberSettingAdapter: MemberSettingPort,
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
@@ -40,12 +40,12 @@ class MemberService(
 
     @Transactional
     fun block(requestMemberId: Long, blockedMemberId: Long) {
-        memberBlockRelationAdapter.create(memberId = blockedMemberId,
-                                          blockedMemberId = requestMemberId,
-                                          createdBy = requestMemberId)
-        memberBlockRelationAdapter.create(memberId = requestMemberId,
-                                          blockedMemberId = blockedMemberId,
-                                          createdBy = requestMemberId)
+        memberBlockRelationPort.create(memberId = blockedMemberId,
+                                       blockedMemberId = requestMemberId,
+                                       createdBy = requestMemberId)
+        memberBlockRelationPort.create(memberId = requestMemberId,
+                                       blockedMemberId = blockedMemberId,
+                                       createdBy = requestMemberId)
 
         reviewableBodyPhotoAdapter.deleteAllByMemberIdAndPhotoMemberId(requestMemberId, blockedMemberId)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(requestMemberId))
@@ -57,16 +57,16 @@ class MemberService(
     @Transactional
     fun delete(memberId: Long, deletionReason: MemberDeletionReason, otherReason: String?) {
         val member = this.getById(memberId)
-        deletedMemberAdapter.create(member.memberId,
-                                    member.memberUuid,
-                                    member.nickname,
-                                    member.mobileNumber,
-                                    deletionReason,
-                                    otherReason?.nullIfBlank())
+        deletedMemberPort.create(member.memberId,
+                                 member.memberUuid,
+                                 member.nickname,
+                                 member.mobileNumber,
+                                 deletionReason,
+                                 otherReason?.nullIfBlank())
         memberAdapter.deleteById(memberId)
         bodyPhotoAdapter.deleteAllByMemberId(memberId)
         reviewableBodyPhotoAdapter.deleteAllByMemberId(memberId)
-        memberBlockRelationAdapter.deleteAllByMemberId(memberId)
+        memberBlockRelationPort.deleteAllByMemberId(memberId)
     }
 
     @Transactional
@@ -78,7 +78,7 @@ class MemberService(
 
     @Transactional
     fun savedFcmToken(memberId: Long, fcmToken: String) {
-        fcmTokenAdapter.createOrUpdate(memberId, fcmToken)
+        fcmTokenPort.createOrUpdate(memberId, fcmToken)
     }
 
     @Transactional

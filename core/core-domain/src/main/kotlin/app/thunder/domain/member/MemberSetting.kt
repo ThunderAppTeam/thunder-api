@@ -2,7 +2,7 @@ package app.thunder.domain.member
 
 import java.time.LocalDateTime
 
-class MemberSetting constructor(
+class MemberSetting(
     val memberId: Long,
     reviewCompleteNotify: Boolean,
     reviewRequestNotify: Boolean,

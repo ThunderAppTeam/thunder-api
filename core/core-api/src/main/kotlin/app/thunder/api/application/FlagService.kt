@@ -1,18 +1,18 @@
 package app.thunder.api.application
 
 import app.thunder.api.controller.response.GetFlagReasonResponse
-import app.thunder.api.domain.flag.FlagHistoryAdapter
-import app.thunder.api.domain.flag.FlagReason
 import app.thunder.api.event.RefreshReviewableEvent
-import app.thunder.domain.review.ReviewableBodyPhotoAdapter
+import app.thunder.domain.flag.FlagHistoryPort
+import app.thunder.domain.flag.FlagReason
+import app.thunder.domain.review.ReviewableBodyPhotoPort
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class FlagService(
-    private val flagHistoryAdapter: FlagHistoryAdapter,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoAdapter,
+    private val flagHistoryPort: FlagHistoryPort,
+    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
@@ -32,10 +32,10 @@ class FlagService(
         flagReason: FlagReason,
         otherReason: String?,
     ) {
-        flagHistoryAdapter.create(memberId = memberId,
-                                  bodyPhotoId = bodyPhotoId,
-                                  flagReason = flagReason,
-                                  otherReason = otherReason)
+        flagHistoryPort.create(memberId = memberId,
+                               bodyPhotoId = bodyPhotoId,
+                               flagReason = flagReason.name,
+                               otherReason = otherReason)
         reviewableBodyPhotoAdapter.deleteByMemberIdAndBodyPhotoId(memberId, bodyPhotoId)
         applicationEventPublisher.publishEvent(RefreshReviewableEvent(memberId))
     }

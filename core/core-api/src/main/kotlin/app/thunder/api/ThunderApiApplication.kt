@@ -13,9 +13,9 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableScheduling
 @EnableAsync
 @ConfigurationPropertiesScan
-@EntityScan(basePackages = ["app.thunder"])
-@EnableJpaRepositories(basePackages = ["app.thunder"])
-@SpringBootApplication(scanBasePackages = ["app.thunder"])
+@EntityScan(basePackages = ["app.thunder.storage.db"])
+@EnableJpaRepositories(basePackages = ["app.thunder.storage.db"])
+@SpringBootApplication(scanBasePackages = ["app.thunder.api", "app.thunder.storage.db"])
 class ThunderApiApplication
 
 fun main(args: Array<String>) {

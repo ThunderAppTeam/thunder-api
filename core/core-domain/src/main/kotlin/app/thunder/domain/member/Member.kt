@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-class Member constructor(
+class Member(
     val memberId: Long,
     val nickname: String,
     val mobileNumber: String,

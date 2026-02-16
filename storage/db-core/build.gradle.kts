@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":core:core-domain"))
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.security:spring-security-crypto")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.linecorp.kotlin-jdsl:jpql-dsl:3.5.4")

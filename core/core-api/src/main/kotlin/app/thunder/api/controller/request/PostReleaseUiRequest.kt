@@ -1,6 +1,6 @@
 package app.thunder.api.controller.request
 
-import app.thunder.api.domain.admin.MobileOs
+import app.thunder.domain.admin.MobileOs
 import jakarta.validation.constraints.NotNull
 
 data class PostReleaseUiRequest(
