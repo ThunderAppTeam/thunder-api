@@ -1,19 +1,25 @@
 package app.thunder.api.exception
 
 import app.thunder.api.controller.response.ErrorResponse
-import app.thunder.api.exception.CommonErrors.INVALID_PARAMETER_VALUE
-import app.thunder.api.exception.CommonErrors.UNKNOWN_SERVER_ERROR
+import app.thunder.shared.errors.CommonErrors.INVALID_PARAMETER_VALUE
+import app.thunder.shared.errors.CommonErrors.UNKNOWN_SERVER_ERROR
+import app.thunder.shared.errors.ErrorCode
+import app.thunder.shared.errors.ThunderException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import jakarta.servlet.*
+import jakarta.servlet.Filter
+import jakarta.servlet.FilterChain
+import jakarta.servlet.FilterConfig
+import jakarta.servlet.ServletRequest
+import jakarta.servlet.ServletResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import java.nio.charset.StandardCharsets
+import java.time.ZonedDateTime
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageNotReadableException
-import java.nio.charset.StandardCharsets
-import java.time.ZonedDateTime
 
 class ExceptionHandlingFilter : Filter {
     private val objectMapper = ObjectMapper()

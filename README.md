@@ -11,22 +11,24 @@ This is a HTTP API server build with Spring Boot. It provides data and features 
 ## Architecture
 
 ```mermaid
-flowchart TB
-    subgraph ROOT["thunder-api (Gradle Multi-module)"]
-        API["core:core-api\nExecutable Spring Boot API"]
-        DOMAIN["core:core-domain\nDomain models + ports (Adapter interfaces)"]
-        DB["storage:db-core\nPersistence adapters (JPA/JDBC)"]
-    end
+flowchart LR
+    API["core:core-api"]
+    DOMAIN["core:core-domain"]
+    ERRORS["shared:errors"]
+    DB["infrastructure:db-core"]
+    AWS["infrastructure:aws"]
+    FB["infrastructure:firebase"]
+    CLIENT["infrastructure:client"]
 
-    API -->|implementation| DOMAIN
-    DB -->|implementation| DOMAIN
-    API -.->|compileOnly| DB
-
-    CLIENT["Thunder Flutter App"] -->|HTTP| API
-    API -->|Flyway/JPA| PG[(PostgreSQL)]
-    API -->|SDK| S3[(AWS S3)]
-    API -->|Admin SDK| FCM[(Firebase FCM)]
-    API -->|HTTP Client| SMS[(Aligo SMS)]
+    API --> DOMAIN
+    API --> ERRORS
+    API --> DB
+    API --> AWS
+    API --> FB
+    API --> CLIENT
+    DB --> DOMAIN
+    FB --> DOMAIN
+    CLIENT --> ERRORS
 ```
 
 

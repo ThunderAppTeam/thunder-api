@@ -3,10 +3,10 @@ package app.thunder.api.application
 import app.thunder.api.controller.response.GetReviewableResponse
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewCompleteEvent
-import app.thunder.api.exception.BodyErrors.ALREADY_REVIEWED
-import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
-import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
-import app.thunder.api.exception.ThunderException
+import app.thunder.shared.errors.BodyErrors.ALREADY_REVIEWED
+import app.thunder.shared.errors.BodyErrors.NOT_FOUND_BODY_PHOTO
+import app.thunder.shared.errors.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.shared.errors.ThunderException
 import app.thunder.domain.member.MemberPort
 import app.thunder.domain.photo.BodyPhotoPort
 import app.thunder.domain.review.BodyReviewPort

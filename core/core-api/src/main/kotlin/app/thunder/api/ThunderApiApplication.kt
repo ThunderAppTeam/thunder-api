@@ -12,10 +12,10 @@ import org.springframework.scheduling.annotation.EnableScheduling
 
 @EnableScheduling
 @EnableAsync
-@ConfigurationPropertiesScan
-@EntityScan(basePackages = ["app.thunder.storage.db"])
-@EnableJpaRepositories(basePackages = ["app.thunder.storage.db"])
-@SpringBootApplication(scanBasePackages = ["app.thunder.api", "app.thunder.storage.db"])
+@ConfigurationPropertiesScan(basePackages = ["app.thunder"])
+@EntityScan(basePackages = ["app.thunder.infrastructure.db"])
+@EnableJpaRepositories(basePackages = ["app.thunder.infrastructure.db"])
+@SpringBootApplication(scanBasePackages = ["app.thunder.api", "app.thunder.infrastructure"])
 class ThunderApiApplication
 
 fun main(args: Array<String>) {

@@ -3,7 +3,11 @@ rootProject.name = "thunder-api"
 include(
     "core:core-api",
     "core:core-domain",
-    "storage:db-core",
+    "shared:errors",
+    "infrastructure:db-core",
+    "infrastructure:aws",
+    "infrastructure:firebase",
+    "infrastructure:client",
 )
 
 pluginManagement {

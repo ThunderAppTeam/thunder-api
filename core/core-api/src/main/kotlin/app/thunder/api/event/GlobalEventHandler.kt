@@ -1,12 +1,12 @@
 package app.thunder.api.event
 
+import app.thunder.domain.flag.FlagHistoryPort
 import app.thunder.domain.member.FcmTokenPort
 import app.thunder.domain.member.MemberBlockRelationPort
 import app.thunder.domain.member.MemberPort
 import app.thunder.domain.member.MemberSettingPort
 import app.thunder.domain.notification.NotificationPort
 import app.thunder.domain.photo.BodyPhotoPort
-import app.thunder.domain.flag.FlagHistoryPort
 import app.thunder.domain.review.BodyReviewPort
 import app.thunder.domain.review.ReviewableBodyPhotoPort
 import app.thunder.domain.review.command.CreateReviewableBodyPhotoCommand

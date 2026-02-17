@@ -2,14 +2,14 @@ package app.thunder.api.application
 
 import app.thunder.api.controller.request.PutMemberSettingsRequest
 import app.thunder.api.event.RefreshReviewableEvent
-import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
-import app.thunder.api.exception.ThunderException
+import app.thunder.shared.errors.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.shared.errors.ThunderException
 import app.thunder.api.func.nullIfBlank
 import app.thunder.domain.member.DeletedMemberPort
 import app.thunder.domain.member.FcmTokenPort
 import app.thunder.domain.member.Member
-import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.domain.member.MemberBlockRelationPort
+import app.thunder.domain.member.MemberDeletionReason
 import app.thunder.domain.member.MemberPort
 import app.thunder.domain.member.MemberSetting
 import app.thunder.domain.member.MemberSettingOptions
