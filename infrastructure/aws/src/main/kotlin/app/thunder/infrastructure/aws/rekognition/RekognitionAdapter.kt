@@ -1,0 +1,51 @@
+package app.thunder.infrastructure.aws.rekognition
+
+import app.thunder.domain.photo.BodyDetectionPort
+import app.thunder.domain.photo.BodyDetectionResult
+import app.thunder.infrastructure.aws.rekognition.BodyRekognition.RekognitionLabel
+import org.springframework.stereotype.Component
+import software.amazon.awssdk.core.SdkBytes
+import software.amazon.awssdk.services.rekognition.RekognitionClient
+import software.amazon.awssdk.services.rekognition.model.DetectLabelsRequest
+import software.amazon.awssdk.services.rekognition.model.Image
+
+@Component
+class RekognitionAdapter(
+    private val rekognitionClient: RekognitionClient,
+) : BodyDetectionPort {
+
+    companion object {
+        private val PERSON_LABELS = setOf(
+            "Person", "Male", "Female", "Man", "Woman", "Shoulder", "Leg Press", "Arm", "Knee", "Neck", "Bicep Curls",
+            "Wrist", "Back", "Ankle", "Finger", "Hip", "Toe", "Calf", "Thigh", "Body Part"
+        )
+    }
+
+    override fun detectBody(imageFile: ByteArray): BodyDetectionResult {
+        val image = Image.builder()
+            .bytes(SdkBytes.fromByteArray(imageFile))
+            .build()
+        val request = DetectLabelsRequest.builder()
+            .image(image)
+            .minConfidence(90f)
+            .maxLabels(100)
+            .build()
+
+        val response = rekognitionClient.detectLabels(request)
+
+        var isDetectedBody = false
+        val labels = response.labels().map { label ->
+            if (PERSON_LABELS.contains(label.name())) {
+                isDetectedBody = true
+            }
+            RekognitionLabel(label.name(), label.confidence())
+        }
+
+        val bodyRekognition = BodyRekognition(isDetectedBody, labels)
+        return BodyDetectionResult(
+            isDetectedBody = bodyRekognition.isDetectedBody,
+            details = bodyRekognition.toString(),
+        )
+    }
+
+}

@@ -14,9 +14,12 @@ allOpen {
 
 dependencies {
     implementation(project(":core:core-domain"))
-    implementation(project(":storage:db-core"))
+    implementation(project(":shared:errors"))
+    implementation(project(":infrastructure:db-core"))
+    implementation(project(":infrastructure:aws"))
+    implementation(project(":infrastructure:firebase"))
+    implementation(project(":infrastructure:client"))
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -34,11 +37,6 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:11.1.0")
 
-    implementation("software.amazon.awssdk:s3:2.30.27")
-    implementation("software.amazon.awssdk:rekognition:2.30.27")
-
-    implementation("io.netty:netty-resolver-dns-native-macos:4.1.116.Final")
-    implementation("com.google.firebase:firebase-admin:9.4.3")
     implementation("net.coobird:thumbnailator:0.4.20")
     implementation("net.datafaker:datafaker:2.4.2")
 

@@ -16,10 +16,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class NotificationScheduler(
-    private val memberAdapter: MemberPort,
-    private val bodyPhotoAdapter: BodyPhotoPort,
-    private val bodyReviewAdapter: BodyReviewPort,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val memberPort: MemberPort,
+    private val bodyPhotoPort: BodyPhotoPort,
+    private val bodyReviewPort: BodyReviewPort,
+    private val reviewableBodyPhotoPort: ReviewableBodyPhotoPort,
     private val fcmTokenPort: FcmTokenPort,
     private val notificationPort: NotificationPort,
 ) {
@@ -35,8 +35,8 @@ class NotificationScheduler(
             .withZoneSameInstant(UTC)
             .toLocalDateTime()
 
-        val memberIdToLatestReviewMap = bodyReviewAdapter.getMemberIdToLatestReviewMap()
-        val allMembers = memberAdapter.getAllByReviewRequestNotifyTrue()
+        val memberIdToLatestReviewMap = bodyReviewPort.getMemberIdToLatestReviewMap()
+        val allMembers = memberPort.getAllByReviewRequestNotifyTrue()
         val notificationTargetMembers = allMembers.asSequence()
             .filter { !TESTER_MEMBER_IDS.contains(it.memberId) }
             .filter { member ->
@@ -45,11 +45,11 @@ class NotificationScheduler(
             }
 
         val memberIdSet = notificationTargetMembers.map(Member::memberId).toSet()
-        val memberIdToFirstReviewableMap = reviewableBodyPhotoAdapter.getFirstByMemberIds(memberIdSet)
+        val memberIdToFirstReviewableMap = reviewableBodyPhotoPort.getFirstByMemberIds(memberIdSet)
             .associateBy { it.memberId }
 
         val bodyPhotoIdSet = memberIdToFirstReviewableMap.values.map { it.bodyPhotoId }.toSet()
-        val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
+        val bodyPhotoMap = bodyPhotoPort.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
         val memberIdToFcmTokenMap = fcmTokenPort.getMemberIdToFcmTokenMap(memberIdSet)
 
         notificationTargetMembers
@@ -68,8 +68,8 @@ class NotificationScheduler(
     fun notifyReviewableForTest() {
         val before30Minutes = LocalDateTime.now().minusMinutes(30)
 
-        val memberIdToLatestReviewMap = bodyReviewAdapter.getMemberIdToLatestReviewMap()
-        val testers = memberAdapter.getAllByReviewRequestNotifyTrue()
+        val memberIdToLatestReviewMap = bodyReviewPort.getMemberIdToLatestReviewMap()
+        val testers = memberPort.getAllByReviewRequestNotifyTrue()
             .filter { TESTER_MEMBER_IDS.contains(it.memberId) }
         val notificationTargetMembers = testers.filter { member ->
             val latestReview = memberIdToLatestReviewMap[member.memberId]
@@ -77,11 +77,11 @@ class NotificationScheduler(
         }
 
         val memberIdSet = notificationTargetMembers.map(Member::memberId).toSet()
-        val memberIdToFirstReviewableMap = reviewableBodyPhotoAdapter.getFirstByMemberIds(memberIdSet)
+        val memberIdToFirstReviewableMap = reviewableBodyPhotoPort.getFirstByMemberIds(memberIdSet)
             .associateBy { it.memberId }
 
         val bodyPhotoIdSet = memberIdToFirstReviewableMap.values.map { it.bodyPhotoId }.toSet()
-        val bodyPhotoMap = bodyPhotoAdapter.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
+        val bodyPhotoMap = bodyPhotoPort.getAllById(bodyPhotoIdSet).associateBy { it.bodyPhotoId }
         val memberIdToFcmTokenMap = fcmTokenPort.getMemberIdToFcmTokenMap(memberIdSet)
 
         notificationTargetMembers

@@ -1,22 +1,22 @@
 package app.thunder.api.application
 
-import app.thunder.api.adapter.rekognition.RekognitionAdapter
-import app.thunder.api.adapter.storage.StorageAdapter
 import app.thunder.api.controller.response.GetBodyPhotoResponse
 import app.thunder.api.controller.response.GetBodyPhotoResultResponse
 import app.thunder.api.event.RefreshReviewableEvent
 import app.thunder.api.event.ReviewUploadEvent
-import app.thunder.api.exception.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
-import app.thunder.api.exception.BodyErrors.NOT_FOUND_BODY_PHOTO
-import app.thunder.api.exception.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
-import app.thunder.api.exception.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
-import app.thunder.api.exception.MemberErrors.NOT_FOUND_MEMBER
-import app.thunder.api.exception.ThunderException
 import app.thunder.api.func.toKoreaZonedDateTime
 import app.thunder.domain.member.MemberPort
+import app.thunder.domain.photo.BodyDetectionPort
 import app.thunder.domain.photo.BodyPhoto
 import app.thunder.domain.photo.BodyPhotoPort
+import app.thunder.domain.photo.BodyPhotoStoragePort
 import app.thunder.domain.review.ReviewableBodyPhotoPort
+import app.thunder.shared.errors.BodyErrors.BODY_NOT_DETECTED_IN_PHOTO
+import app.thunder.shared.errors.BodyErrors.NOT_FOUND_BODY_PHOTO
+import app.thunder.shared.errors.BodyErrors.UNSUPPORTED_IMAGE_FORMAT
+import app.thunder.shared.errors.BodyErrors.UPLOADER_OR_ADMIN_ONLY_ACCESS
+import app.thunder.shared.errors.MemberErrors.NOT_FOUND_MEMBER
+import app.thunder.shared.errors.ThunderException
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 import kotlin.math.round
@@ -30,19 +30,19 @@ import org.springframework.web.multipart.MultipartFile
 
 @Service
 class BodyPhotoService(
-    private val memberAdapter: MemberPort,
-    private val bodyPhotoAdapter: BodyPhotoPort,
-    private val storageAdapter: StorageAdapter,
-    private val reviewableBodyPhotoAdapter: ReviewableBodyPhotoPort,
+    private val memberPort: MemberPort,
+    private val bodyPhotoPort: BodyPhotoPort,
+    private val storagePort: BodyPhotoStoragePort,
+    private val reviewableBodyPhotoPort: ReviewableBodyPhotoPort,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val rekognitionAdapter: RekognitionAdapter,
+    private val bodyDetectionPort: BodyDetectionPort,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional(readOnly = true)
     fun getAllByMemberId(memberId: Long): List<GetBodyPhotoResponse> {
-        return bodyPhotoAdapter.getAllByMemberId(memberId).map {
+        return bodyPhotoPort.getAllByMemberId(memberId).map {
             GetBodyPhotoResponse(
                 bodyPhotoId = it.bodyPhotoId,
                 imageUrl = it.imageUrl,
@@ -56,12 +56,12 @@ class BodyPhotoService(
 
     @Transactional(readOnly = true)
     fun getByBodyPhotoId(bodyPhotoId: Long, memberId: Long): GetBodyPhotoResultResponse {
-        val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
+        val bodyPhoto = bodyPhotoPort.getById(bodyPhotoId)
             ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
-        val member = memberAdapter.getById(memberId)
+        val member = memberPort.getById(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
 
-        val bodyPhotos = bodyPhotoAdapter.getAllByGender(member.gender)
+        val bodyPhotos = bodyPhotoPort.getAllByGender(member.gender)
         var ranking = 1.0
         for (other in bodyPhotos) {
             if (other.getResultReviewScore() > bodyPhoto.getResultReviewScore()) {
@@ -91,9 +91,9 @@ class BodyPhotoService(
             throw ThunderException(UNSUPPORTED_IMAGE_FORMAT)
         }
 
-        val bodyRekognition = rekognitionAdapter.getBodyRekognition(imageFile)
-        if (!bodyRekognition.isDetectedBody) {
-            log.error("Body Rekognition Failed [memberId: $memberId]\n{}", bodyRekognition)
+        val bodyDetectionResult = bodyDetectionPort.detectBody(imageFile.bytes)
+        if (!bodyDetectionResult.isDetectedBody) {
+            log.error("Body Rekognition Failed [memberId: $memberId]\n{}", bodyDetectionResult.details)
             throw ThunderException(BODY_NOT_DETECTED_IN_PHOTO)
         }
 
@@ -102,13 +102,13 @@ class BodyPhotoService(
             imageBytes = this.optimizeImageBytes(imageFile.bytes)
         }
 
-        val member = memberAdapter.getById(memberId)
+        val member = memberPort.getById(memberId)
             ?: throw ThunderException(NOT_FOUND_MEMBER)
         val fileName = "${UUID.randomUUID()}_${imageFile.originalFilename}"
         val filePath = "${member.nickname}/$BODY_PHOTO_PATH/$fileName"
-        val imageUrl = storageAdapter.upload(imageBytes, imageFile.contentType, filePath)
+        val imageUrl = storagePort.upload(imageBytes, imageFile.contentType, filePath)
 
-        val bodyPhoto = bodyPhotoAdapter.create(memberId, imageUrl)
+        val bodyPhoto = bodyPhotoPort.create(memberId, imageUrl)
         applicationEventPublisher.publishEvent(ReviewUploadEvent(bodyPhoto.bodyPhotoId))
         return bodyPhoto
     }
@@ -124,19 +124,19 @@ class BodyPhotoService(
 
     @Transactional
     fun deleteByBodyPhotoId(bodyPhotoId: Long, memberId: Long) {
-        val bodyPhoto = bodyPhotoAdapter.getById(bodyPhotoId)
+        val bodyPhoto = bodyPhotoPort.getById(bodyPhotoId)
             ?: throw ThunderException(NOT_FOUND_BODY_PHOTO)
         if (bodyPhoto.isNotUploader(memberId)) {
             throw ThunderException(UPLOADER_OR_ADMIN_ONLY_ACCESS)
         }
-        bodyPhotoAdapter.deleteById(bodyPhotoId)
+        bodyPhotoPort.deleteById(bodyPhotoId)
 
-        val reviewableList = reviewableBodyPhotoAdapter.getAllByBodyPhotoId(bodyPhotoId)
+        val reviewableList = reviewableBodyPhotoPort.getAllByBodyPhotoId(bodyPhotoId)
         reviewableList.forEach {
             applicationEventPublisher.publishEvent(RefreshReviewableEvent(it.memberId))
         }
-        reviewableBodyPhotoAdapter.deleteAllByBodyPhotoId(bodyPhotoId)
-        storageAdapter.delete(bodyPhoto.imageUrl)
+        reviewableBodyPhotoPort.deleteAllByBodyPhotoId(bodyPhotoId)
+        storagePort.delete(bodyPhoto.imageUrl)
     }
 
     companion object {
